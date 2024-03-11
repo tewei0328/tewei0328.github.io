@@ -4,7 +4,7 @@ Markdown語法
 ---
 - [Markdown語法](https://hackmd.io/@eMP9zQQ0Qt6I8Uqp2Vqy6w/SyiOheL5N/%2FBVqowKshRH246Q7UDyodFA?type=book)
 
-'''python
+```python
 import datetime
 dailySpecials=("Spaghetti","Macaroni & Cheese", "Meatloaf", "Fried Chicken")
 weekendSpecials=("Lobster","Prime Rib","Parmesan-Crusted Cod")
@@ -18,7 +18,7 @@ print("The weekday spcials include: ")
 for item in dailySpecials:
 print(item)
 print(f"Pricing specials change in {daysLeft} days")
-'''
+```
 
 ## Github pages教學
 - [tewei0328.github.io](https://tewei0328.github.io)
