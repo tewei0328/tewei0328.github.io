@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CCS 生成式 AI 國際認證 - 商管微學分衝刺課程</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter & Noto Sans TC -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#0B0F17',
+              card: 'rgba(23, 31, 48, 0.7)',
+              accent: '#3B82F6',
+              purple: '#8B5CF6',
+              cyan: '#06B6D4',
+              emerald: '#10B981',
+              rose: '#F43F5E'
+            }
+          },
+          fontFamily: {
+            sans: ['Noto Sans TC', 'Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #07090E;
+      color: #F3F4F6;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+    .glass-card {
+      background: rgba(19, 27, 44, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-nav {
+      background: rgba(11, 15, 23, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glow-blue {
+      box-shadow: 0 0 25px -5px rgba(59, 130, 246, 0.4);
+    }
+    .glow-purple {
+      box-shadow: 0 0 25px -5px rgba(139, 92, 246, 0.4);
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0B0F17;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1F2937;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3B82F6;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col justify-between selection:bg-brand-accent selection:text-white">
+
+  <!-- Header / Navigation -->
+  <header class="sticky top-0 z-50 glass-nav">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('overview')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+            <i class="fa-solid fa-brain"></i>
+          </div>
+          <div>
+            <span class="font-extrabold text-lg tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
+              CCS AI 認證微學分
+            </span>
+            <span class="text-xs text-gray-400 block font-light">商管學院專屬考照衝刺網</span>
+          </div>
+        </div>
+
+        <nav class="hidden md:flex space-x-1">
+          <button onclick="switchTab('overview')" id="nav-overview" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-blue-400 bg-blue-500/10">
+            <i class="fa-solid fa-compass mr-1.5"></i>課程大綱
+          </button>
+          <button onclick="switchTab('week1')" id="nav-week1" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-gray-300 hover:text-white hover:bg-white/5">
+            W1 AI方法論
+          </button>
+          <button onclick="switchTab('week2')" id="nav-week2" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-gray-300 hover:text-white hover:bg-white/5">
+            W2 提示工程
+          </button>
+          <button onclick="switchTab('week3')" id="nav-week3" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-gray-300 hover:text-white hover:bg-white/5">
+            W3 提示優化
+          </button>
+          <button onclick="switchTab('week4')" id="nav-week4" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-gray-300 hover:text-white hover:bg-white/5">
+            W4 倫理法律
+          </button>
+          <button onclick="switchTab('quiz')" id="nav-quiz" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30">
+            <i class="fa-solid fa-gamepad mr-1.5"></i>全真模擬考
+          </button>
+        </nav>
+
+        <!-- Mobile menu button -->
+        <div class="md:hidden flex items-center">
+          <button onclick="toggleMobileMenu()" class="text-gray-300 hover:text-white focus:outline-none">
+            <i class="fa-solid fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Mobile dropdown -->
+    <div id="mobile-menu" class="hidden md:hidden glass-card border-t border-gray-800 px-4 pt-2 pb-4 space-y-1">
+      <button onclick="switchTab('overview')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-blue-400">課程大綱</button>
+      <button onclick="switchTab('week1')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300">W1 AI方法論</button>
+      <button onclick="switchTab('week2')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300">W2 提示工程</button>
+      <button onclick="switchTab('week3')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300">W3 提示優化</button>
+      <button onclick="switchTab('week4')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300">W4 倫理法律</button>
+      <button onclick="switchTab('quiz')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-purple-400">全真模擬考</button>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+    <!-- TAB 0: OVERVIEW -->
+    <section id="tab-overview" class="tab-content space-y-12">
+      <!-- Hero Banner -->
+      <div class="relative rounded-3xl p-8 sm:p-12 overflow-hidden glass-card border-blue-500/20 glow-blue">
+        <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10 max-w-3xl space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold uppercase tracking-wider">
+            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> 商管學院 1 微學分認證課程
+          </div>
+          <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+            CCS Generative AI <br/>
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">生成式 AI 國際認證衝刺班</span>
+          </h1>
+          <p class="text-gray-300 text-lg leading-relaxed font-light">
+            結合真實商務案例與精準考題訓練。協助商管學生在 4 週內掌握 LLM 機制、提示工程技巧、數據與行銷決策應用，順利取得 CCS 國際認證。
+          </p>
+          <div class="pt-4 flex flex-wrap gap-4">
+            <button onclick="switchTab('week1')" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2">
+              開始第 1 週學習 <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+            <button onclick="switchTab('quiz')" class="px-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-200 border border-white/10 font-semibold transition-all flex items-center gap-2">
+              <i class="fa-solid fa-laptop-code text-purple-400"></i> 直接體驗題庫測驗
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Syllabus Grid -->
+      <div class="space-y-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-bold text-white tracking-wide">4 週微學分單元規劃</h2>
+          <span class="text-xs text-gray-400">對應 CCS 四大考試綱要</span>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Week 1 Card -->
+          <div onclick="switchTab('week1')" class="glass-card rounded-2xl p-6 hover:border-blue-500/40 transition-all cursor-pointer group space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-md bg-blue-500/20 text-blue-400 text-xs font-bold">Week 1</span>
+              <i class="fa-solid fa-microchip text-2xl text-blue-400 group-hover:scale-110 transition-transform"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">生成式 AI 方法與方法論</h3>
+            <p class="text-sm text-gray-400">掌握生成式與預測式 AI 的差異、神經網絡原理、多模態模型應用與多代理人架構（LangChain）。</p>
+            <div class="pt-2 flex items-center text-xs font-semibold text-blue-400">
+              檢視考綱知識點與模擬題庫 <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+            </div>
+          </div>
+
+          <!-- Week 2 Card -->
+          <div onclick="switchTab('week2')" class="glass-card rounded-2xl p-6 hover:border-indigo-500/40 transition-all cursor-pointer group space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-md bg-indigo-500/20 text-indigo-400 text-xs font-bold">Week 2</span>
+              <i class="fa-solid fa-terminal text-2xl text-indigo-400 group-hover:scale-110 transition-transform"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">基礎提示工程 (Prompt Engineering)</h3>
+            <p class="text-sm text-gray-400">學習角色賦予、上下文約束、多模態媒體生成提示（圖像/影片）及商務行銷文案自動化。</p>
+            <div class="pt-2 flex items-center text-xs font-semibold text-indigo-400">
+              檢視考綱知識點與模擬題庫 <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+            </div>
+          </div>
+
+          <!-- Week 3 Card -->
+          <div onclick="switchTab('week3')" class="glass-card rounded-2xl p-6 hover:border-purple-500/40 transition-all cursor-pointer group space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-md bg-purple-500/20 text-purple-400 text-xs font-bold">Week 3</span>
+              <i class="fa-solid fa-sliders text-2xl text-purple-400 group-hover:scale-110 transition-transform"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">提示優化與商業分析</h3>
+            <p class="text-sm text-gray-400">精通 Prompt Chaining、CoT 思維鏈、Few-shot 少樣本提示、反向提示及商務數據視覺化分析。</p>
+            <div class="pt-2 flex items-center text-xs font-semibold text-purple-400">
+              檢視考綱知識點與模擬題庫 <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+            </div>
+          </div>
+
+          <!-- Week 4 Card -->
+          <div onclick="switchTab('week4')" class="glass-card rounded-2xl p-6 hover:border-emerald-500/40 transition-all cursor-pointer group space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-md bg-emerald-500/20 text-emerald-400 text-xs font-bold">Week 4</span>
+              <i class="fa-solid fa-shield-halved text-2xl text-emerald-400 group-hover:scale-110 transition-transform"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">倫理、法律與社會影響</h3>
+            <p class="text-sm text-gray-400">探索 AI 幻覺查證、個人隱私（GDPR/保密原則）、智慧財產權專利規範及企業合規風險分析。</p>
+            <div class="pt-2 flex items-center text-xs font-semibold text-emerald-400">
+              檢視考綱知識點與模擬題庫 <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 1: WEEK 1 -->
+    <section id="tab-week1" class="tab-content hidden space-y-8">
+      <div class="border-b border-gray-800 pb-5">
+        <span class="text-xs font-semibold text-blue-400 tracking-widest uppercase">考綱一</span>
+        <h2 class="text-3xl font-bold text-white">第 1 週：生成式 AI 方法與方法論</h2>
+        <p class="text-gray-400 text-sm mt-1">重點：AI 分類、大型語言模型訓練流程、多模態技術與客製化 Agent</p>
+      </div>
+
+      <!-- Core Knowledge Blocks -->
+      <div class="grid lg:grid-cols-3 gap-6">
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-t-2 border-t-blue-500">
+          <div class="text-blue-400 text-lg font-bold"><i class="fa-solid fa-chart-line mr-2"></i>AI 類型區分</div>
+          <p class="text-xs text-gray-300 leading-relaxed">
+            <strong class="text-white">預測性/鑑別式 AI：</strong> 用於數據預估（如估算未來全球均溫）與標籤分類。<br/>
+            <strong class="text-white">生成式 AI：</strong> 使用神經網絡建立新文本、圖像或語音內容，基於機率預測下一個 Token。
+          </p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-t-2 border-t-blue-500">
+          <div class="text-blue-400 text-lg font-bold"><i class="fa-solid fa-layer-group mr-2"></i>LLM 訓練流程</div>
+          <ol class="text-xs text-gray-300 space-y-1 list-decimal list-inside">
+            <li>收集資料集</li>
+            <li>預處理與清理資料集</li>
+            <li>準備要輸入的資料</li>
+            <li>微調超參數</li>
+          </ol>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-t-2 border-t-blue-500">
+          <div class="text-blue-400 text-lg font-bold"><i class="fa-solid fa-robot mr-2"></i>Agent 與客製化</div>
+          <p class="text-xs text-gray-300 leading-relaxed">
+            <strong class="text-white">Microsoft Copilot 客製化：</strong> 輸入一組特定指令與資訊進行設定。<br/>
+            <strong class="text-white">多代理人協作：</strong> 使用 <strong class="text-blue-400">LangChain</strong> 框架分工合作開發應用程式。
+          </p>
+        </div>
+      </div>
+
+      <!-- Key Questions List -->
+      <div class="glass-card rounded-2xl p-6 space-y-6">
+        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-blue-400"></i> 本週精選認證試題解析
+        </h3>
+
+        <div class="space-y-4">
+          <div class="p-4 rounded-xl bg-black/30 border border-gray-800 hover:border-gray-700 transition-all space-y-2">
+            <div class="flex justify-between text-xs text-gray-400">
+              <span>題號: 2-A13</span>
+              <span class="text-blue-400">AI 類型選擇</span>
+            </div>
+            <p class="text-sm font-medium text-gray-200">你正在研究一系列資料，想要估算 2200 年地球上的平均溫度。哪種類型的人工智慧 (AI) 最適合執行此任務？</p>
+            <div class="text-xs text-emerald-400 font-semibold pt-1">
+              <i class="fa-solid fa-circle-check mr-1"></i>正確答案：A. 預測性 AI (Predictive AI)
+            </div>
+            <p class="text-xs text-gray-400 bg-gray-900/50 p-2 rounded">解析：估算未來數據或趨勢屬於預測性 AI 的應用範疇。</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-black/30 border border-gray-800 hover:border-gray-700 transition-all space-y-2">
+            <div class="flex justify-between text-xs text-gray-400">
+              <span>題號: 18-B19</span>
+              <span class="text-blue-400">多代理人開發</span>
+            </div>
+            <p class="text-sm font-medium text-gray-200">團隊開發貸款審核應用（獲取信用、評分、發送通知），哪種工具適合通過多代理人分工來推動合作開發？</p>
+            <div class="text-xs text-emerald-400 font-semibold pt-1">
+              <i class="fa-solid fa-circle-check mr-1"></i>正確答案：A. LangChain
+            </div>
+            <p class="text-xs text-gray-400 bg-gray-900/50 p-2 rounded">解析：LangChain 提供強大的多代理人（Multi-Agent）鏈結架構，適合分工合作任務。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: WEEK 2 -->
+    <section id="tab-week2" class="tab-content hidden space-y-8">
+      <div class="border-b border-gray-800 pb-5">
+        <span class="text-xs font-semibold text-indigo-400 tracking-widest uppercase">考綱二</span>
+        <h2 class="text-3xl font-bold text-white">第 2 週：基礎提示工程 (Prompt Engineering)</h2>
+        <p class="text-gray-400 text-sm mt-1">重點：提示詞四要素、多模態生成（文本、圖像、影片）與商務應用</p>
+      </div>
+
+      <div class="glass-card p-6 rounded-2xl space-y-4 border-l-4 border-l-indigo-500">
+        <h3 class="text-lg font-bold text-white">完整提示詞 (Prompt) 核心結構對應表</h3>
+        <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+          <div class="bg-indigo-950/40 p-3 rounded-lg border border-indigo-500/20">
+            <span class="text-indigo-300 font-bold block mb-1">1. 假定角色</span>
+            「你是一位在目標受眾領域有著豐富經驗的高級行銷經理」
+          </div>
+          <div class="bg-indigo-950/40 p-3 rounded-lg border border-indigo-500/20">
+            <span class="text-indigo-300 font-bold block mb-1">2. 完整上下文</span>
+            「我們需要為試算表清單中的每個人生成電子郵件...」
+          </div>
+          <div class="bg-indigo-950/40 p-3 rounded-lg border border-indigo-500/20">
+            <span class="text-indigo-300 font-bold block mb-1">3. 特定指令</span>
+            「根據客戶對新產品的喜好程度，為他們生成郵件」
+          </div>
+          <div class="bg-indigo-950/40 p-3 rounded-lg border border-indigo-500/20">
+            <span class="text-indigo-300 font-bold block mb-1">4. 約束條件</span>
+            「語氣上應模仿一個有好消息要告訴你的摯友」
+          </div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="glass-card p-6 rounded-2xl space-y-3">
+          <h4 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-image text-indigo-400"></i> 圖像生成與轉換提示
+          </h4>
+          <ul class="text-xs text-gray-300 space-y-2 list-disc list-inside">
+            <li><strong>風格轉換：</strong>「將照片製作成蒙娜麗莎風格」</li>
+            <li><strong>特定用途標誌：</strong>包含具體視覺元素與顏色（如橘色 P 字、綠色漸層背景）。</li>
+            <li><strong>圖像精確轉換：</strong>汽車方向反轉應使用「水平鏡像」指令。</li>
+          </ul>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3">
+          <h4 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-video text-indigo-400"></i> 影片與動態提示技巧
+          </h4>
+          <ul class="text-xs text-gray-300 space-y-2 list-disc list-inside">
+            <li><strong>詳細描述：</strong>包含場面、角色動作、結構與總結。</li>
+            <li><strong>明確長度與劇本：</strong>指定時間（如 45 秒）與台詞執行。</li>
+            <li><strong>PPT 轉影片：</strong>指定正式口吻、保留讀字時間。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: WEEK 3 -->
+    <section id="tab-week3" class="tab-content hidden space-y-8">
+      <div class="border-b border-gray-800 pb-5">
+        <span class="text-xs font-semibold text-purple-400 tracking-widest uppercase">考綱三</span>
+        <h2 class="text-3xl font-bold text-white">第 3 週：提示優化與商業數據分析</h2>
+        <p class="text-gray-400 text-sm mt-1">重點：Prompt Chaining、CoT、Few-Shot、無偏見提示與圖表資料轉化</p>
+      </div>
+
+      <div class="grid sm:grid-cols-3 gap-6">
+        <div class="glass-card p-5 rounded-2xl border-t-2 border-t-purple-500 space-y-2">
+          <div class="text-purple-400 font-bold text-base">Prompt Chaining</div>
+          <p class="text-xs text-gray-300">將複雜任務拆解為更小的子任務，並將上一個提示詞的輸出作為下一個提示詞的輸入。</p>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl border-t-2 border-t-purple-500 space-y-2">
+          <div class="text-purple-400 font-bold text-base">Few-Shot Learning</div>
+          <p class="text-xs text-gray-300">在提示詞中提供若干範例（問答對），引導 AI 理解特定的輸出格式或推理邏輯。</p>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl border-t-2 border-t-purple-500 space-y-2">
+          <div class="text-purple-400 font-bold text-base">Reverse Prompting</div>
+          <p class="text-xs text-gray-300">讓 AI 對使用者進行反向提問，以收集完整的關鍵細節並生成精準結果（如簡歷製作）。</p>
+        </div>
+      </div>
+
+      <div class="glass-card p-6 rounded-2xl space-y-4">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-table text-purple-400"></i> 商管資料集與標頭標籤配對範例
+        </h3>
+        <p class="text-xs text-gray-400">在進行數據分析與圖表生成時，精確選擇資料欄位標頭是 Prompt 精準度的關鍵：</p>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-gray-700 text-purple-300">
+                <th class="py-2 px-3">分析任務提示詞</th>
+                <th class="py-2 px-3">關鍵標頭標籤 (Header Tags)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800 text-gray-300">
+              <tr>
+                <td class="py-2.5 px-3">確定每種社區類型中年份最新的房產</td>
+                <td class="py-2.5 px-3 font-mono text-purple-400">建造年份、社區類型</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3">確定房屋大小、房屋數量和區域之間的相關性</td>
+                <td class="py-2.5 px-3 font-mono text-purple-400">臥室數量、衛浴數量、面積、區域</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3">查找每個區域的每平方米平均價格</td>
+                <td class="py-2.5 px-3 font-mono text-purple-400">區域、總價、面積</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: WEEK 4 -->
+    <section id="tab-week4" class="tab-content hidden space-y-8">
+      <div class="border-b border-gray-800 pb-5">
+        <span class="text-xs font-semibold text-emerald-400 tracking-widest uppercase">考綱四</span>
+        <h2 class="text-3xl font-bold text-white">第 4 週：倫理、法律與社會影響</h2>
+        <p class="text-gray-400 text-sm mt-1">重點：資料隱私洩漏、智慧財產權與專利、AI 偏見識別與事實查證</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <h3 class="text-lg font-bold text-emerald-400 flex items-center gap-2">
+            <i class="fa-solid fa-user-shield"></i> 個人資料與企業合規
+          </h3>
+          <ul class="text-xs text-gray-300 space-y-2.5 list-disc list-inside">
+            <li><strong>避免機密洩漏：</strong>不可將包含個人帳密、身份識別（PII）或企業財務個資上傳至未受保護的公用 AI。</li>
+            <li><strong>AI 對答記憶：</strong>在同一對話視窗中，AI 會暫存該次對話輸入的帳密與資料。</li>
+            <li><strong>隱私法律：</strong>招聘或行銷自動化必須遵守《個人資料保護法》、《勞動法》與《智財法》。</li>
+          </ul>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <h3 class="text-lg font-bold text-emerald-400 flex items-center gap-2">
+            <i class="fa-solid fa-gavel"></i> 智慧財產權與法律侵權
+          </h3>
+          <ul class="text-xs text-gray-300 space-y-2.5 list-disc list-inside">
+            <li><strong>專利權 (Patent)：</strong>最高法院裁定純 AI 不能作為唯一發明人，須有人類實質參與設計改進。</li>
+            <li><strong>版權侵權 (Copyright)：</strong>生成與既有樂譜、文章完全高度雷同的內容。</li>
+            <li><strong>商標侵權 (Trademark)：</strong>生成的 Logo 與既有品牌註冊商標相同。</li>
+            <li><strong>誹謗責任：</strong>生成虛構偽造他人從事違法活動的圖像並公開傳播屬於違法誹謗。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: QUIZ GAME -->
+    <section id="tab-quiz" class="tab-content hidden space-y-8">
+      <div class="border-b border-gray-800 pb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-semibold text-purple-400 tracking-widest uppercase">CCS 認證全真模擬</span>
+          <h2 class="text-3xl font-bold text-white">互動測驗與題庫衝刺</h2>
+          <p class="text-gray-400 text-sm mt-1">選自 CCS AI 國際認證 AB 卷試題</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-gray-400">目前得分:</span>
+          <span id="score-display" class="px-3 py-1 rounded-lg bg-purple-500/20 text-purple-400 font-extrabold text-lg">0 / 0</span>
+        </div>
+      </div>
+
+      <div id="quiz-container" class="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+        <div id="quiz-card" class="space-y-6">
+          <!-- Dynamic Content Rendered via JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="glass-nav mt-12 py-6 border-t border-gray-800 text-center text-xs text-gray-500">
+    <div class="max-w-7xl mx-auto px-4">
+      <p>CCS Generative AI Foundations 國際認證輔導課程網站 © 2026</p>
+      <p class="mt-1 font-light text-gray-600">專為大學商管學生設計之微學分數位學習平台</p>
+    </div>
+  </footer>
+
+  <script>
+    // Tab Switching Logic
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-blue-400', 'bg-blue-500/10', 'text-purple-400', 'bg-purple-500/10');
+        btn.classList.add('text-gray-300');
+      });
+
+      const activeNav = document.getElementById('nav-' + tabId);
+      if (activeNav) {
+        activeNav.classList.remove('text-gray-300');
+        if (tabId === 'quiz') {
+          activeNav.classList.add('text-purple-400', 'bg-purple-500/10');
+        } else {
+          activeNav.classList.add('text-blue-400', 'bg-blue-500/10');
+        }
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    // CCS Exam Questions Data Bank
+    const quizData = [
+      {
+        id: "2-A13",
+        cat: "考綱一：AI方法論",
+        q: "你正在研究一系列資料，想要估算出 2200 年地球上的平均溫度。哪種類型的人工智慧 (AI) 最適合執行此任務？",
+        options: [
+          "A. 預測性 AI (Predictive AI)",
+          "B. 鑑別式 AI (Discriminative AI)",
+          "C. 擴散式 AI (Diffusion AI)",
+          "D. 變分自動編碼器 (VAE)"
+        ],
+        answer: 0,
+        explain: "估算未來的具體數值與趨勢屬於預測性 AI (Predictive AI) 的核心範疇。"
+      },
+      {
+        id: "18-B19",
+        cat: "考綱一：AI方法論",
+        q: "團隊開發貸款審核應用（包含獲取信用、評分、發送通知三分工任務），哪種 AI 工具適合通過多代理人分工來推動合作開發？",
+        options: [
+          "A. LangChain",
+          "B. Adobe Firefly",
+          "C. Microsoft Copilot",
+          "D. Stable Diffusion"
+        ],
+        answer: 0,
+        explain: "LangChain 是構建與串接多代理人 (Multi-Agent) 協作流程的首選框架。"
+      },
+      {
+        id: "20-A1",
+        cat: "考綱二：提示工程",
+        q: "你正在開展新產品行銷活動。在構建提示詞時，提示片段『你是一位在目標受眾領域有著豐富經驗的高級行銷經理』屬於哪種提示詞類別？",
+        options: [
+          "A. 完整的提示詞上下文",
+          "B. 生成式 AI 假定角色",
+          "C. 特定指令",
+          "D. 約束條件及舉例"
+        ],
+        answer: 1,
+        explain: "明確指定專業身份與背景屬於提示詞中的『假定角色 (Role Prompting)』。"
+      },
+      {
+        id: "43-A23",
+        cat: "考綱三：提示優化",
+        q: "哪項定義正確地描述了『提示詞鏈接 (Prompt Chaining)』技術？",
+        options: [
+          "A. 將任務分解為更小的子任務，並使用一個提示詞的輸出作為下一個提示詞的輸入",
+          "B. 提供若干範例說明如何回答問題以指導 AI 行為",
+          "C. 提供需要進行數值計算的問題與計算步驟範例",
+          "D. 發出一個主題的提示詞後再發出另一個獨立主題的提示詞"
+        ],
+        answer: 0,
+        explain: "Prompt Chaining 將複雜流程拆解，前一步驟的 Output 即為下一步驟的 Input。"
+      },
+      {
+        id: "68-A30",
+        cat: "考綱四：倫理與法律",
+        q: "律師事務想要在招聘流程中使用生成式 AI，需要考慮哪些相關法律？（請選出最核心者）",
+        options: [
+          "A. 房地產法、海商法、刑法",
+          "B. 個人資料保護法、勞動法、智慧財產權法",
+          "C. 關稅法、環境保護法、公司法",
+          "D. 證券交易法、專利法、所得稅法"
+        ],
+        answer: 1,
+        explain: "招聘自動化涉及求職者個資處理（個資法）、雇傭平權（勞動法）及模型訓練規範（智財法）。"
+      }
+    ];
+
+    let currentQIndex = 0;
+    let score = 0;
+
+    function renderQuiz() {
+      const container = document.getElementById('quiz-card');
+      const q = quizData[currentQIndex];
+
+      container.innerHTML = `
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+          <span class="text-xs font-semibold px-2.5 py-1 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">${q.cat} (${q.id})</span>
+          <span class="text-xs text-gray-400">題目 ${currentQIndex + 1} / ${quizData.length}</span>
+        </div>
+        <h3 class="text-lg font-bold text-white leading-relaxed">${q.q}</h3>
+        <div class="space-y-3 pt-2">
+          ${q.options.map((opt, idx) => `
+            <button onclick="checkAnswer(${idx})" class="w-full text-left p-4 rounded-xl glass-card hover:bg-purple-500/10 hover:border-purple-500/40 transition-all text-sm text-gray-200 flex items-center justify-between group">
+              <span>${opt}</span>
+              <i class="fa-regular fa-circle text-gray-600 group-hover:text-purple-400"></i>
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function checkAnswer(selectedIdx) {
+      const q = quizData[currentQIndex];
+      const isCorrect = selectedIdx === q.answer;
+      if (isCorrect) score++;
+
+      document.getElementById('score-display').innerText = `${score} / ${quizData.length}`;
+
+      const container = document.getElementById('quiz-card');
+      container.innerHTML = `
+        <div class="space-y-4">
+          <div class="p-4 rounded-xl ${isCorrect ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-rose-500/10 border border-rose-500/30'}">
+            <div class="flex items-center gap-2 text-base font-bold ${isCorrect ? 'text-emerald-400' : 'text-rose-400'}">
+              <i class="fa-solid ${isCorrect ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
+              ${isCorrect ? '回答正確！' : '回答錯誤！'}
+            </div>
+            <p class="text-xs text-gray-300 mt-2"><strong>正確答案：</strong> ${q.options[q.answer]}</p>
+            <p class="text-xs text-gray-400 mt-1"><strong>詳細解析：</strong> ${q.explain}</p>
+          </div>
+          <button onclick="nextQuestion()" class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm transition-all shadow-lg">
+            ${currentQIndex < quizData.length - 1 ? '下一題' : '查看最終結果'}
+          </button>
+        </div>
+      `;
+    }
+
+    function nextQuestion() {
+      currentQIndex++;
+      if (currentQIndex < quizData.length) {
+        renderQuiz();
+      } else {
+        const container = document.getElementById('quiz-card');
+        container.innerHTML = `
+          <div class="text-center py-8 space-y-4">
+            <div class="w-20 h-20 mx-auto rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-3xl">
+              <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white">模擬測驗完成！</h3>
+            <p class="text-gray-300 text-sm">你的總得分為：<span class="text-purple-400 font-bold text-xl">${score} / ${quizData.length}</span></p>
+            <button onclick="resetQuiz()" class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm transition-all">
+              重新測驗
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    function resetQuiz() {
+      currentQIndex = 0;
+      score = 0;
+      document.getElementById('score-display').innerText = `0 / ${quizData.length}`;
+      renderQuiz();
+    }
+
+    // Initialize Quiz
+    renderQuiz();
+  </script>
+</body>
+</html>
