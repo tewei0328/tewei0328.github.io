@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI考試準備｜四週微學分課程</title>
+<style>
+:root{
+  --bg:#f5f7fb; --card:#fff; --text:#172033; --muted:#667085;
+  --primary:#4f46e5; --primary2:#7c3aed; --line:#e6e9f0;
+  --ok:#15803d; --warn:#b45309;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+header{background:linear-gradient(135deg,#312e81,#6d28d9);color:white;padding:58px 20px}
+.container{max-width:1100px;margin:auto;padding:0 20px}
+.badge{display:inline-block;background:rgba(255,255,255,.15);padding:5px 12px;border-radius:99px;font-size:14px}
+h1{font-size:clamp(32px,5vw,52px);margin:12px 0 8px}
+.hero p{font-size:18px;max-width:780px;color:#eee}
+nav{position:sticky;top:0;background:white;border-bottom:1px solid var(--line);z-index:10}
+.navin{display:flex;gap:8px;overflow:auto;padding:10px 20px;max-width:1100px;margin:auto}
+nav button{border:0;background:transparent;padding:9px 14px;border-radius:10px;cursor:pointer;white-space:nowrap}
+nav button:hover,nav button.active{background:#ede9fe;color:#4338ca}
+section{padding:42px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 5px 20px rgba(20,25,50,.04)}
+.card h3{margin-top:0}
+.week{border-left:5px solid var(--primary)}
+.small{font-size:14px;color:var(--muted)}
+.tag{display:inline-block;background:#eef2ff;color:#4338ca;padding:3px 9px;border-radius:8px;font-size:13px;margin:3px}
+.progress{height:10px;background:#e5e7eb;border-radius:99px;overflow:hidden}
+.bar{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary2));width:0}
+button.action{background:var(--primary);color:white;border:0;border-radius:10px;padding:10px 16px;cursor:pointer}
+.quiz{margin-top:16px}
+.option{display:block;border:1px solid var(--line);padding:10px 12px;border-radius:10px;margin:8px 0;cursor:pointer}
+.option:hover{background:#f8f7ff}
+.result{margin-top:12px;font-weight:700}
+table{width:100%;border-collapse:collapse;background:white;border-radius:12px;overflow:hidden}
+th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left}
+footer{background:#111827;color:#d1d5db;padding:30px 0;margin-top:30px}
+.hide{display:none}
+@media(max-width:600px){header{padding:40px 10px}.container{padding:0 14px}section{padding:30px 0}}
+</style>
+</head>
+<body>
+<header id="home">
+<div class="container hero">
+<span class="badge">4週微學分課程｜大學商管學生</span>
+<h1>AI考試準備</h1>
+<p>以「CCS Generative AI Foundations 生成式AI人工智慧核心能力」參考題庫為主軸，將題庫內容轉化為四週循序學習、實作與模擬測驗。</p>
+<p class="small" style="color:#ddd">課程核心：理解 AI → 掌握 Prompt → 優化輸出 → 建立倫理與風險意識 → 完成考前總複習</p>
+</div>
+</header>
+
+<nav>
+<div class="navin">
+<button onclick="go('overview')">課程總覽</button>
+<button onclick="go('weeks')">四週課程</button>
+<button onclick="go('practice')">題型練習</button>
+<button onclick="go('exam')">模擬測驗</button>
+<button onclick="go('resources')">考前重點</button>
+</div>
+</nav>
+
+<main>
+<section id="overview">
+<div class="container">
+<h2>課程總覽</h2>
+<div class="grid">
+<div class="card"><h3>🎯 學習目標</h3><p>能辨識生成式AI基本概念、選擇合適AI工具、設計有效提示詞，並判斷資料、偏見、隱私、著作權與法律風險。</p></div>
+<div class="card"><h3>👥 適用對象</h3><p>大學商管學生。特別適合行銷、管理、財金、會計、資管與商業科技相關課程。</p></div>
+<div class="card"><h3>⏱️ 建議學習量</h3><p>每週約2～3小時：概念學習＋題庫練習＋AI實作＋小測驗。</p></div>
+<div class="card"><h3>🏁 完成條件</h3><p>完成四週學習、每週練習與期末模擬測驗。可將網站作為考前自學與課堂教學入口。</p></div>
+</div>
+<br>
+<div class="card">
+<h3>四週學習地圖</h3>
+<div class="grid">
+<div><span class="tag">Week 1</span><b>生成式AI方法與方法論</b><p class="small">AI類型、生成式AI、模型與工具</p></div>
+<div><span class="tag">Week 2</span><b>基礎提示工程</b><p class="small">角色、上下文、指令、限制與範例</p></div>
+<div><span class="tag">Week 3</span><b>提示優化</b><p class="small">Prompt refinement、驗證、鏈接與資料視覺化</p></div>
+<div><span class="tag">Week 4</span><b>倫理、法律與社會影響</b><p class="small">隱私、偏見、著作權、責任與風險</p></div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="weeks">
+<div class="container">
+<h2>四週課程</h2>
+
+<div class="card week">
+<h3>Week 1｜生成式AI方法與方法論</h3>
+<p><b>對應題庫考綱一</b></p>
+<ul>
+<li>生成式AI能建立文字、圖像、語音等新內容。</li>
+<li>理解預測性AI、鑑別式AI、擴散式AI、VAE等概念的基本差異。</li>
+<li>認識大型語言模型的資料收集、預處理、準備輸入資料與超參數等流程。</li>
+<li>辨識不同工具的典型任務，例如 ChatGPT、Canva、Adobe Express、Azure AI Studio。</li>
+<li>理解生成式AI輸出可能產生錯誤，因此需要事實查證。</li>
+</ul>
+<p><b>商管任務：</b>請AI協助你把一份產品資料轉成「市場分析摘要」，再檢查AI是否加入原資料沒有的資訊。</p>
+</div>
+
+<div class="card week">
+<h3>Week 2｜基礎提示工程 Prompt Engineering</h3>
+<p><b>對應題庫考綱二</b></p>
+<ul>
+<li>學習「角色＋任務＋上下文＋限制＋輸出格式」的提示詞結構。</li>
+<li>理解如何提供目標受眾、背景資料與具體要求。</li>
+<li>學習摘要、圖像生成、影片生成、資料分析等不同任務的提示方式。</li>
+<li>理解 zero-shot、few-shot，以及提示詞鏈接（prompt chaining）的基本概念。</li>
+</ul>
+<p><b>商管任務：</b>把「幫我做行銷企劃」改寫成包含目標市場、產品、預算、語氣、格式與限制條件的完整提示詞。</p>
+</div>
+
+<div class="card week">
+<h3>Week 3｜提示優化 Prompt Refinement</h3>
+<p><b>對應題庫考綱三</b></p>
+<ul>
+<li>學習從第一次輸出找問題，再使用後續提示詞逐步改善。</li>
+<li>比較摘要、資料視覺化、影像轉換與內容改寫等任務的提示差異。</li>
+<li>學習如何要求AI針對特定受眾調整語言、風格與複雜度。</li>
+<li>練習交叉查證AI產生的數據與歷史、人口等資訊。</li>
+</ul>
+<p><b>商管任務：</b>讓AI分析一份銷售資料，要求它產生圖表、趨勢摘要與管理者版簡報大綱，並逐輪改善提示詞。</p>
+</div>
+
+<div class="card week">
+<h3>Week 4｜倫理、法律與社會影響</h3>
+<p><b>對應題庫考綱四</b></p>
+<ul>
+<li>理解生成式AI可能帶來的正面與負面社會影響。</li>
+<li>辨識個人資料、帳號密碼、公司機密等敏感資訊的風險。</li>
+<li>理解AI偏見可能出現在資料收集、資料標注、模型訓練與部署等階段。</li>
+<li>認識個人資料保護、勞動、智慧財產權等與企業AI應用相關的法律議題。</li>
+<li>理解使用AI產生內容仍需要人為審查與責任承擔。</li>
+</ul>
+<p><b>商管任務：</b>設計一份「企業導入生成式AI風險檢查表」，至少包含資料、偏見、著作權與人工審查。</p>
+</div>
+</div>
+</section>
+
+<section id="practice">
+<div class="container">
+<h2>題型練習</h2>
+<div class="grid">
+<div class="card"><h3>① 正確／錯誤</h3><p>題庫包含生成式AI特性、限制與偏見判斷題。</p><p class="small">策略：找關鍵詞，例如「一定」「總是」「無需人工監督」等絕對敘述。</p></div>
+<div class="card"><h3>② 單選題</h3><p>常要求判斷哪個AI工具、提示詞或方法最符合情境。</p><p class="small">策略：先抓「任務目的」，再比對工具或方法。</p></div>
+<div class="card"><h3>③ 複選題</h3><p>題庫常出現「請選擇2個／3個答案」。</p><p class="small">策略：每個選項獨立判斷，不要因為已選兩個就停止檢查。</p></div>
+<div class="card"><h3>④ 配對題</h3><p>工具、功能、資料階段與法律風險可能要求配對。</p><p class="small">策略：先建立「概念→典型任務」的快速對照表。</p></div>
+</div>
+</div>
+</section>
+
+<section id="exam">
+<div class="container">
+<h2>期末模擬測驗</h2>
+<div class="card">
+<p><b>說明：</b>以下題目依照上傳題庫的核心概念重新設計，作為練習，不是原題逐字重製。</p>
+<div id="quiz"></div>
+<button class="action" onclick="submitQuiz()">交卷並查看成績</button>
+<div id="score" class="result"></div>
+</div>
+</div>
+</section>
+
+<section id="resources">
+<div class="container">
+<h2>考前一頁重點</h2>
+<table>
+<tr><th>主題</th><th>考前要會</th></tr>
+<tr><td>生成式AI</td><td>能生成新內容；常見輸出包含文字、圖像、語音等。</td></tr>
+<tr><td>工具辨識</td><td>能依任務判斷 ChatGPT、Canva、Adobe Express、Azure AI Studio、LangChain 等工具或概念。</td></tr>
+<tr><td>Prompt</td><td>角色、任務、上下文、具體指令、限制條件、範例、輸出格式。</td></tr>
+<tr><td>Prompt refinement</td><td>先看輸出問題，再增加受眾、資料、格式、風格、限制等條件。</td></tr>
+<tr><td>驗證</td><td>AI可能產生錯誤資訊；重要資訊要交叉引用可靠來源。</td></tr>
+<tr><td>偏見</td><td>偏見可能來自資料與模型；AI不能被假定為自動消除偏見。</td></tr>
+<tr><td>隱私</td><td>避免把姓名、位置、帳號密碼、健康資料、公司機密等不必要地輸入AI。</td></tr>
+<tr><td>法律</td><td>企業AI應用可能涉及個資、勞動、智慧財產權等議題。</td></tr>
+<tr><td>人工監督</td><td>AI輸出仍需要人員審查、驗證與負責。</td></tr>
+</table>
+<br>
+<div class="card">
+<h3>學習進度</h3>
+<p>完成四週後，可用下方按鈕標記自己的學習狀態。</p>
+<button class="action" onclick="markDone()">✓ 我已完成本課程</button>
+<p id="done" class="result"></p>
+</div>
+</div>
+</section>
+</main>
+
+<footer>
+<div class="container">
+<b>AI考試準備｜四週微學分課程</b>
+<p>課程內容以使用者上傳之「CCS Generative AI Foundations 生成式AI人工智慧核心能力 國際認證參考題庫」為主要設計依據。</p>
+</div>
+</footer>
+
+<script>
+const questions=[
+ {q:"下列何者最符合生成式AI的特性？",o:["只能列出搜尋結果","可以建立新的文字、圖像或語音內容","只能處理數字","只能進行資料排序"],a:1},
+ {q:"設計一個針對特定商業任務的高品質提示詞時，哪項最有幫助？",o:["只寫『幫我做分析』","提供角色、任務、背景與具體限制","完全不提供背景","只指定答案長度"],a:1},
+ {q:"若AI產生的人口統計數據要用於商業報告，較適當的做法是？",o:["直接相信AI","重新問一次即可","交叉引用可靠的官方或國際資料","請朋友猜測"],a:2},
+ {q:"下列哪一項屬於生成式AI使用時的重要風險？",o:["一定不會出錯","不需要人工監督","可能產生偏見或不正確內容","輸出永遠具有法律效力"],a:2},
+ {q:"企業使用生成式AI進行招募流程時，題庫特別涉及哪些法律面向？",o:["房地產法即可","個人資料保護、勞動與智慧財產權等","只有交通法","只有稅法"],a:1},
+ {q:"Prompt chaining 的核心概念是？",o:["把一個任務拆成子任務，前一個提示的輸出成為下一個輸入","每次只使用一個字","只產生圖像","刪除所有上下文"],a:0},
+ {q:"如果AI生成內容的語言對目標受眾太複雜，較有效的優化方式是？",o:["提供受眾資訊並要求使用適合該受眾的語言與例子","完全刪除提示詞","要求內容更複雜","不要說明受眾"],a:0},
+ {q:"下列哪項最符合AI偏見的處理原則？",o:["假設AI一定沒有偏見","由人工審查生成內容是否存在偏見","只看模型名稱","不檢查資料"],a:1}
+];
+
+function renderQuiz(){
+ const el=document.getElementById("quiz");
+ el.innerHTML=questions.map((x,i)=>`
+ <div class="quiz">
+ <p><b>${i+1}. ${x.q}</b></p>
+ ${x.o.map((v,j)=>`<label class="option"><input type="radio" name="q${i}" value="${j}"> ${v}</label>`).join("")}
+ </div>`).join("");
+}
+function submitQuiz(){
+ let score=0, answered=0;
+ questions.forEach((x,i)=>{
+   const v=document.querySelector(`input[name=q${i}]:checked`);
+   if(v){answered++; if(+v.value===x.a)score++;}
+ });
+ document.getElementById("score").textContent=`你的成績：${score} / ${questions.length}（已作答 ${answered} 題）`;
+}
+function markDone(){
+ localStorage.setItem("ai-course-done","yes");
+ document.getElementById("done").textContent="🎉 已標記完成！";
+}
+function go(id){document.getElementById(id).scrollIntoView({behavior:"smooth"});}
+renderQuiz();
+if(localStorage.getItem("ai-course-done")) document.getElementById("done").textContent="🎉 已標記完成！";
+</script>
+</body>
+</html>
