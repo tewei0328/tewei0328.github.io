@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小店經營診斷｜四週微學分課程</title>
+<meta name="description" content="給大學商管學生的四週微學分課程：從觀察、數據、顧客到行動方案，完成一份小店經營診斷報告。">
+<style>
+:root{
+  --bg:#f6f7fb;
+  --card:#ffffff;
+  --text:#172033;
+  --muted:#667085;
+  --line:#e4e7ec;
+  --accent:#6d5efc;
+  --accent2:#16a085;
+  --soft:#eeecff;
+  --soft2:#e7f8f3;
+  --warning:#fff4d6;
+  --shadow:0 14px 40px rgba(19,27,52,.08);
+  --radius:22px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  background:var(--bg); color:var(--text); line-height:1.65;
+}
+a{color:inherit}
+button,input,textarea,select{font:inherit}
+.container{width:min(1180px,92%);margin:auto}
+.nav{
+  position:sticky; top:0; z-index:50; backdrop-filter:blur(14px);
+  background:rgba(246,247,251,.86); border-bottom:1px solid rgba(228,231,236,.75);
+}
+.nav-in{height:70px; display:flex; align-items:center; justify-content:space-between; gap:20px}
+.brand{font-weight:800; letter-spacing:.02em}
+.nav-links{display:flex;gap:16px;flex-wrap:wrap}
+.nav-links a{text-decoration:none;color:var(--muted);font-size:.92rem}
+.hero{
+  padding:72px 0 52px;
+  background:
+    radial-gradient(circle at 12% 15%, rgba(109,94,252,.13), transparent 34%),
+    radial-gradient(circle at 82% 20%, rgba(22,160,133,.11), transparent 30%);
+}
+.hero-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:34px;align-items:stretch}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:var(--soft);color:var(--accent);font-weight:700;font-size:.82rem}
+h1{font-size:clamp(2.3rem,5.2vw,4.5rem);line-height:1.07;margin:18px 0 18px;letter-spacing:-.04em}
+.lead{font-size:1.15rem;color:var(--muted);max-width:720px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.btn{border:0;border-radius:14px;padding:12px 18px;font-weight:750;cursor:pointer;text-decoration:none;display:inline-block}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-secondary{background:#fff;border:1px solid var(--line);color:var(--text)}
+.hero-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow)}
+.metric{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line)}
+.metric:last-child{border-bottom:0}
+.metric b{font-size:1.35rem}
+.section{padding:66px 0}
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:24px}
+.section-head h2{font-size:2rem;line-height:1.15;margin:0}
+.section-head p{margin:7px 0 0;color:var(--muted)}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:0 8px 24px rgba(19,27,52,.04)}
+.card h3{margin:0 0 8px}
+.card p{color:var(--muted);margin:7px 0}
+.icon{font-size:1.7rem}
+.tag{display:inline-block;border-radius:999px;padding:4px 9px;font-size:.78rem;background:#f0f2f5;color:#475467;margin:3px 3px 0 0}
+.timeline{display:grid;gap:14px}
+.week{
+  display:grid;grid-template-columns:86px 1fr;gap:18px;align-items:start;
+  padding:18px;border:1px solid var(--line);background:#fff;border-radius:18px;
+}
+.week-num{
+  min-height:78px;border-radius:16px;background:var(--soft);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;text-align:center;font-weight:800;
+}
+.week-body{display:grid;grid-template-columns:1.1fr .9fr;gap:20px}
+.week-body h3{margin:0 0 7px}
+.small{font-size:.9rem;color:var(--muted)}
+.pill-row{margin-top:9px}
+.kpi-list{display:grid;gap:9px;margin:12px 0 0;padding:0;list-style:none}
+.kpi-list li{padding:10px 12px;border-radius:12px;background:#f8f9fb}
+.feature{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.case-box{background:linear-gradient(135deg,#1c2340,#2d3b77);color:#fff;border-radius:24px;padding:28px}
+.case-box p{color:#d9dcf0}
+.case-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.case-stat{background:rgba(255,255,255,.09);padding:14px;border-radius:14px}
+.case-stat b{display:block;font-size:1.35rem}
+label{display:block;font-weight:700;margin:12px 0 6px}
+input,textarea,select{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
+textarea{min-height:110px;resize:vertical}
+.tool{background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px}
+.range-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.score-panel{background:var(--soft2);border-radius:18px;padding:20px;margin-top:18px}
+.score-number{font-size:2.4rem;font-weight:850}
+.progress-wrap{height:12px;background:#eceef2;border-radius:999px;overflow:hidden}
+.progress-bar{height:100%;width:0;background:var(--accent);transition:.3s}
+.checklist{display:grid;gap:10px}
+.check{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.check input{width:auto;margin-top:5px}
+footer{padding:36px 0 60px;color:var(--muted);font-size:.9rem}
+.sticky-progress{position:fixed;right:18px;bottom:18px;z-index:20;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:18px;padding:14px 16px;min-width:220px}
+.progress-label{display:flex;justify-content:space-between;font-size:.84rem;margin-bottom:7px}
+.notice{padding:13px 16px;border-radius:14px;background:var(--warning);color:#7a5d00;margin-top:14px}
+@media (max-width: 900px){
+  .hero-grid,.feature,.week-body,.grid-2{grid-template-columns:1fr}
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width: 620px){
+  .nav-in{height:auto;padding:14px 0;align-items:flex-start;flex-direction:column}
+  .nav-links{gap:10px}
+  .hero{padding-top:44px}
+  .grid-4{grid-template-columns:1fr}
+  .week{grid-template-columns:1fr}
+  .range-row{grid-template-columns:1fr}
+  .case-stats{grid-template-columns:1fr}
+  .sticky-progress{left:12px;right:12px;bottom:12px}
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="container nav-in">
+    <div class="brand">小店經營診斷｜Micro-Credential</div>
+    <div class="nav-links">
+      <a href="#overview">課程</a>
+      <a href="#weeks">四週路徑</a>
+      <a href="#case">案例</a>
+      <a href="#diagnosis">診斷工具</a>
+      <a href="#deliverables">成果</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="eyebrow">4 WEEKS · BUSINESS DIAGNOSIS</span>
+      <h1>把一家小店，<br>變成你的商管實戰教室。</h1>
+      <p class="lead">
+        一門給大學商管學生的四週微學分課程。你將從「看見問題」開始，
+        用商業模式、營運數據、顧客洞察與行動方案，完成一份可以被店家看懂的經營診斷。
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#weeks">開始四週學習</a>
+        <a class="btn btn-secondary" href="#diagnosis">先做快速診斷</a>
+      </div>
+      <div class="notice">建議課程節奏：每週 2–3 小時學習＋1 次實地觀察／訪談。</div>
+    </div>
+    <div class="hero-card">
+      <div class="metric"><span>課程長度</span><b>4 週</b></div>
+      <div class="metric"><span>總學習時數</span><b>12 小時</b></div>
+      <div class="metric"><span>學習方式</span><b>案例＋實作</b></div>
+      <div class="metric"><span>期末成果</span><b>診斷提案</b></div>
+      <div class="metric"><span>適合對象</span><b>商管學生</b></div>
+    </div>
+  </div>
+</header>
+
+<main>
+<section id="overview" class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2>你會帶走的四項能力</h2>
+        <p>把抽象的管理概念，轉成可以在店裡使用的分析方法。</p>
+      </div>
+    </div>
+    <div class="grid-4">
+      <div class="card"><div class="icon">🔎</div><h3>問題定義</h3><p>從現象追到真正值得解決的商業問題。</p><span class="tag">5W1H</span><span class="tag">問題樹</span></div>
+      <div class="card"><div class="icon">📊</div><h3>數據判讀</h3><p>把營業額、客單價、來客數等指標轉成決策。</p><span class="tag">KPI</span><span class="tag">漏斗</span></div>
+      <div class="card"><div class="icon">👥</div><h3>顧客洞察</h3><p>用顧客旅程與分群理解「誰在買、為什麼買」。</p><span class="tag">Persona</span><span class="tag">Journey</span></div>
+      <div class="card"><div class="icon">🚀</div><h3>行動提案</h3><p>把分析濃縮成優先順序、試驗與衡量方式。</p><span class="tag">MVP</span><span class="tag">A/B Test</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="weeks" class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2>四週學習路徑</h2>
+        <p>每週都有「概念 → 實作 → 產出」，最後拼成一份完整診斷。</p>
+      </div>
+    </div>
+    <div class="timeline">
+
+      <article class="week">
+        <div class="week-num">WEEK<br>01</div>
+        <div class="week-body">
+          <div>
+            <h3>看店：從現象找到問題</h3>
+            <p>學習觀察門店、畫商業模式，並將「生意不好」拆成可以驗證的問題。</p>
+            <div class="pill-row"><span class="tag">商業模式九宮格</span><span class="tag">5W1H</span><span class="tag">問題樹</span></div>
+          </div>
+          <div>
+            <div class="small">本週任務</div>
+            <ul class="kpi-list">
+              <li>① 選定一家小店</li>
+              <li>② 完成 30 分鐘現場觀察</li>
+              <li>③ 寫出 3 個可能問題</li>
+              <li>④ 提出 1 個核心診斷假設</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="week">
+        <div class="week-num">WEEK<br>02</div>
+        <div class="week-body">
+          <div>
+            <h3>算店：用數據找出瓶頸</h3>
+            <p>掌握營業額拆解、客單價、來客數、毛利與存貨周轉等基本營運指標。</p>
+            <div class="pill-row"><span class="tag">KPI</span><span class="tag">單位經濟</span><span class="tag">80/20</span></div>
+          </div>
+          <div>
+            <div class="small">本週任務</div>
+            <ul class="kpi-list">
+              <li>① 蒐集至少 5 個營運數據</li>
+              <li>② 找出 1 個主要瓶頸</li>
+              <li>③ 做 1 張簡單數據圖</li>
+              <li>④ 寫出數據支持的發現</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="week">
+        <div class="week-num">WEEK<br>03</div>
+        <div class="week-body">
+          <div>
+            <h3>懂客：從顧客旅程看體驗</h3>
+            <p>從「誰是顧客」走到「顧客為何離開」，找出體驗與價值主張的落差。</p>
+            <div class="pill-row"><span class="tag">Persona</span><span class="tag">Customer Journey</span><span class="tag">VOC</span></div>
+          </div>
+          <div>
+            <div class="small">本週任務</div>
+            <ul class="kpi-list">
+              <li>① 訪談 2–3 位顧客</li>
+              <li>② 建立 1 張顧客旅程圖</li>
+              <li>③ 找出 2 個痛點</li>
+              <li>④ 形成改善機會點</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="week">
+        <div class="week-num">WEEK<br>04</div>
+        <div class="week-body">
+          <div>
+            <h3>救店：提出能執行的改善方案</h3>
+            <p>把問題、數據、顧客洞察整合成改善方案，加入成本、優先順序與衡量指標。</p>
+            <div class="pill-row"><span class="tag">MVP</span><span class="tag">優先矩陣</span><span class="tag">OKR / KPI</span></div>
+          </div>
+          <div>
+            <div class="small">期末任務</div>
+            <ul class="kpi-list">
+              <li>① 產出 3 個改善方案</li>
+              <li>② 建立 Impact × Effort 矩陣</li>
+              <li>③ 選出優先試驗方案</li>
+              <li>④ 完成 5–8 頁診斷提案</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="case" class="section">
+  <div class="container feature">
+    <div class="case-box">
+      <span class="eyebrow" style="background:rgba(255,255,255,.12);color:#fff">CASE STUDY</span>
+      <h2 style="font-size:2rem;margin:14px 0 10px">案例：巷口日常咖啡</h2>
+      <p>一家位於校園周邊的 12 坪咖啡小店，平日有穩定學生客群，但下午時段來客下降，老客回購率也不理想。</p>
+      <div class="case-stats">
+        <div class="case-stat"><span>平均客單</span><b>NT$135</b></div>
+        <div class="case-stat"><span>平日來客</span><b>82 人</b></div>
+        <div class="case-stat"><span>下午占比</span><b>19%</b></div>
+      </div>
+      <p style="margin-top:20px">課堂挑戰：你是店家的「學生顧問團」，要在四週內找出瓶頸，提出低成本、可驗證的改善實驗。</p>
+    </div>
+    <div class="card">
+      <h3>案例任務卡</h3>
+      <p><b>觀察：</b>下午時段為什麼少人？</p>
+      <p><b>數據：</b>是客單價低，還是來客數不足？</p>
+      <p><b>顧客：</b>學生、教職員、附近居民有何不同？</p>
+      <p><b>行動：</b>哪個方案可以在兩週內驗證？</p>
+      <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+      <h3>教師引導問題</h3>
+      <div class="checklist">
+        <div class="check"><span>01</span><div><b>先不要急著下答案</b><br><span class="small">先分清楚「事實、推測、需要驗證的假設」。</span></div></div>
+        <div class="check"><span>02</span><div><b>讓數據說話</b><br><span class="small">每一個改善建議都至少對應一項指標。</span></div></div>
+        <div class="check"><span>03</span><div><b>從小型實驗開始</b><br><span class="small">優先選擇成本低、可快速回饋的方案。</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="diagnosis" class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2>小店快速診斷工具</h2>
+        <p>把你對店家的初步觀察量化，作為後續訪談與數據蒐集的起點。這不是正式評等。</p>
+      </div>
+    </div>
+    <div class="tool">
+      <div class="range-row">
+        <div>
+          <label for="traffic">來客穩定度（1–5）</label>
+          <input id="traffic" type="range" min="1" max="5" value="3">
+          <div class="small">1 = 波動很大，5 = 很穩定</div>
+        </div>
+        <div>
+          <label for="repeat">回購／熟客狀況（1–5）</label>
+          <input id="repeat" type="range" min="1" max="5" value="3">
+          <div class="small">1 = 幾乎沒有，5 = 很穩定</div>
+        </div>
+        <div>
+          <label for="margin">商品毛利／獲利空間（1–5）</label>
+          <input id="margin" type="range" min="1" max="5" value="3">
+          <div class="small">1 = 壓力高，5 = 空間佳</div>
+        </div>
+        <div>
+          <label for="experience">顧客體驗（1–5）</label>
+          <input id="experience" type="range" min="1" max="5" value="3">
+          <div class="small">1 = 問題多，5 = 體驗穩定</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:20px" onclick="runDiagnosis()">產生診斷摘要</button>
+      <div id="scorePanel" class="score-panel">
+        <div class="small">目前觀察分數</div>
+        <div class="score-number"><span id="score">—</span> / 20</div>
+        <div class="progress-wrap"><div id="scoreBar" class="progress-bar"></div></div>
+        <p id="diagnosisText">調整上方四個指標，再按「產生診斷摘要」。</p>
+      </div>
+      <div class="notice">教學提示：分數低的項目不代表「店家不好」，而是提示你下一步可以蒐集更多證據。</div>
+    </div>
+  </div>
+</section>
+
+<section id="deliverables" class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2>期末成果與評量</h2>
+        <p>從個人觀察一路累積，最後完成可展示的商業診斷作品。</p>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>📄 期末診斷提案（60%）</h3>
+        <p>5–8 頁，建議結構：店家背景 → 問題定義 → 數據證據 → 顧客洞察 → 改善方案 → 實驗設計。</p>
+        <p class="small">核心原則：有證據、有優先順序、有衡量方法。</p>
+      </div>
+      <div class="card">
+        <h3>🎤 口頭提案（20%）</h3>
+        <p>5 分鐘簡報＋2 分鐘問答。練習把複雜分析說成店家可以立刻理解的語言。</p>
+        <p class="small">建議使用 1 個故事、3 個發現、1 個優先行動。</p>
+      </div>
+      <div class="card">
+        <h3>📝 每週實作（15%）</h3>
+        <p>完成四週任務卡，包含觀察紀錄、KPI 分析、顧客訪談與方案矩陣。</p>
+      </div>
+      <div class="card">
+        <h3>🤝 同儕回饋（5%）</h3>
+        <p>至少提供一次結構化回饋：一個亮點、一個疑問、一個可執行建議。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:10px">
+  <div class="container">
+    <div class="card">
+      <h2 style="margin-top:0">學習檢核</h2>
+      <p class="small">勾選你已完成的任務，網站會自動記錄本機瀏覽器中的進度。</p>
+      <div class="checklist">
+        <label class="check"><input type="checkbox" data-task="w1a"><span>W1｜完成店家觀察</span></label>
+        <label class="check"><input type="checkbox" data-task="w1b"><span>W1｜提出核心診斷假設</span></label>
+        <label class="check"><input type="checkbox" data-task="w2a"><span>W2｜蒐集營運數據</span></label>
+        <label class="check"><input type="checkbox" data-task="w2b"><span>W2｜找出主要瓶頸</span></label>
+        <label class="check"><input type="checkbox" data-task="w3a"><span>W3｜完成顧客訪談</span></label>
+        <label class="check"><input type="checkbox" data-task="w3b"><span>W3｜畫出顧客旅程</span></label>
+        <label class="check"><input type="checkbox" data-task="w4a"><span>W4｜提出三個改善方案</span></label>
+        <label class="check"><input type="checkbox" data-task="w4b"><span>W4｜完成期末診斷提案</span></label>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="sticky-progress">
+  <div class="progress-label"><span>課程進度</span><b id="progressText">0%</b></div>
+  <div class="progress-wrap"><div id="progressBar" class="progress-bar"></div></div>
+</div>
+
+<footer>
+  <div class="container">
+    小店經營診斷｜四週微學分課程網站 · 可直接作為課程首頁、學生學習入口或教學 Demo。
+  </div>
+</footer>
+
+<script>
+function runDiagnosis(){
+  const vals = ["traffic","repeat","margin","experience"].map(id => Number(document.getElementById(id).value));
+  const score = vals.reduce((a,b)=>a+b,0);
+  document.getElementById("score").textContent = score;
+  document.getElementById("scoreBar").style.width = (score/20*100)+"%";
+  const labels = ["來客穩定度","回購／熟客","獲利空間","顧客體驗"];
+  const min = Math.min(...vals);
+  const focus = labels[vals.indexOf(min)];
+  let msg = "";
+  if(score <= 9){
+    msg = `目前可視為「高優先探索區」：先不要急著提出方案，建議優先補齊數據與訪談。特別值得追查：${focus}。`;
+  }else if(score <= 14){
+    msg = `目前可視為「重點分析區」：已有部分穩定基礎，但仍有瓶頸需要驗證。特別值得追查：${focus}。`;
+  }else{
+    msg = `目前可視為「優化區」：基本面觀察較完整，下一步可以把重心放在成長機會與小型實驗。特別值得追查：${focus}。`;
+  }
+  document.getElementById("diagnosisText").textContent = msg;
+}
+
+function updateProgress(){
+  const boxes = [...document.querySelectorAll('input[type="checkbox"][data-task]')];
+  const done = boxes.filter(x=>x.checked).length;
+  const pct = Math.round(done/boxes.length*100);
+  document.getElementById("progressText").textContent = pct+"%";
+  document.getElementById("progressBar").style.width = pct+"%";
+  boxes.forEach(x => localStorage.setItem("shopDiag_"+x.dataset.task, x.checked ? "1":"0"));
+}
+document.querySelectorAll('input[type="checkbox"][data-task]').forEach(box=>{
+  const key = "shopDiag_"+box.dataset.task;
+  box.checked = localStorage.getItem(key)==="1";
+  box.addEventListener("change", updateProgress);
+});
+updateProgress();
+</script>
+</body>
+</html>
