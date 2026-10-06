@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✨ 提示詞大冒險！Prompt Refinement 學習樂園 ✨</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #FFFDF0;
+      background-image: radial-gradient(#FFD23F 10%, transparent 11%);
+      background-size: 24px 24px;
+    }
+    .font-cute {
+      font-family: 'Fredoka One', 'Noto Sans TC', cursive;
+    }
+    .cartoon-border {
+      border: 4px solid #1E293B;
+      box-shadow: 6px 6px 0px #1E293B;
+      border-radius: 20px;
+    }
+    .cartoon-btn {
+      border: 3px solid #1E293B;
+      box-shadow: 4px 4px 0px #1E293B;
+      transition: all 0.1s ease;
+    }
+    .cartoon-btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px #1E293B;
+    }
+    .cartoon-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px #1E293B;
+    }
+    /* Flip Card */
+    .perspective {
+      perspective: 1000px;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+    .flip-card.flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 16px;
+    }
+    .flip-card-back {
+      transform: rotateY(180deg);
+    }
+  </style>
+</head>
+<body class="text-slate-800 pb-16">
+
+  <!-- Header -->
+  <header class="max-w-4xl mx-auto pt-8 px-4 text-center">
+    <div class="bg-amber-300 cartoon-border p-6 mb-6 relative overflow-hidden">
+      <span class="absolute top-2 right-4 text-4xl opacity-20">🚀</span>
+      <span class="absolute bottom-2 left-4 text-4xl opacity-20">💡</span>
+      <h1 class="text-3xl md:text-5xl font-black font-cute text-slate-800 mb-2">
+        ✨ 提示詞大冒險！ ✨
+      </h1>
+      <p class="text-lg font-bold text-slate-700 mb-6">考綱三：提示優化 (Prompt Refinement) 快樂闖關學院</p>
+      
+      <!-- Anime Hero Quote Banner with All Might Image -->
+      <div class="bg-red-500 text-white cartoon-border p-4 md:p-6 max-w-2xl mx-auto rounded-2xl relative shadow-md text-left">
+        <div class="flex flex-col md:flex-row items-center gap-4">
+          <!-- All Might Image Avatar -->
+          <div class="w-24 h-24 md:w-28 md:h-28 rounded-full cartoon-border overflow-hidden bg-amber-100 flex-shrink-0 flex items-center justify-center bg-cover bg-center shadow-inner" 
+               style="background-image: url('https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=400&auto=format&fit=crop');">
+            <!-- SVG Superhero Backup / Overlay -->
+            <span class="text-5xl">🦸‍♂️</span>
+          </div>
+
+          <div class="flex-1 text-center md:text-left">
+            <div class="flex items-center justify-center md:justify-start gap-2 mb-1">
+              <span class="bg-amber-300 text-slate-900 text-xs font-black px-2.5 py-0.5 rounded-full cartoon-border">傳奇英雄</span>
+              <span class="font-black text-amber-200 text-sm md:text-base tracking-wider uppercase">歐爾麥特（All Might）</span>
+            </div>
+            <p class="text-xs md:text-sm text-red-100 mb-3 leading-relaxed">
+              這句很紅的動漫台詞出自《我的英雄學院》中傳奇英雄歐爾麥特的經典登場口號！
+            </p>
+            <div class="bg-yellow-300 text-slate-900 cartoon-border p-2.5 px-4 rounded-xl font-black text-base md:text-lg text-center shadow-md">
+              「已經沒事了！為什麼？因為我來了！」
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <main class="max-w-4xl mx-auto px-4">
+    <div class="flex justify-center gap-4 mb-8">
+      <button id="tab-cards" onclick="switchTab('cards')" class="cartoon-btn bg-sky-300 font-black px-6 py-3 rounded-full text-lg flex items-center gap-2">
+        <span>🃏</span> 知識魔法卡片
+      </button>
+      <button id="tab-quiz" onclick="switchTab('quiz')" class="cartoon-btn bg-pink-300 font-black px-6 py-3 rounded-full text-lg flex items-center gap-2">
+        <span>⚔️</span> 實戰通關測驗
+      </button>
+    </div>
+
+    <!-- Section 1: Flashcards -->
+    <section id="section-cards" class="block">
+      <p class="text-center font-bold text-slate-600 mb-6">💡 點擊卡片翻面看解密重點！</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Card 1 -->
+        <div class="flip-card perspective h-64 cursor-pointer" onclick="this.classList.toggle('flipped')">
+          <div class="flip-card-inner">
+            <div class="flip-card-front bg-sky-100 cartoon-border p-6 flex flex-col justify-between items-center">
+              <span class="text-4xl">🔗</span>
+              <h3 class="text-xl font-black text-sky-800">一、高階提示技術</h3>
+              <p class="text-sm text-slate-600 font-bold">Prompt Chaining / CoT / Reverse</p>
+              <span class="text-xs text-sky-600 font-bold bg-sky-200 px-3 py-1 rounded-full">點擊翻牌 🔄</span>
+            </div>
+            <div class="flip-card-back bg-sky-300 cartoon-border p-6 flex flex-col justify-center text-left text-slate-800">
+              <h4 class="font-black text-lg mb-2">核心技巧秘笈：</h4>
+              <ul class="text-sm font-bold space-y-1 list-disc pl-4">
+                <li><b class="text-sky-900">提示詞鏈接：</b>把任務拆成小項目，前一個輸出作為下一個輸入。</li>
+                <li><b class="text-sky-900">反向提示詞：</b>「讓我提供細節，然後生成簡歷」。</li>
+                <li><b class="text-sky-900">思維鏈 (CoT)：</b>給予程式化問答範例示法思考邏輯。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="flip-card perspective h-64 cursor-pointer" onclick="this.classList.toggle('flipped')">
+          <div class="flip-card-inner">
+            <div class="flip-card-front bg-emerald-100 cartoon-border p-6 flex flex-col justify-between items-center">
+              <span class="text-4xl">⚖️</span>
+              <h3 class="text-xl font-black text-emerald-800">二、偏見辨識與中性化</h3>
+              <p class="text-sm text-slate-600 font-bold">Bias & Neutrality</p>
+              <span class="text-xs text-emerald-600 font-bold bg-emerald-200 px-3 py-1 rounded-full">點擊翻牌 🔄</span>
+            </div>
+            <div class="flip-card-back bg-emerald-300 cartoon-border p-6 flex flex-col justify-center text-left text-slate-800">
+              <h4 class="font-black text-lg mb-2">中性客觀守則：</h4>
+              <ul class="text-sm font-bold space-y-1 list-disc pl-4">
+                <li><b class="text-emerald-900">有偏見：</b>只強調「主要成就/好處」或預設「比某物更好更可靠」。</li>
+                <li><b class="text-emerald-900">無偏見：</b>聚焦「獨立研究/優缺點分析」，並強調可行性與客觀性。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="flip-card perspective h-64 cursor-pointer" onclick="this.classList.toggle('flipped')">
+          <div class="flip-card-inner">
+            <div class="flip-card-front bg-purple-100 cartoon-border p-6 flex flex-col justify-between items-center">
+              <span class="text-4xl">🎯</span>
+              <h3 class="text-xl font-black text-purple-800">三、對話脈絡與受眾</h3>
+              <p class="text-sm text-slate-600 font-bold">Iterative Refinement</p>
+              <span class="text-xs text-purple-600 font-bold bg-purple-200 px-3 py-1 rounded-full">點擊翻牌 🔄</span>
+            </div>
+            <div class="flip-card-back bg-purple-300 cartoon-border p-6 flex flex-col justify-center text-left text-slate-800">
+              <h4 class="font-black text-lg mb-2">微調修飾心法：</h4>
+              <ul class="text-sm font-bold space-y-1 list-disc pl-4">
+                <li><b class="text-purple-900">格式偏離：</b>「請修改貼文，使其看起來像之前生成的貼文」。</li>
+                <li><b class="text-purple-900">非技術/小學受眾：</b>使用較簡單語言 + 具體範例 + 視覺輔助。</li>
+                <li><b class="text-purple-900">個人限制：</b>主動提供時間表與身體狀況限制。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="flip-card perspective h-64 cursor-pointer" onclick="this.classList.toggle('flipped')">
+          <div class="flip-card-inner">
+            <div class="flip-card-front bg-rose-100 cartoon-border p-6 flex flex-col justify-between items-center">
+              <span class="text-4xl">🎨</span>
+              <h3 class="text-xl font-black text-rose-800">四、圖像與視覺資料</h3>
+              <p class="text-sm text-slate-600 font-bold">Visual Refinement</p>
+              <span class="text-xs text-rose-600 font-bold bg-rose-200 px-3 py-1 rounded-full">點擊翻牌 🔄</span>
+            </div>
+            <div class="flip-card-back bg-rose-300 cartoon-border p-6 flex flex-col justify-center text-left text-slate-800">
+              <h4 class="font-black text-lg mb-2">視覺優化要點：</h4>
+              <ul class="text-sm font-bold space-y-1 list-disc pl-4">
+                <li><b class="text-rose-900">風格轉換：</b>明確加上風格形容詞（如「鮮豔色彩、復古插圖」）。</li>
+                <li><b class="text-rose-900">趨勢呈現：</b>將柱狀圖重新生成改為「折線圖」以強調持續變化趨勢。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Section 2: Quiz -->
+    <section id="section-quiz" class="hidden">
+      <!-- Progress & Score Header -->
+      <div class="bg-amber-100 cartoon-border p-4 mb-6 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">⭐</span>
+          <span class="font-black text-lg">進度：<span id="current-q-num">1</span> / <span id="total-q-num">12</span></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">🏆</span>
+          <span class="font-black text-lg">魔法積分：<span id="score-val" class="text-pink-600">0</span></span>
+        </div>
+      </div>
+
+      <!-- Question Card Container -->
+      <div id="quiz-container"></div>
+
+      <!-- Result Screen (Hidden by Default) -->
+      <div id="result-screen" class="hidden bg-white cartoon-border p-8 text-center">
+        <div class="text-6xl mb-4" id="result-emoji">🎉</div>
+        <h2 class="text-3xl font-black mb-2" id="result-title">通關成功！</h2>
+        <p class="text-lg font-bold text-slate-600 mb-4" id="result-desc">你獲得了 Prompt 冒險大師稱號！</p>
+        <div class="bg-amber-100 cartoon-border p-4 mb-6 inline-block">
+          <span class="text-2xl font-black">最終得分：<span id="final-score" class="text-pink-600">100</span> 分</span>
+        </div>
+        <div class="flex justify-center gap-4">
+          <button onclick="restartQuiz()" class="cartoon-btn bg-emerald-400 font-black px-6 py-3 rounded-full text-lg">
+            🔄 重新挑戰
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Audio Sound Effects (Web Audio API)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'correct') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3); // A5
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } else {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+        osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.3); // A2
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      }
+    }
+
+    // Quiz Questions Data
+    const quizData = [
+      {
+        category: "高階提示技術",
+        question: "哪項定義正確地描述了「提示詞鏈接（Prompt Chaining）」技術？",
+        options: [
+          "將多個無關的提示詞隨機組合在一起產生多樣化答案",
+          "將任務分解為更小的子任務，並使用一個提示詞的輸出作為下一個提示詞的輸入",
+          "連續向 AI 發送相同的提示詞以獲得一致的回覆",
+          "在單一提示詞中寫入超過 1000 字的詳細說明"
+        ],
+        answer: 1,
+        explanation: "提示詞鏈接（Prompt Chaining）核心在於把複雜大任務拆解成小任務，並讓上一步的 Output 當作下一步的 Input。"
+      },
+      {
+        category: "高階提示技術",
+        question: "你想使用「反向提示詞（Reverse Prompting）」，讓 AI 為你生成包含適當細節的簡歷，哪個提示詞最有幫助？",
+        options: [
+          "「請幫我寫一份世界上最完美的簡歷」",
+          "「簡歷應該包含哪些項目？請列給我看」",
+          "「讓我提供簡歷所需的每個關鍵細節，然後使用這些資訊生成簡歷」",
+          "「參考網路上的履歷範本直接幫我生成一份」"
+        ],
+        answer: 2,
+        explanation: "反向提示詞是讓 AI 主動向使用者提問或引導使用者提供必要的細節資訊，以生成精確結果。"
+      },
+      {
+        category: "高階提示技術",
+        question: "提示詞中包含了程式化的問答範例（如「問：純紅+純蓝... 答：紫色」），這屬於哪種提示詞技術？",
+        options: [
+          "零樣本提示（Zero-shot Prompting）",
+          "思維鏈（CoT, Chain-of-Thought）",
+          "反向提示（Reverse Prompting）",
+          "角色扮演提示（Role Prompting）"
+        ],
+        answer: 1,
+        explanation: "包含示密範例與推理過程（Example-based logic）來引導 AI 思考的方式，屬於思維鏈 (CoT) 的應用機制。"
+      },
+      {
+        category: "偏見辨識與中性化",
+        question: "需要為大壩拆除專案建立「無偏見摘要」，下列哪一個提示詞屬於【無偏見】？",
+        options: [
+          "生成一個150字的摘要，內容關於大壩拆除的主要成就，重點關注對生態系統產生的最重大的影響",
+          "生成一份摘要，內容關於獨立協力廠商研究中針對拆除大壩提供的建議，重點關注可行性見解和潛在策略"
+        ],
+        answer: 1,
+        explanation: "第二個選項強調「獨立協力廠商研究」與「可行性見解及潛在策略」，不預設立場，屬於無偏見提示。"
+      },
+      {
+        category: "偏見辨識與中性化",
+        question: "評估下列提示詞：「強調在城市環境中，可再生能源比化石燃料的能耗更低、也更可靠...」，請問是否有固有偏見？",
+        options: [
+          "【有偏見】因為它預設了可再生能源必定比化石燃料更低耗且可靠",
+          "【無偏見】因為可再生能源本來就是未來的趨勢"
+        ],
+        answer: 0,
+        explanation: "該提示詞指令直接給予預設立場（要求強調某些好處），限制了 AI 進行雙向比較，屬於固有偏見。"
+      },
+      {
+        category: "對話脈絡與微調",
+        question: "在同一對話內生成社群貼文時，若新產生的貼文格式不符合預期，應使用哪個後續提示詞修正？",
+        options: [
+          "「請重新開啟一個新的對話視窗重新生成」",
+          "「請修改貼文，使其看起來像之前生成的社群媒體貼文」",
+          "「為什麼你這次產生的格式不一樣？」",
+          "「請隨機選擇一種吸引人的格式重新編排」"
+        ],
+        answer: 1,
+        explanation: "利用對話歷史（Context）進行微調，要求 AI 參考先前一致的格式風格進行修正最迅速有效。"
+      },
+      {
+        category: "補充個人限制",
+        question: "輸入「制定每週鍛鍊計畫」後，因個人時間與身體狀況無法執行，應如何改進提示詞？",
+        options: [
+          "要求 AI 提供難度極高的專業運動員計畫",
+          "提供自己的時間表，並說明身體狀況面臨的限制",
+          "改為搜尋網路上的標準健身房菜單",
+          "請 AI 將計畫縮減為每天只要運動 1 分鐘"
+        ],
+        answer: 1,
+        explanation: "針對個人化的調整，關鍵是明確提供自身的「時間限制」與「身體健康條件限制」。"
+      },
+      {
+        category: "補充個人限制",
+        question: "若要將簡短的健身清單貼合「30分鐘力量訓練」目標，接下來應使用哪個提示詞？",
+        options: [
+          "「按照30分鐘的力量訓練進行修改」",
+          "「寫長一點，越詳細越好」",
+          "「加上一些有氧運動的建議」",
+          "「幫我計算做這些運動會消耗多少卡路里」"
+        ],
+        answer: 0,
+        explanation: "直接給予精確的時長與目標種類（30分鐘力量訓練）作為修改指令。"
+      },
+      {
+        category: "目標受眾調校",
+        question: "發出「解釋光合作用」，結果對小學年齡受眾太過複雜，應如何優化提示詞？",
+        options: [
+          "「請直接給論文等級的嚴謹化學方程式」",
+          "避免使用複雜的語言，並提供具體的範例",
+          "「翻譯成英文讓小朋友閱讀」",
+          "「簡短成 10 個字以內的句子」"
+        ],
+        answer: 1,
+        explanation: "針對兒童受眾，應簡化專有名詞，並輔以生活中具體可見的範例做比喻。"
+      },
+      {
+        category: "目標受眾調校",
+        question: "將安全性漏洞掃描報告轉換為適合「非技術受眾」的簡報，應使用哪個提示詞？",
+        options: [
+          "「保留所有專業的系統程式碼與封包紀錄」",
+          "「使用較為簡單的語言重新編寫報告，並添加視覺輔助和範例」",
+          "「請直接把英文報告用 Google 翻譯成中文」",
+          "「刪除所有數據，只留下結論」"
+        ],
+        answer: 1,
+        explanation: "面對非技術背景主管或客戶，應使用簡單語言，並搭配視覺化圖表與實例解釋危害。"
+      },
+      {
+        category: "視覺資料提示優化",
+        question: "輸入「公園裡有一隻快樂的狗」輸出卡通狗，若希望結果更貼合「逼真、復古風格且顏色飽滿」的要求：",
+        options: [
+          "「運用鮮豔的色彩描繪城市公園裡有一隻快樂的狗的復古插圖」",
+          "「請畫得更好看一點，色彩豐富一點」",
+          "「畫一隻真實的狗，不要卡通」",
+          "「將圖片背景換成森林」"
+        ],
+        answer: 0,
+        explanation: "精確加入視覺屬性描述（鮮豔色彩、復古插圖、城市公園）能幫助 AI 正確生成目標風格。"
+      },
+      {
+        category: "視覺資料提示優化",
+        question: "原圖表為柱狀圖，若希望在圖形中強調兩國人口歷史上「持續發生的變化趨勢」，應提示：",
+        options: [
+          "「將柱狀圖的顏色換成對比更強烈鮮艷的顏色」",
+          "「重新生成現有資料表示，將格式更改為折線圖」",
+          "「繪製成三維 3D 圓餅圖」",
+          "「將數據用純文字表格列出」"
+        ],
+        answer: 1,
+        explanation: "表現時間軸上的「持續變化趨勢」最合適的圖表類型是折線圖 (Line Chart)。"
+      }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+
+    function switchTab(tab) {
+      if (tab === 'cards') {
+        document.getElementById('section-cards').classList.remove('hidden');
+        document.getElementById('section-quiz').classList.add('hidden');
+        document.getElementById('tab-cards').className = "cartoon-btn bg-sky-300 font-black px-6 py-3 rounded-full text-lg flex items-center gap-2";
+        document.getElementById('tab-quiz').className = "cartoon-btn bg-slate-200 font-black px-6 py-3 rounded-full text-lg flex items-center gap-2";
+      } else {
+        document.getElementById('section-cards').classList.add('hidden');
+        document.getElementById('section-quiz').classList.remove('hidden');
+        document.getElementById('tab-quiz').className = "cartoon-btn bg-pink-300 font-black px-6 py-3 rounded-full text-lg flex items-center gap-2";
+        document.getElementById('tab-cards').className = "cartoon-btn bg-slate-200 font-black px-6 py-3 rounded-full text-lg flex items-center gap-2";
+        renderQuestion();
+      }
+    }
+
+    function renderQuestion() {
+      const q = quizData[currentQ];
+      document.getElementById('current-q-num').innerText = currentQ + 1;
+      document.getElementById('total-q-num').innerText = quizData.length;
+      document.getElementById('score-val').innerText = score;
+
+      let optionsHTML = '';
+      q.options.forEach((opt, idx) => {
+        optionsHTML += `
+          <button onclick="checkAnswer(${idx})" class="cartoon-btn w-full text-left bg-white hover:bg-amber-50 font-bold p-4 rounded-xl text-base mb-3 transition-colors flex items-center gap-3">
+            <span class="w-8 h-8 rounded-full bg-amber-200 cartoon-border flex items-center justify-center font-black text-slate-700 flex-shrink-0">${String.fromCharCode(65 + idx)}</span>
+            <span>${opt}</span>
+          </button>
+        `;
+      });
+
+      const html = `
+        <div class="bg-white cartoon-border p-6 mb-6">
+          <span class="inline-block bg-purple-200 text-purple-900 font-black px-3 py-1 rounded-full text-xs mb-3 cartoon-border">
+            ${q.category}
+          </span>
+          <h3 class="text-xl font-black text-slate-800 mb-6 leading-relaxed">
+            ${q.question}
+          </h3>
+          <div id="options-box">
+            ${optionsHTML}
+          </div>
+          <div id="explain-box" class="hidden mt-6 p-4 bg-amber-50 cartoon-border rounded-xl">
+            <h4 class="font-black text-amber-900 mb-1 flex items-center gap-2">💡 考題大解密：</h4>
+            <p class="text-sm font-bold text-slate-700 leading-relaxed">${q.explanation}</p>
+            <button onclick="nextQuestion()" class="cartoon-btn mt-4 bg-emerald-400 font-black px-6 py-2 rounded-full text-sm">
+              下一題 ➡️
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('quiz-container').innerHTML = html;
+    }
+
+    function checkAnswer(selectedIdx) {
+      const q = quizData[currentQ];
+      const buttons = document.querySelectorAll('#options-box button');
+      
+      buttons.forEach(btn => btn.disabled = true);
+
+      if (selectedIdx === q.answer) {
+        playSound('correct');
+        buttons[selectedIdx].classList.remove('bg-white');
+        buttons[selectedIdx].classList.add('bg-emerald-300');
+        score += Math.round(100 / quizData.length);
+        document.getElementById('score-val').innerText = score;
+      } else {
+        playSound('wrong');
+        buttons[selectedIdx].classList.remove('bg-white');
+        buttons[selectedIdx].classList.add('bg-rose-300');
+        buttons[q.answer].classList.remove('bg-white');
+        buttons[q.answer].classList.add('bg-emerald-200');
+      }
+
+      document.getElementById('explain-box').classList.remove('hidden');
+    }
+
+    function nextQuestion() {
+      currentQ++;
+      if (currentQ < quizData.length) {
+        renderQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      document.getElementById('quiz-container').classList.add('hidden');
+      document.getElementById('result-screen').classList.remove('hidden');
+      
+      const finalScore = score > 100 ? 100 : score;
+      document.getElementById('final-score').innerText = finalScore;
+
+      if (finalScore >= 80) {
+        document.getElementById('result-emoji').innerText = '👑';
+        document.getElementById('result-title').innerText = '太強了！提示詞大魔導士！';
+        document.getElementById('result-desc').innerText = '你已經完全掌握 Prompt Refinement 考綱的核心要領！';
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      } else {
+        document.getElementById('result-emoji').innerText = '🐣';
+        document.getElementById('result-title').innerText = '再接再厲！練習生！';
+        document.getElementById('result-desc').innerText = '多翻翻知識卡片複習一下，一定能拿下滿分！';
+      }
+    }
+
+    function restartQuiz() {
+      currentQ = 0;
+      score = 0;
+      document.getElementById('quiz-container').classList.remove('hidden');
+      document.getElementById('result-screen').classList.add('hidden');
+      renderQuestion();
+    }
+  </script>
+</body>
+</html>
