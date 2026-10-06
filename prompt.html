@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Prompt 提示詞優化大冒險！(考綱三測驗館)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Fredoka & Varela Round -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'cartoon-yellow': '#FFD166',
+                        'cartoon-blue': '#4CC9F0',
+                        'cartoon-pink': '#FF70A6',
+                        'cartoon-green': '#06D6A0',
+                        'cartoon-purple': '#7000FF',
+                        'cartoon-bg': '#FFF9EC',
+                        'cartoon-card': '#FFFFFF',
+                    },
+                    fontFamily: {
+                        'cartoon': ['"Zen Maru Gothic"', '"Fredoka"', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'cartoon': '0px 8px 0px 0px rgba(0, 0, 0, 0.15)',
+                        'cartoon-btn': '0px 6px 0px 0px rgba(0, 0, 0, 0.2)',
+                        'cartoon-btn-pressed': '0px 2px 0px 0px rgba(0, 0, 0, 0.2)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', 'Fredoka', sans-serif;
+            background-color: #FFF9EC;
+            background-image: radial-gradient(#FFD166 1.5px, transparent 1.5px), radial-gradient(#4CC9F0 1.5px, #FFF9EC 1.5px);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+        }
+
+        /* 3D Dynamic Buttons */
+        .btn-3d {
+            transition: all 0.1s ease;
+            box-shadow: 0 6px 0 #2b2d42;
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #2b2d42;
+        }
+
+        /* Flip Card Effect */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Bounce Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(1deg); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FFE8D6;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FF70A6;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col justify-between selection:bg-cartoon-pink selection:text-white">
+
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b-4 border-slate-800 px-4 py-3 shadow-md">
+        <div class="max-w-5xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-cartoon-yellow rounded-2xl border-2 border-slate-800 flex items-center justify-center text-2xl shadow-[2px_3px_0px_#000] animate-bounce">
+                    🧙‍♂️
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black text-slate-800 tracking-wide flex items-center gap-2">
+                        ✨ Prompt 提示詞優化大冒險！
+                    </h1>
+                    <p class="text-xs font-bold text-slate-500">20251023CCS 考綱三專屬闖關測驗館</p>
+                </div>
+            </div>
+
+            <!-- Stats & Progress Indicator -->
+            <div class="flex items-center gap-4 bg-yellow-100 px-4 py-2 rounded-2xl border-2 border-slate-800 shadow-[2px_3px_0px_#000]">
+                <div class="flex items-center gap-1.5 font-black text-slate-700">
+                    <i class="fa-solid font-bold fa-star text-amber-400 text-lg"></i>
+                    <span>星星: <span id="star-count" class="text-amber-600 text-lg">0</span></span>
+                </div>
+                <div class="h-6 w-0.5 bg-slate-300"></div>
+                <div class="flex items-center gap-1.5 font-black text-slate-700">
+                    <i class="fa-solid fa-trophy text-cartoon-pink text-lg"></i>
+                    <span>進度: <span id="progress-text" class="text-cartoon-pink text-lg">0/12</span></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-5xl mx-auto px-4 py-8 w-full flex-grow">
+
+        <!-- Banner / Intro Section -->
+        <section class="bg-gradient-to-r from-cartoon-blue/30 via-cartoon-yellow/30 to-cartoon-pink/30 p-6 md:p-8 rounded-3xl border-4 border-slate-800 mb-10 shadow-cartoon relative overflow-hidden">
+            <div class="relative z-10">
+                <span class="bg-cartoon-purple text-white text-xs font-bold px-3 py-1 rounded-full border-2 border-slate-800 inline-block mb-2">🎓 2025 AI 題庫重點全收錄</span>
+                <h2 class="text-2xl md:text-4xl font-black mb-3 text-slate-800">準備好成為 Prompt 提示詞調校大師了嗎？</h2>
+                <p class="text-slate-700 font-bold max-w-2xl text-sm md:text-base leading-relaxed mb-4">
+                    掌握 **Prompt Chaining**、**CoT 思維鏈**、**無偏見中性化調校** 與 **視覺圖像優化** 等核心高階技巧。先瀏覽下方考點卡片，或直接開啟刷題挑戰！
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <a href="#quiz-section" onclick="scrollToQuiz()" class="bg-cartoon-green hover:bg-emerald-400 text-slate-900 border-2 border-slate-800 font-black px-6 py-3 rounded-2xl btn-3d inline-flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-gamepad text-lg"></i> 立即開始刷題挑戰
+                    </a>
+                    <a href="#knowledge-section" class="bg-white hover:bg-slate-100 text-slate-800 border-2 border-slate-800 font-black px-6 py-3 rounded-2xl btn-3d inline-flex items-center gap-2">
+                        <i class="fa-solid fa-book-open text-lg"></i> 複習四大核心考點
+                    </a>
+                </div>
+            </div>
+            <!-- Decorative Mascot -->
+            <div class="absolute -right-4 -bottom-6 text-8xl md:text-9xl opacity-80 select-none animate-float pointer-events-none">
+                🚀
+            </div>
+        </section>
+
+        <!-- FOUR CORE KNOWLEDGE FLASHCARDS -->
+        <section id="knowledge-section" class="mb-12">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="bg-cartoon-pink text-white w-10 h-10 rounded-2xl border-2 border-slate-800 flex items-center justify-center font-black text-xl shadow-[2px_2px_0px_#000]">
+                    1
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-800">四大核心提示詞考點觀念</h3>
+                    <p class="text-xs font-bold text-slate-500">點擊卡片即可翻轉查看重點摘要與翻轉解析！</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Card 1 -->
+                <div class="flip-card h-64 perspective-1000 cursor-pointer" onclick="rotateCard(this)">
+                    <div class="flip-card-inner relative w-full h-full duration-500 transform-style-3d shadow-cartoon rounded-3xl border-4 border-slate-800 bg-white">
+                        <!-- Front -->
+                        <div class="absolute inset-0 w-full h-full rounded-2xl p-6 flex flex-col justify-between bg-amber-50 backface-hidden">
+                            <div>
+                                <span class="bg-cartoon-yellow text-slate-900 text-xs font-black px-3 py-1 rounded-full border border-slate-800">主題一</span>
+                                <h4 class="text-xl font-black mt-3 text-slate-800">高階提示技術與範式</h4>
+                                <ul class="mt-2 text-xs font-bold text-slate-600 space-y-1">
+                                    <li>🔹 Prompt Chaining (提示詞鏈接)</li>
+                                    <li>🔹 Reverse Prompting (反向提示詞)</li>
+                                    <li>🔹 Chain-of-Thought (思維鏈 CoT)</li>
+                                </ul>
+                            </div>
+                            <div class="text-right text-xs font-black text-amber-600">
+                                點擊翻看關鍵觀念 🔄
+                            </div>
+                        </div>
+                        <!-- Back -->
+                        <div class="absolute inset-0 w-full h-full rounded-2xl p-5 flex flex-col justify-between bg-cartoon-yellow text-slate-900 rotate-y-180 backface-hidden border-2 border-slate-800 overflow-y-auto">
+                            <div>
+                                <h4 class="font-black text-base border-b-2 border-slate-800 pb-1 mb-2">💡 重點摘要解析</h4>
+                                <p class="text-xs font-bold leading-relaxed space-y-1">
+                                    • <strong>Prompt Chaining</strong>：將任務拆解為更小子任務，前一個輸出作為下一個輸入。<br>
+                                    • <strong>反向提示詞</strong>：讓 AI 引導使用者提供關鍵細節再生成內容 (如履歷)。<br>
+                                    • <strong>思維鏈 (CoT)</strong>：在提示詞中給予步驟化問答範例示範推理邏輯。
+                                </p>
+                            </div>
+                            <div class="text-right text-xs font-black text-slate-800">
+                                點擊翻回正面 🔄
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="flip-card h-64 perspective-1000 cursor-pointer" onclick="rotateCard(this)">
+                    <div class="flip-card-inner relative w-full h-full duration-500 transform-style-3d shadow-cartoon rounded-3xl border-4 border-slate-800 bg-white">
+                        <!-- Front -->
+                        <div class="absolute inset-0 w-full h-full rounded-2xl p-6 flex flex-col justify-between bg-sky-50 backface-hidden">
+                            <div>
+                                <span class="bg-cartoon-blue text-white text-xs font-black px-3 py-1 rounded-full border border-slate-800">主題二</span>
+                                <h4 class="text-xl font-black mt-3 text-slate-800">偏見辨識與中性化優化</h4>
+                                <ul class="mt-2 text-xs font-bold text-slate-600 space-y-1">
+                                    <li>🔹 生態與拆壩專案摘要評估</li>
+                                    <li>🔹 可再生能源 vs 化石燃料客觀分析</li>
+                                    <li>🔹 客觀中性提示詞撰寫法則</li>
+                                </ul>
+                            </div>
+                            <div class="text-right text-xs font-black text-sky-600">
+                                點擊翻看關鍵觀念 🔄
+                            </div>
+                        </div>
+                        <!-- Back -->
+                        <div class="absolute inset-0 w-full h-full rounded-2xl p-5 flex flex-col justify-between bg-cartoon-blue text-slate-900 rotate-y-180 backface-hidden border-2 border-slate-800 overflow-y-auto">
+                            <div>
+                                <h4 class="font-black text-base border-b-2 border-slate-800 pb-1 mb-2 text-white">⚖️ 中性無偏見判定</h4>
+                                <p class="text-xs font-bold leading-relaxed text-slate-900">
+                                    • <strong>有偏見</strong>：預設立場（如僅要求強調「主要成就」或直接「主張可再生能源更低能耗可靠」）。<br>
+                                    • <strong>無偏見</strong>：著重獨立第三方研究、客觀分析優缺點、可行性與潛在策略。
+                                </p>
+                            </div>
+                            <div class="text-right text-xs font-black text-white">
+                                點擊翻回正面 🔄
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="flip-card h-64 perspective-1000 cursor-pointer" onclick="rotateCard(this)">
+                    <div class="flip-card-inner relative w-full h-full duration-500 transform-style-3d shadow-cartoon rounded-3xl border-4 border-slate-800 bg-white">
+                        <!-- Front -->
+                        <div class="absolute inset-0 w-full h-full rounded-2xl p-6 flex flex-col justify-between bg-pink-50 backface-hidden">
+                            <div>
+                                <span class="bg-cartoon-pink text-white text-xs font-black px-3 py-1 rounded-full border border-slate-800">主題三</span>
+                                <h4 class="text-xl font-black mt-3 text-slate-800">迭代修飾與脈絡控制</h4>
+                                <ul class="mt-2 text-xs font-bold text-slate-600 space-y-1">
+                                    <li>🔹 對話歷史格式維持</li>
+                                    <li>🔹 個人限制條件補充 (時間/健康)</li>
+                                    <li>🔹 針對小學/非技術受眾進行語言調校</li>
+                                </ul>
+                            </div>
+                            <div class="text-right text-xs font-black text-pink-600">
+                                點擊翻看關鍵觀念 🔄
+                            </div>
+                        </div>
+                        <!-- Back -->
+                        <div class="absolute inset-0 w-full h-full rounded-2xl p-5 flex flex-col justify-between bg-cartoon-pink text-white rotate-y-180 backface-hidden border-2 border-slate-800 overflow-y-auto">
+                            <div>
+                                <h4 class="font-black text-base border-b-2 border-white pb-1 mb-2">🎯 脈絡調校技巧</h4>
+                                <p class="text-xs font-bold leading-relaxed">
+                                    • <strong>格式跑掉</strong>：「請修改貼文，使其看起來像之前生成的社群貼文」。<br>
+                                    • <strong>健身/目標不符</strong>：主動提供個人時間表與身體限制。<br>
+                                    • <strong>過於複雜</strong>：避免專業術語，添加簡單語言、視覺輔助與具體實例。
+                                </p>
+                            </div>
+                            <div class="text-right text-xs font-black text-white">
+                                點擊翻回正面 🔄
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="flip-card h-64 perspective-1000 cursor-pointer" onclick="rotateCard(this)">
+                    <div class="flip-card-inner relative w-full h-full duration-500 transform-style-3d shadow-cartoon rounded-3xl border-4 border-slate-800 bg-white">
+                        <!-- Front -->
+                        <div class="absolute inset-0 w-full h-full rounded-2xl p-6 flex flex-col justify-between bg-emerald-50 backface-hidden">
+                            <div>
+                                <span class="bg-cartoon-green text-slate-900 text-xs font-black px-3 py-1 rounded-full border border-slate-800">主題四</span>
+                                <h4 class="text-xl font-black mt-3 text-slate-800">圖像與視覺資料提示優化</h4>
+                                <ul class="mt-2 text-xs font-bold text-slate-600 space-y-1">
+                                    <li>🔹 圖像風格調校（復古/逼真/色彩飽滿）</li>
+                                    <li>🔹 圖表類型二次轉換 (強調趨勢變化)</li>
+                                </ul>
+                            </div>
+                            <div class="text-right text-xs font-black text-emerald-600">
+                                點擊翻看關鍵觀念 🔄
+                            </div>
+                        </div>
+                        <!-- Back -->
+                        <div class="absolute inset-0 w-full h-full rounded-2xl p-5 flex flex-col justify-between bg-cartoon-green text-slate-900 rotate-y-180 backface-hidden border-2 border-slate-800 overflow-y-auto">
+                            <div>
+                                <h4 class="font-black text-base border-b-2 border-slate-800 pb-1 mb-2">🎨 視覺提示優化</h4>
+                                <p class="text-xs font-bold leading-relaxed">
+                                    • <strong>風格修正</strong>：明確加入關鍵詞（如「運用鮮豔色彩描繪城市公園裡有隻快樂狗的復古插圖」）。<br>
+                                    • <strong>圖表類型轉換</strong>：若要強調「歷史持續變化趨勢」，將柱狀圖改為<strong>折線圖</strong>。
+                                </p>
+                            </div>
+                            <div class="text-right text-xs font-black text-slate-800">
+                                點擊翻回正面 🔄
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INTERACTIVE QUIZ ARENA SECTION -->
+        <section id="quiz-section" class="scroll-mt-20">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="bg-cartoon-yellow text-slate-900 w-10 h-10 rounded-2xl border-2 border-slate-800 flex items-center justify-center font-black text-xl shadow-[2px_2px_0px_#000]">
+                        2
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-black text-slate-800">闖關互動刷題館 (12題經典實戰)</h3>
+                        <p class="text-xs font-bold text-slate-500">測驗考綱三 Prompt Refinement 知識點！</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Card Container -->
+            <div class="bg-white rounded-3xl border-4 border-slate-800 p-6 md:p-8 shadow-cartoon relative">
+                
+                <!-- Progress Line inside Quiz -->
+                <div class="w-full bg-slate-100 rounded-full h-4 mb-6 border-2 border-slate-800 overflow-hidden">
+                    <div id="quiz-progress-bar" class="bg-cartoon-pink h-full rounded-full transition-all duration-300 w-0"></div>
+                </div>
+
+                <!-- Quiz Card Content -->
+                <div id="quiz-box">
+                    <!-- Dynamic Quiz Content Rendered via JS -->
+                </div>
+
+                <!-- Result Score Board (Hidden by Default) -->
+                <div id="result-box" class="hidden text-center py-6">
+                    <div class="text-6xl mb-3 animate-bounce" id="result-emoji">🏆</div>
+                    <h2 class="text-3xl font-black mb-2 text-slate-800">冒險完成！</h2>
+                    <p class="text-slate-600 font-bold mb-4">這是你本次 Prompt 調校大冒險的成績總覽：</p>
+                    
+                    <div class="max-w-md mx-auto bg-amber-50 rounded-2xl border-3 border-slate-800 p-6 mb-6 shadow-[3px_4px_0px_#000]">
+                        <div class="text-4xl font-black text-cartoon-purple mb-2" id="score-text">100 分</div>
+                        <div class="text-base font-bold text-slate-700 mb-2" id="badge-title">獲得稱號：✨ Prompt 提示詞大魔導士</div>
+                        <p class="text-xs font-bold text-slate-500" id="result-summary">答對 12 / 12 題 (正確率 100%)</p>
+                    </div>
+
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <button onclick="restartQuiz()" class="bg-cartoon-yellow hover:bg-amber-300 text-slate-900 border-2 border-slate-800 font-black px-6 py-3 rounded-2xl btn-3d inline-flex items-center gap-2">
+                            <i class="fa-solid fa-rotate-right"></i> 重新刷題測驗
+                        </button>
+                        <button onclick="reviewWrongAnswers()" id="btn-review" class="bg-cartoon-pink hover:bg-pink-400 text-white border-2 border-slate-800 font-black px-6 py-3 rounded-2xl btn-3d inline-flex items-center gap-2 hidden">
+                            <i class="fa-solid fa-file-circle-check"></i> 專注複習錯題
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-white py-6 border-t-4 border-slate-900 mt-12">
+        <div class="max-w-5xl mx-auto px-4 text-center font-bold text-xs space-y-2">
+            <p class="text-amber-300">🎉 20251023CCS AI 題庫考綱三：Prompt Refinement 學習互動網頁</p>
+            <p class="text-slate-400">可愛卡通風格化設計 • 隨時隨地刷題複習</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Data and Logic -->
+    <script>
+        // Quiz Data generated strictly from user text
+        const quizData = [
+            {
+                id: 1,
+                category: "高階提示技術",
+                question: "哪項定義正確地描述了提示詞鏈接（Prompt Chaining）技術？",
+                options: [
+                    "將任務分解為更小的子任務，並使用一個提示詞的輸出作為下一個提示詞的輸入",
+                    "在單一提示詞中重複包含多個相似問題以提高精確度",
+                    "將提示詞發送給多個 AI 模型進行並行比較",
+                    "讓 AI 自由想像並連續生成多段不相關的解答"
+                ],
+                answer: 0,
+                explanation: "提示詞鏈接（Prompt Chaining）是將複雜任務拆解為連續的小子任務，將前一步驟的輸出做為下一步驟提示詞的輸入上下文。"
+            },
+            {
+                id: 2,
+                category: "高階提示技術",
+                question: "你想使用反向提示詞（Reverse Prompting），讓 AI 為你生成包含適當細節的簡歷，哪個提示詞最有幫助？",
+                options: [
+                    "「請直接幫我寫一份完美且極具吸引力的履歷表格」",
+                    "「讓我提供簡歷所需的每個關鍵細節，然後使用這些資訊生成簡歷」",
+                    "「列出歷史上最優秀的履歷範例供我參考」",
+                    "「請搜尋網路上的履歷範本並直接下載」"
+                ],
+                answer: 1,
+                explanation: "反向提示詞（Reverse Prompting）的作用是讓 AI 先問問題或引導使用者提供必要的細節資訊，再據此生成高品質的最終結果。"
+            },
+            {
+                id: 3,
+                category: "高階提示技術",
+                question: "提示詞中包含了程式化的問答範例（如「問：將純紅與純藍等量混合... 答：生成紫色」與「問：將紅色和藍色按 2:1 混合...」），判斷使用的是哪種類型的提示詞？",
+                options: [
+                    "零樣本提示 (Zero-Shot Prompting)",
+                    "思維鏈 (CoT, Chain-of-Thought)",
+                    "反向提示 (Reverse Prompting)",
+                    "角色扮演提示 (Role-Playing)"
+                ],
+                answer: 1,
+                explanation: "思維鏈（Chain-of-Thought, CoT）藉由在提示詞中示範推理過程或範例問答，引導 AI 依照邏輯鏈條逐步進行推論。"
+            },
+            {
+                id: 4,
+                category: "偏見辨識與中性化",
+                question: "需要為大壩拆除專案建立無偏見摘要，請評估下列哪個提示詞是「無偏見」的？",
+                options: [
+                    "「生成一個150字的摘要，內容關於大壩拆除的主要成就，重點關注對生態系統產生的最重大的影響」",
+                    "「生成一份摘要，內容關於獨立協力廠商研究中針對拆除大壩提供的建議，重點關注可行性見解和潛在策略」"
+                ],
+                answer: 1,
+                explanation: "強調「主要成就」帶有正面偏見預設；而引用「獨立第三方研究」並「關注可行性見解與潛在策略」則是客觀中性的提示詞。"
+            },
+            {
+                id: 5,
+                category: "偏見辨識與中性化",
+                question: "評估下列關於可再生能源分析的提示詞，哪一個屬於「無偏見」的客觀提示詞？",
+                options: [
+                    "「強調在城市環境中，可再生能源比化石燃料的能耗更低、也更可靠...」",
+                    "「分析在城市環境中，各種可再生能源（太陽能、風能、水能和地熱能）的優缺點。重點關注能源輸出、成本、環境影響和可擴展性...客觀地展示發現的結果」"
+                ],
+                answer: 1,
+                explanation: "直接聲稱「可再生能源比化石燃料更低能耗可靠」具備預設立場偏見；要求分析「優缺點、成本、環境影響與客觀展示」才是無偏見提示。"
+            },
+            {
+                id: 6,
+                category: "迭代修飾與脈絡",
+                question: "你在同一對話內生成所有社群媒體貼文，若新產生的貼文格式不符合預期，應使用哪個後續提示詞最合適？",
+                options: [
+                    "「請修改貼文，使其看起來像之前生成的社群媒體貼文」",
+                    "「重新開啟一個新的對話視窗並重新嘗試」",
+                    "「為什麼你總是無法生成正確的格式？」",
+                    "「將貼文改寫成學術論文格式」"
+                ],
+                answer: 0,
+                explanation: "利用對話歷史（Context）提醒 AI 參考先前已生成的正確格式風格，是維護格式一致性最有效的方法。"
+            },
+            {
+                id: 7,
+                category: "迭代修飾與脈絡",
+                question: "輸入「制定每週鍛鍊計畫」後，因個人時間與身體狀況無法執行，應如何改進提示詞？",
+                options: [
+                    "直接要求 AI 提供最艱難的高強度訓練計畫",
+                    "應提供自己的時間表，並說明身體狀況面臨的限制",
+                    "要求 AI 減少運動項目但維持完全一樣的時間安排",
+                    "不做任何說明，請 AI 隨機再生成一次"
+                ],
+                answer: 1,
+                explanation: "補充個人限制條件（包含時間安排與身體狀況）能讓 AI 提供貼合需求的客製化鍛鍊計畫。"
+            },
+            {
+                id: 8,
+                category: "迭代修飾與脈絡",
+                question: "輸入「制定快速鍛鍊計畫」生成了簡短清單，若要更貼合「30分鐘力量訓練」目標，接下來應使用哪個提示詞？",
+                options: [
+                    "「按照30分鐘的力量訓練進行修改」",
+                    "「請給我一份長達2小時的馬拉松訓練」",
+                    "「簡短清單太少了，請隨便增加內容」",
+                    "「請刪除所有運動項目」"
+                ],
+                answer: 0,
+                explanation: "明確追加時間（30分鐘）與特定類型（力量訓練）的限制目標進行迭代修飾。"
+            },
+            {
+                id: 9,
+                category: "目標受眾與語言調校",
+                question: "對 AI 發出「解釋光合作用」，結果對小學年齡受眾太過複雜，應如何優化提示詞？",
+                options: [
+                    "加入更多大學生物學專有名詞以求精確",
+                    "避免使用複雜的語言，並提供具體的範例",
+                    "要求 AI 使用英文論文風格重新解釋",
+                    "直接複製教科書原文貼給 AI"
+                ],
+                answer: 1,
+                explanation: "針對小學受眾，提示詞應強調「避免複雜專業語言」並要求「提供具體淺顯範例」。"
+            },
+            {
+                id: 10,
+                category: "目標受眾與語言調校",
+                question: "將安全性漏洞掃描報告轉換為適合「非技術受眾」的簡報，應使用哪個提示詞？",
+                options: [
+                    "「使用較為簡單的語言重新編寫報告，並添加視覺輔助和範例」",
+                    "「保留所有專業程式碼細節與系統編號」",
+                    "「直接刪除所有關於安全的內容」",
+                    "「將報告翻譯成古代文言文」"
+                ],
+                answer: 0,
+                explanation: "面對非技術受眾，轉換關鍵為「簡單語言」、「視覺輔助」與「生活化範例」。"
+            },
+            {
+                id: 11,
+                category: "追加範例與深化",
+                question: "輸入「撰寫有關最新人工智慧趨勢的簡要概述」後收到初步摘要，接下來應使用哪個提示詞獲得更詳細的回覆？",
+                options: [
+                    "「提供詳細的範例，說明最近在機器學習演算法方面取得的突破及其對汽車和金融行業的影響」",
+                    "「請將摘要壓縮成 10 個字以內」",
+                    "「這樣就可以了，不需要再提供資訊」",
+                    "「請重複發送一模一樣的摘要」"
+                ],
+                answer: 0,
+                explanation: "追加具體產業（汽車與金融）與關鍵技術突破的細節要求，可引導 AI 提供深入解答。"
+            },
+            {
+                id: 12,
+                category: "圖像與視覺提示優化",
+                question: "輸入「公園裡有一隻快樂的狗」輸出卡通狗，若希望結果貼合「逼真、復古風格且顏色飽滿」要求，應如何優化？",
+                options: [
+                    "「運用鮮豔的色彩描繪城市公園裡有一隻快樂的狗的復古插圖」",
+                    "「狗」",
+                    "「請繪製一張黑白相間的幾何抽象圖形」",
+                    "「生成一隻貓在沙灘上」"
+                ],
+                answer: 0,
+                explanation: "補充風格修飾詞（鮮豔色彩、城市公園、復古插圖/風格）能大幅提升圖像提示詞的精準度。"
+            }
+        ];
+
+        // State Variables
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+        let wrongQuestions = [];
+        let isReviewMode = false;
+
+        // Card Flip Function
+        function rotateCard(card) {
+            const inner = card.querySelector('.flip-card-inner');
+            inner.classList.toggle('rotate-y-180');
+        }
+
+        // Scroll Helper
+        function scrollToQuiz() {
+            document.getElementById('quiz-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Play sound feedback using Web Audio API
+        function playAudioFeedback(isCorrect) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (isCorrect) {
+                    osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.1); // E5
+                    osc.frequency.exponentialRampToValueAtTime(783.99, ctx.currentTime + 0.2); // G5
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.3);
+                } else {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, ctx.currentTime); // A3
+                    osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.25);
+                }
+            } catch(e) {
+                // AudioContext fallback ignored
+            }
+        }
+
+        // Render Current Question
+        function renderQuestion() {
+            const list = isReviewMode ? wrongQuestions : quizData;
+            const q = list[currentQuestionIndex];
+            
+            if (!q) return;
+
+            const quizBox = document.getElementById('quiz-box');
+            const total = list.length;
+            
+            // Update Progress bar
+            const progressPercent = ((currentQuestionIndex) / total) * 100;
+            document.getElementById('quiz-progress-bar').style.width = `${progressPercent}%`;
+            document.getElementById('progress-text').innerText = `${currentQuestionIndex}/${total}`;
+
+            let optionsHTML = '';
+            q.options.forEach((opt, idx) => {
+                optionsHTML += `
+                    <button onclick="handleOptionSelect(${idx})" class="option-btn w-full text-left p-4 rounded-2xl border-3 border-slate-800 bg-slate-50 hover:bg-amber-100 font-bold text-slate-800 transition-all shadow-[2px_3px_0px_#000] flex items-center justify-between group cursor-pointer mb-3">
+                        <span class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-white border-2 border-slate-800 flex items-center justify-center font-black group-hover:bg-cartoon-yellow">
+                                ${String.fromCharCode(65 + idx)}
+                            </span>
+                            <span class="text-sm md:text-base">${opt}</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-right opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </button>
+                `;
+            });
+
+            quizBox.innerHTML = `
+                <div class="mb-4 flex justify-between items-center">
+                    <span class="bg-cartoon-purple text-white text-xs font-black px-3 py-1 rounded-full border border-slate-800">
+                        ${q.category}
+                    </span>
+                    <span class="text-xs font-black text-slate-400">
+                        第 ${currentQuestionIndex + 1} / ${total} 題
+                    </span>
+                </div>
+                <h3 class="text-lg md:text-xl font-black text-slate-800 mb-6 leading-relaxed">
+                    ${q.question}
+                </h3>
+                <div class="space-y-3 mb-6">
+                    ${optionsHTML}
+                </div>
+                <div id="feedback-area" class="hidden p-4 rounded-2xl border-3 border-slate-800 mb-4 animate-fade-in"></div>
+                <div class="flex justify-end">
+                    <button id="next-btn" onclick="nextQuestion()" class="hidden bg-cartoon-green hover:bg-emerald-400 text-slate-900 border-2 border-slate-800 font-black px-6 py-2.5 rounded-2xl btn-3d items-center gap-2">
+                        下一題 <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        // Handle Option Click
+        function handleOptionSelect(selectedIdx) {
+            const list = isReviewMode ? wrongQuestions : quizData;
+            const q = list[currentQuestionIndex];
+            const feedbackArea = document.getElementById('feedback-area');
+            const nextBtn = document.getElementById('next-btn');
+            const optionBtns = document.querySelectorAll('.option-btn');
+
+            // Disable further clicks
+            optionBtns.forEach(btn => btn.style.pointerEvents = 'none');
+
+            const isCorrect = selectedIdx === q.answer;
+
+            if (isCorrect) {
+                playAudioFeedback(true);
+                if (!isReviewMode) {
+                    score += 1;
+                    document.getElementById('star-count').innerText = score * 10;
+                }
+                optionBtns[selectedIdx].classList.remove('bg-slate-50');
+                optionBtns[selectedIdx].classList.add('bg-emerald-200', 'border-emerald-700');
+
+                feedbackArea.className = "p-4 rounded-2xl border-3 border-slate-800 mb-4 bg-emerald-100 text-emerald-900 animate-bounce-short";
+                feedbackArea.innerHTML = `
+                    <div class="font-black text-base flex items-center gap-2 mb-1">
+                        <span>🎉 答對了！不愧是 Prompt 提示詞大師！</span>
+                    </div>
+                    <div class="text-xs font-bold leading-relaxed">${q.explanation}</div>
+                `;
+            } else {
+                playAudioFeedback(false);
+                if (!isReviewMode) {
+                    wrongQuestions.push(q);
+                }
+                optionBtns[selectedIdx].classList.remove('bg-slate-50');
+                optionBtns[selectedIdx].classList.add('bg-rose-200', 'border-rose-700');
+                
+                // Highlight correct answer
+                optionBtns[q.answer].classList.remove('bg-slate-50');
+                optionBtns[q.answer].classList.add('bg-emerald-200');
+
+                feedbackArea.className = "p-4 rounded-2xl border-3 border-slate-800 mb-4 bg-rose-100 text-rose-900";
+                feedbackArea.innerHTML = `
+                    <div class="font-black text-base flex items-center gap-2 mb-1">
+                        <span>💡 再想一下！留意中性無偏見與受眾需求喔！</span>
+                    </div>
+                    <div class="text-xs font-bold leading-relaxed">${q.explanation}</div>
+                `;
+            }
+
+            feedbackArea.classList.remove('hidden');
+            nextBtn.classList.remove('hidden');
+            nextBtn.classList.add('inline-flex');
+        }
+
+        // Next Question or Finish
+        function nextQuestion() {
+            const list = isReviewMode ? wrongQuestions : quizData;
+            currentQuestionIndex++;
+            if (currentQuestionIndex < list.length) {
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // Show Final Results
+        function showResults() {
+            document.getElementById('quiz-box').classList.add('hidden');
+            document.getElementById('result-box').classList.remove('hidden');
+            document.getElementById('quiz-progress-bar').style.width = '100%';
+
+            const total = isReviewMode ? wrongQuestions.length : quizData.length;
+            const finalScore = Math.round((score / quizData.length) * 100);
+            
+            document.getElementById('score-text').innerText = `${finalScore} 分`;
+            document.getElementById('result-summary').innerText = `答對 ${score} / ${quizData.length} 題 (正確率 ${finalScore}%)`;
+
+            let badge = "🌱 Prompt 冒險實習生";
+            let emoji = "🐣";
+
+            if (finalScore === 100) {
+                badge = "✨ Prompt 提示詞大魔導士";
+                emoji = "🏆";
+                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            } else if (finalScore >= 80) {
+                badge = "🔥 Prompt 調校專家";
+                emoji = "🌟";
+                confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } });
+            } else if (finalScore >= 60) {
+                badge = "📘 提示詞後起之秀";
+                emoji = "👍";
+            }
+
+            document.getElementById('badge-title').innerText = `獲得稱號：${badge}`;
+            document.getElementById('result-emoji').innerText = emoji;
+
+            if (wrongQuestions.length > 0 && !isReviewMode) {
+                document.getElementById('btn-review').classList.remove('hidden');
+            }
+        }
+
+        // Restart Quiz
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            wrongQuestions = [];
+            isReviewMode = false;
+            document.getElementById('star-count').innerText = '0';
+            document.getElementById('quiz-box').classList.remove('hidden');
+            document.getElementById('result-box').classList.add('hidden');
+            renderQuestion();
+        }
+
+        // Review Wrong Answers Only
+        function reviewWrongAnswers() {
+            isReviewMode = true;
+            currentQuestionIndex = 0;
+            document.getElementById('quiz-box').classList.remove('hidden');
+            document.getElementById('result-box').classList.add('hidden');
+            renderQuestion();
+        }
+
+        // Initialize on Load
+        window.onload = function() {
+            renderQuestion();
+        };
+    </script>
+</body>
+</html>
