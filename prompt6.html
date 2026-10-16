@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生成式 AI 提示詞考題練習</title>
+<style>
+:root{--bg:#f4f7fb;--panel:#fff;--ink:#172033;--muted:#667085;--line:#e4e9f2;--brand:#4258d0;--brand2:#6c7cf0;--good:#16835d;--bad:#c23c4b;--soft:#edf0ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;line-height:1.65}
+header{background:linear-gradient(125deg,#263a9b,#6677ec);color:white;padding:28px 18px 34px}header .wrap,main{max-width:1060px;margin:auto}header h1{margin:0 0 6px;font-size:clamp(1.5rem,3vw,2.25rem)}header p{margin:0;opacity:.9}
+main{padding:22px 16px 50px}.layout{display:grid;grid-template-columns:245px 1fr;gap:18px;align-items:start}
+.panel,.question-card,.result-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 28px #24376b0b}
+.panel{padding:17px;position:sticky;top:14px}.panel h2{font-size:1rem;margin:0 0 12px}
+.navbtn{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-radius:10px;background:transparent;color:var(--ink);cursor:pointer;margin:3px 0;font:inherit}
+.navbtn.active,.navbtn:hover{background:var(--soft);color:var(--brand);font-weight:700}
+.small{font-size:.9rem;color:var(--muted)}.progress{height:8px;background:#e9edf6;border-radius:99px;overflow:hidden;margin:9px 0 5px}.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),#7b8bff);transition:width .2s}
+.toolbar{display:flex;flex-wrap:wrap;gap:9px;align-items:center;justify-content:space-between;margin-bottom:14px}
+select,button{font:inherit}select{padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink)}
+button{cursor:pointer}.primary,.secondary,.quiet{border-radius:10px;padding:10px 15px;border:1px solid transparent;font-weight:650}
+.primary{background:var(--brand);color:white}.primary:hover{background:#3246b7}.secondary{background:#eef1ff;color:var(--brand);border-color:#dfe4ff}.quiet{background:white;border-color:var(--line);color:var(--ink)}
+.question-card{padding:clamp(18px,3vw,28px)}.eyebrow{color:var(--brand);font-size:.85rem;font-weight:750;letter-spacing:.04em}.question-card h2{font-size:1.23rem;line-height:1.5;margin:8px 0 18px}
+.options{display:grid;gap:10px}.option{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;background:#fff;transition:.15s}.option:hover{border-color:#aab4ff;background:#fafaff}.option input{margin-top:6px;accent-color:var(--brand)}.option.chosen{border-color:var(--brand);background:#f6f7ff}.option.correct{border-color:var(--good);background:#edfaf4}.option.wrong{border-color:var(--bad);background:#fff1f2}
+.feedback{margin-top:16px;padding:14px;border-radius:12px;display:none}.feedback.show{display:block}.feedback.good{background:#edfaf4;color:#116746}.feedback.bad{background:#fff1f2;color:#9d2635}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px;justify-content:space-between}.actions .right{display:flex;gap:9px}
+.result-card{padding:22px;margin-bottom:14px}.score{font-size:2.4rem;font-weight:800;color:var(--brand)}.hidden{display:none!important}.tag{display:inline-block;border-radius:99px;background:#f0f2f8;color:#505b70;padding:3px 9px;font-size:.8rem;margin-right:5px}
+.review-item{padding:13px 0;border-bottom:1px solid var(--line)}.review-item:last-child{border-bottom:0}.review-item strong{display:block;margin-bottom:4px}
+footer{text-align:center;color:var(--muted);font-size:.85rem;padding:0 16px 25px}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.panel{position:static}.panel nav{display:grid;grid-template-columns:1fr 1fr;gap:2px}.panel .navbtn{font-size:.9rem}.question-card{padding:18px}.toolbar{align-items:stretch}.toolbar select{flex:1}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>生成式 AI 提示詞考題練習</h1><p>從提示詞結構、進階技巧、多模態應用到偏見識別，練習後立即查看解析。</p></div></header>
+<main>
+<div class="layout">
+<aside class="panel">
+<h2>練習分類</h2>
+<nav id="categoryNav">
+<button class="navbtn active" data-cat="all">全部題目</button>
+<button class="navbtn" data-cat="core">提示詞核心結構</button>
+<button class="navbtn" data-cat="advanced">進階提示工程</button>
+<button class="navbtn" data-cat="multi">多模態與場景應用</button>
+<button class="navbtn" data-cat="bias">客觀性與偏見</button>
+</nav>
+<hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+<div class="small">本次作答進度</div><div class="progress"><span id="progressBar"></span></div>
+<div class="small" id="progressText">已答 0 / 0 題</div>
+<div style="display:grid;gap:8px;margin-top:16px">
+<button class="secondary" id="randomBtn">隨機練習</button>
+<button class="quiet" id="resetBtn">重新作答</button>
+<button class="quiet" id="reviewBtn">查看錯題</button>
+</div>
+</aside>
+<section>
+<div class="toolbar">
+<div><span class="tag" id="modeTag">全部題目</span><span class="small" id="countText"></span></div>
+<select id="orderSelect" aria-label="題目順序"><option value="seq">依序作答</option><option value="random">隨機排序</option></select>
+</div>
+<div id="quizView">
+<div class="question-card">
+<div class="eyebrow" id="qMeta">題目 1</div>
+<h2 id="qText"></h2>
+<div class="options" id="options"></div>
+<div class="feedback" id="feedback" aria-live="polite"></div>
+<div class="actions">
+<button class="quiet" id="prevBtn">← 上一題</button>
+<div class="right"><button class="secondary" id="explainBtn">查看解析</button><button class="primary" id="nextBtn">下一題 →</button></div>
+</div>
+</div>
+</div>
+<div id="resultView" class="hidden">
+<div class="result-card"><div class="small">練習結果</div><div class="score" id="scoreText">0 / 0</div><p id="scoreComment"></p><button class="primary" id="retryWrongBtn">再練錯題</button> <button class="quiet" id="backQuizBtn">回到題目</button></div>
+<div class="result-card"><h2 style="margin-top:0">作答紀錄</h2><div id="reviewList"></div></div>
+</div>
+</section>
+</div>
+</main>
+<footer>離線即可使用；作答紀錄只保存在目前頁面中，重新整理後會重設。</footer>
+<script>
+const questions = [
+{ id:"20-A1",cat:"core",topic:"核心結構",q:"提示詞片段：「你是一位有豐富經驗的高級行銷經理。」屬於哪一項核心要素？",opts:["特定指令","假定角色","完整上下文","約束條件及範例"],ans:1,why:"這段文字指定 AI 扮演的專業身份，因此屬於假定角色（Role/Persona）。"},
+{ id:"20-A1",cat:"core",topic:"核心結構",q:"提示詞片段：「請將下列銷售資料整理成每月摘要，並指出成長最高的月份。」屬於哪一項？",opts:["假定角色","特定指令","完整上下文","約束條件及範例"],ans:1,why:"它明確說明要執行的動作與分析任務，屬於特定指令。"},
+{ id:"20-A1",cat:"core",topic:"核心結構",q:"提示詞片段：「請依據這份包含各門市銷售額的試算表進行分析。」其中試算表與背景資料屬於哪一項？",opts:["假定角色","特定指令","完整上下文","約束條件及範例"],ans:2,why:"提供任務背景、資料集或相關連結，屬於完整上下文（Context）。"},
+{ id:"20-A1",cat:"core",topic:"核心結構",q:"提示詞要求：「請用表格輸出，語氣親切，內容不超過 200 字。」這屬於哪一項？",opts:["假定角色","特定指令","完整上下文","約束條件及範例"],ans:3,why:"輸出格式、語氣、長度等限制都屬於約束條件及範例。"},
+{ id:"39-B8",cat:"core",topic:"清晰度",q:"建立高品質提示詞時，哪一種做法最適當？",opts:["只寫關鍵字，讓 AI 自行猜測背景","提供清楚、具體的視覺與敘述描述，並使用直白語言","省略專案背景以節省字數","避免描述輸出格式"],ans:1,why:"清楚描述需求、背景與細節可以減少誤解；不應假設 AI 已經知道未提供的專案資訊。"},
+{ id:"57-B14",cat:"advanced",topic:"思維鏈 CoT",q:"提示詞提供「紅色與藍色等量混合會形成紫色」，接著解釋色相光譜原理，並示範如何逐步推導答案。這最符合哪種技術？",opts:["提示詞鏈接","思維鏈（Chain-of-Thought）","反向提示詞","水平鏡像"],ans:1,why:"題目以示例展示推理步驟，引導模型逐步推導，符合題庫所指的思維鏈（CoT）。"},
+{ id:"51-A43",cat:"advanced",topic:"提示詞鏈接",q:"下列哪一項最準確描述提示詞鏈接（Prompt Chaining）？",opts:["在同一提示詞中塞入所有任務，不分階段完成","將複雜任務拆成較小子任務，並把前一步輸出作為下一步輸入","要求 AI 只提出問題，不生成答案","每次都開啟全新對話，避免沿用前文"],ans:1,why:"提示詞鏈接會把複雜工作拆成多階段，並串接各階段輸入與輸出。"},
+{ id:"55-B10",cat:"advanced",topic:"反向提示詞",q:"想讓 AI 產生包含適當細節的履歷，哪一種提示詞最有效？",opts:["立即產生一份通用履歷，不必詢問我","讓我提供履歷所需的每個關鍵細節，再使用這些資訊生成履歷","只寫「幫我寫得更好」","請列出十種字體"],ans:1,why:"反向提示詞讓 AI 先提問、收集缺少的關鍵資訊，再產生更貼合需求的結果。"},
+{ id:"48-A28",cat:"advanced",topic:"上下文延續",q:"AI 產生的社群貼文格式與先前版本不一致，最適當的下一步是什麼？",opts:["另開新對話，不提供任何背景","只輸入「重做」","在同一對話中要求依照先前生成的社群貼文格式修改","要求 AI 忽略所有先前內容"],ans:2,why:"在同一對話中引用先前結果並明確說明要延續的格式，有助於維持上下文與風格一致。"},
+{ id:"25-A34",cat:"multi",topic:"圖像生成",q:"要為環保草坪公司設計 Logo，初次結果只有普通割草機。若要增加庭院與自然感，應如何修改提示詞？",opts:["只說「做得更漂亮」","加入綠色青草、五顏六色的鮮花和蜜蜂等具體視覺元素","刪除所有顏色描述","改成要求輸出散點圖"],ans:1,why:"提供具體、可視化的元素能讓圖像生成更接近想要的構圖與主題。"},
+{ id:"36-B24",cat:"multi",topic:"圖像生成",q:"製作 Healthy Eats Logo 時，哪個提示詞最能明確傳達需求？",opts:["做一個健康風格的標誌","包含公司名稱 Healthy Eats、粉色與綠色文字，以及草莓圖片","畫一張沒有文字的城市照片","做一個黑白幾何圖形即可"],ans:1,why:"品牌名稱、指定顏色與草莓圖像都是明確的視覺要求，應直接寫進提示詞。"},
+{ id:"41-B37",cat:"multi",topic:"風格控制",q:"想將一隻卡通狗的圖片改為復古風格，哪一種提示詞較具體？",opts:["讓它更有感覺","運用鮮豔色彩，描繪城市公園裡一隻快樂的狗的復古插圖","把圖片變成試算表","只調整檔案名稱"],ans:1,why:"提示詞同時指出風格、色彩、主體與場景，較容易得到具體且符合需求的圖像。"},
+{ id:"26-A37",cat:"multi",topic:"圖像轉換",q:"若要讓圖片中的汽車車頭朝向相反方向，應使用哪種操作？",opts:["水平鏡像圖像","提高音量","改成折線圖","增加文字字數"],ans:0,why:"水平鏡像會將圖像左右翻轉，適合改變物體的左右朝向。"},
+{ id:"45-A20",cat:"multi",topic:"資料視覺化",q:"要呈現銷售量與消費者年齡兩個數值變數之間的關聯，最適合指定哪一種圖表？",opts:["圓餅圖","散點圖","流程圖","文字雲"],ans:1,why:"散點圖能呈現兩個數值變數的配對關係與分布。"},
+{ id:"59-B30",cat:"multi",topic:"資料視覺化",q:"要顯示某地人口多年來持續變化的趨勢，應優先使用哪一種圖表？",opts:["折線圖","圓餅圖","組織架構圖","詞頻表"],ans:0,why:"折線圖適合呈現資料隨時間變化的趨勢。"},
+{ id:"34-B35",cat:"multi",topic:"資料分析",q:"要計算每平方米平均價格，提示詞應明確對應資料集中的哪些欄位？",opts:["姓名、電話、地址","區域、總價、面積","顏色、字型、風格","日期、天氣、心情"],ans:1,why:"總價與面積是計算單位面積價格的必要欄位，區域可用於分類或比較。"},
+{ id:"40-B44",cat:"multi",topic:"影音與簡報",q:"要將 PowerPoint 轉成專業教育影片，哪一項提示最完整？",opts:["請轉成影片","製作 2 分鐘影片，採正式場合口吻，並在動畫中留出閱讀文字的時間","做得更好看即可","把所有文字快速閃過，不必考慮閱讀時間"],ans:1,why:"明確指定片長、語氣與文字停留時間，能讓輸出更符合教育影片的使用情境。"},
+{ id:"31-A44",cat:"multi",topic:"具體修改",q:"初次生成的健身計畫太短，希望內容符合 30 分鐘的力量訓練。應如何下達修改指令？",opts:["更精細一些","再試一次","請依照 30 分鐘的力量訓練需求修改計畫","請使用不同字體"],ans:2,why:"直接說明時長與訓練類型，比「更精細」這類模糊要求更有用。"},
+{ id:"42-A24",cat:"bias",topic:"偏見識別",q:"比較不同可再生能源時，哪一個提示詞帶有明顯偏見？",opts:["客觀比較各種可再生能源的優缺點與成本","整理不同能源的第三方獨立研究","強調太陽能卓越的環境效益","同時分析各種方案的限制與影響"],ans:2,why:"「強調太陽能卓越」預先指定有利結論，容易引導分析偏向特定立場。"},
+{ id:"78-B43",cat:"bias",topic:"偏見識別",q:"哪一種提示詞最能要求 AI 以較客觀的方式比較可再生能源？",opts:["證明太陽能一定優於其他能源","只列出風能的缺點","客觀分析各種可再生能源的優缺點、成本與影響","忽略與預設立場不一致的資料"],ans:2,why:"客觀提示詞要求多方比較、呈現優缺點與成本，而不是預設哪個選項一定最好。"}
+];
+const cats={all:"全部題目",core:"提示詞核心結構",advanced:"進階提示工程",multi:"多模態與場景應用",bias:"客觀性與偏見"};
+let activeCat="all", list=[], index=0, answers={}, checked={}, wrongOnly=false;
+const $=id=>document.getElementById(id);
+function makeList(){
+ let base=questions.filter(q=>(activeCat==="all"||q.cat===activeCat)&&(!wrongOnly||checked[q.id+"_"+questions.indexOf(q)]&&answers[questions.indexOf(q)]!==q.ans));
+ if($("orderSelect").value==="random") base=base.slice().sort(()=>Math.random()-.5);
+ list=base;index=Math.min(index,Math.max(0,list.length-1));render();
+}
+function render(){
+ $("quizView").classList.remove("hidden");$("resultView").classList.add("hidden");
+ $("modeTag").textContent=wrongOnly?"錯題練習":cats[activeCat];
+ $("countText").textContent=list.length?`共 ${list.length} 題`:"目前沒有符合條件的題目";
+ if(!list.length){$("qMeta").textContent="沒有題目";$("qText").textContent="此分類目前沒有可練習的題目。";$("options").innerHTML="";$("feedback").className="feedback";$("prevBtn").disabled=true;$("nextBtn").disabled=true;updateProgress();return}
+ const q=list[index], qi=questions.indexOf(q), key=qi;
+ $("qMeta").textContent=`題目 ${index+1} / ${list.length}　｜　${q.id}　｜　${q.topic}`;
+ $("qText").textContent=q.q;
+ $("options").innerHTML="";
+ q.opts.forEach((op,i)=>{
+  const label=document.createElement("label");label.className="option";
+  if(answers[key]===i)label.classList.add("chosen");
+  if(checked[key]){if(i===q.ans)label.classList.add("correct");else if(answers[key]===i)label.classList.add("wrong")}
+  const radio=document.createElement("input");radio.type="radio";radio.name="answer";radio.checked=answers[key]===i;radio.disabled=!!checked[key];
+  radio.addEventListener("change",()=>{answers[key]=i;render()});
+  const span=document.createElement("span");span.textContent=String.fromCharCode(65+i)+". "+op;
+  label.append(radio,span);$("options").append(label);
+ });
+ const fb=$("feedback");
+ if(checked[key]){fb.className="feedback show "+(answers[key]===q.ans?"good":"bad");fb.innerHTML=`<strong>${answers[key]===q.ans?"答對了！":"再加油！"} 正確答案：${String.fromCharCode(65+q.ans)}. ${q.opts[q.ans]}</strong><div style="margin-top:5px">${q.why}</div>`}
+ else{fb.className="feedback";fb.textContent=""}
+ $("prevBtn").disabled=index===0;$("nextBtn").textContent=index===list.length-1?"查看結果":"下一題 →";$("nextBtn").disabled=false;
+ updateProgress();
+}
+function updateProgress(){const done=Object.keys(checked).filter(k=>checked[k]).length;$("progressBar").style.width=(done/questions.length*100)+"%";$("progressText").textContent=`已批改 ${done} / ${questions.length} 題`}
+function submitCurrent(){if(!list.length)return;const qi=questions.indexOf(list[index]);if(answers[qi]===undefined){$("feedback").className="feedback show bad";$("feedback").textContent="請先選擇一個答案，再查看解析。";return}checked[qi]=true;render()}
+function showResults(){ $("quizView").classList.add("hidden");$("resultView").classList.remove("hidden");let done=Object.keys(checked).filter(k=>checked[k]).length;let correct=Object.keys(checked).filter(k=>checked[k]&&answers[k]===questions[k].ans).length;$("scoreText").textContent=`${correct} / ${done}`;$("scoreComment").textContent=done?`已批改 ${done} 題，答對率 ${(correct/done*100).toFixed(0)}%。可以查看下方紀錄，針對錯題加強。`:"目前尚未批改任何題目。";$("reviewList").innerHTML="";questions.forEach((q,i)=>{if(!checked[i])return;const d=document.createElement("div");d.className="review-item";d.innerHTML=`<strong>${q.id}｜${q.q}</strong><div>你的答案：${answers[i]===undefined?"未作答":q.opts[answers[i]]}</div><div>正確答案：${q.opts[q.ans]}</div><div class="small">${q.why}</div>`;$("reviewList").append(d)})}
+$("categoryNav").addEventListener("click",e=>{const b=e.target.closest("button[data-cat]");if(!b)return;activeCat=b.dataset.cat;wrongOnly=false;index=0;document.querySelectorAll(".navbtn").forEach(x=>x.classList.toggle("active",x===b));makeList()});
+$("prevBtn").addEventListener("click",()=>{if(index>0){index--;render()}});
+$("nextBtn").addEventListener("click",()=>{if(index===list.length-1){if(!checked[questions.indexOf(list[index])])submitCurrent();else showResults()}else{if(!checked[questions.indexOf(list[index])]){submitCurrent();return}index++;render()}});
+$("explainBtn").addEventListener("click",submitCurrent);
+$("randomBtn").addEventListener("click",()=>{$("orderSelect").value="random";wrongOnly=false;index=0;makeList()});
+$("orderSelect").addEventListener("change",()=>{index=0;makeList()});
+$("resetBtn").addEventListener("click",()=>{answers={};checked={};index=0;wrongOnly=false;activeCat="all";$("orderSelect").value="seq";document.querySelectorAll(".navbtn").forEach(x=>x.classList.toggle("active",x.dataset.cat==="all"));makeList()});
+$("reviewBtn").addEventListener("click",()=>{wrongOnly=true;index=0;makeList()});
+$("retryWrongBtn").addEventListener("click",()=>{wrongOnly=true;index=0;makeList()});
+$("backQuizBtn").addEventListener("click",()=>{index=0;render()});
+makeList();
+</script>
+</body>
+</html>
