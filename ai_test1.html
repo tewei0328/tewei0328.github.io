@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCS AI 認證考題：是非題高效學習測驗網頁</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts: Fredoka One & Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #FFFDF0;
+            background-image: radial-gradient(#FDE047 1.5px, transparent 1.5px);
+            background-size: 30px 30px;
+        }
+        .comic-title {
+            font-family: 'Fredoka One', 'Noto Sans TC', cursive;
+        }
+        /* 美漫風外框與陰影 */
+        .cartoon-box {
+            border: 4px solid #111827;
+            box-shadow: 6px 6px 0px #111827;
+            transition: all 0.2s ease-in-out;
+        }
+        .cartoon-box-sm {
+            border: 3px solid #111827;
+            box-shadow: 4px 4px 0px #111827;
+        }
+        .cartoon-btn {
+            border: 3px solid #111827;
+            box-shadow: 4px 4px 0px #111827;
+            transition: all 0.1s ease;
+        }
+        .cartoon-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px #111827;
+        }
+        .cartoon-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #111827;
+        }
+        /* 3D 翻轉卡片 */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .flip-card-inner {
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .flip-card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            backface-visibility: hidden;
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="text-gray-900 min-h-screen flex flex-col">
+
+    <!-- 頂部 Header -->
+    <header class="bg-yellow-400 border-b-4 border-gray-900 py-6 px-4 shadow-md">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <span class="bg-red-500 text-white text-xs font-black px-3 py-1 rounded-full cartoon-box-sm uppercase tracking-wider">CCS AI 國際認證</span>
+                <h1 class="comic-title text-3xl md:text-4xl text-gray-900 mt-2 tracking-wide drop-shadow-[2px_2px_0px_#fff]">是非題精準學習特訓網頁</h1>
+            </div>
+            <!-- 頁籤切換按鈕 -->
+            <div class="flex gap-2">
+                <button onclick="switchTab('study')" id="btn-study" class="cartoon-btn bg-white text-gray-900 font-bold px-4 py-2 rounded-xl text-sm md:text-base">
+                    📚 知識卡片學習
+                </button>
+                <button onclick="switchTab('quiz')" id="btn-quiz" class="cartoon-btn bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-sm md:text-base">
+                    🎯 互動刷題測驗
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主內容區 -->
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4 md:p-6">
+
+        <!-- 區塊 A：知識卡片學習 (Study Mode) -->
+        <section id="tab-study" class="space-y-6">
+            <div class="bg-blue-100 cartoon-box p-4 md:p-6 rounded-2xl">
+                <h2 class="comic-title text-2xl text-blue-900 mb-2">💡 學習說明</h2>
+                <p class="text-gray-700 font-medium">點擊下方任一卡片即可進行 <strong>3D 翻轉</strong>，檢視題目、答案與詳細解析！透過卡片複習掌握關鍵是非題考點。</p>
+            </div>
+
+            <!-- 卡片網格容器 -->
+            <div id="flashcards-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- JavaScript 動態渲染卡片 -->
+            </div>
+        </section>
+
+        <!-- 區塊 B：互動刷題測驗 (Quiz Mode) -->
+        <section id="tab-quiz" class="hidden space-y-6">
+            <div class="bg-white cartoon-box p-6 rounded-2xl">
+                <!-- 測驗進度與分數 -->
+                <div class="flex justify-between items-center mb-4 pb-4 border-b-2 border-gray-200">
+                    <span id="quiz-progress" class="font-black text-lg text-indigo-600">題目 1 / 13</span>
+                    <span id="quiz-score" class="font-black text-lg text-green-600">得分：0</span>
+                </div>
+
+                <!-- 題目與選項容器 -->
+                <div id="quiz-container" class="space-y-4">
+                    <!-- 動態載入當前題目 -->
+                </div>
+
+                <!-- 下一題按鈕 -->
+                <div class="mt-6 flex justify-end">
+                    <button id="next-btn" onclick="nextQuestion()" class="hidden cartoon-btn bg-green-400 hover:bg-green-500 text-gray-900 font-black px-6 py-3 rounded-xl text-lg">
+                        下一題 ➔
+                    </button>
+                </div>
+            </div>
+
+            <!-- 測驗結算畫面 -->
+            <div id="quiz-result" class="hidden bg-yellow-200 cartoon-box p-8 rounded-2xl text-center space-y-4">
+                <h3 class="comic-title text-3xl text-gray-900">🎉 測驗完成！</h3>
+                <p id="result-text" class="text-xl font-bold text-gray-800"></p>
+                <div>
+                    <button onclick="restartQuiz()" class="cartoon-btn bg-red-400 hover:bg-red-500 text-white font-black px-6 py-3 rounded-xl text-lg">
+                        🔄 重新測驗
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 底部 Footer -->
+    <footer class="bg-gray-900 text-white text-center py-4 mt-8 border-t-4 border-yellow-400 font-bold text-sm">
+        <p>CCS AI 基礎認證考題訓練系統 &copy; 2026 | 專為高效學習打造</p>
+    </footer>
+
+    <!-- JavaScript 互動邏輯與題庫 -->
+    <script>
+        // 13 題是非題完整題庫資料
+        const questionsData = [
+            {
+                id: 1,
+                code: "1-A15",
+                question: "下列每項關於生成式AI的敘述，請選取［正確］或［錯誤］：\n1. 生成式AI僅根據搜尋條件提供結果清單。\n2. 生成式AI使用神經網路來建立輸出。\n3. 生成式AI可以建立文字、圖像和語音等新內容。",
+                options: [
+                    { label: "A. 錯誤、正確、正確", value: "A" },
+                    { label: "B. 正確、錯誤、錯誤", value: "B" },
+                    { label: "C. 正確、正確、錯誤", value: "C" },
+                    { label: "D. 錯誤、錯誤、正確", value: "D" }
+                ],
+                answer: "A",
+                details: "子題 1：僅提供搜尋結果清單的是傳統「搜尋引擎」；子題 2：生成式 AI 基於神經網路；子題 3：AI 可生成文字、圖像、語音等多模態內容。"
+            },
+            {
+                id: 2,
+                code: "10-A10",
+                question: "對於每個有關生成式AI的局限性的敘述，請選取［正確］或［錯誤］：\n1. 你可以假定你輸入到任何GPT或Copilot提示詞中的機密資料均不會被用於訓練。\n2. 存在公認的標準，界定了如何在行業環境中使用生成式AI的輸出。\n3. 你需要對生成式AI工具輸出內容進行仔細的事實查證，因為這些工具可能會編造內容。",
+                options: [
+                    { label: "A. 錯誤、正確、正確", value: "A" },
+                    { label: "B. 正確、錯誤、錯誤", value: "B" },
+                    { label: "C. 錯誤、錯誤、正確", value: "C" },
+                    { label: "D. 正確、正確、正確", value: "D" }
+                ],
+                answer: "C",
+                details: "子題 1：輸入至 AI 的資料可能被用於訓練，絕不可假定機密百分之百安全；子題 2：目前尚無統一公認的產業標準；子題 3：AI 具有幻覺特性，必須仔細查證。"
+            },
+            {
+                id: 3,
+                code: "12-B28",
+                question: "對於下列每項敘述，請選取它是關於［生成式AI］，還是關於 Google 搜尋等［搜尋引擎］？\n1. 能夠根據提示詞生成新的材料。\n2. 能夠生成在任何網站上都找不到的材料。\n3. 總是清楚地說明資訊在網路上的來源。",
+                options: [
+                    { label: "A. 生成式AI、生成式AI、搜尋引擎", value: "A" },
+                    { label: "B. 搜尋引擎、生成式AI、生成式AI", value: "B" },
+                    { label: "C. 生成式AI、搜尋引擎、搜尋引擎", value: "C" },
+                    { label: "D. 搜尋引擎、搜尋引擎、生成式AI", value: "D" }
+                ],
+                answer: "A",
+                details: "子題 1 & 2：生成式 AI 能創造原創內容；子題 3：搜尋引擎總是提供網頁來源與 URL 連結。"
+            },
+            {
+                id: 4,
+                code: "19-B7",
+                question: "對於每個場景敘述，如果結果是可能的，請選取［可能］，否則選取［不可能］：\n1. 你發出一個生成圖像的提示詞，其中包括消除紅色的指令，AI 生成了一張黑白圖像。\n2. 你發出結構完善的提示詞生成銷售簡報，包含公開資訊，生成的結果包含未發佈的公司機密資訊。\n3. 你建立提示詞要求生成時鐘錶盤並指定時間，多次發出但時鐘顯示的時間有時不一樣。",
+                options: [
+                    { label: "A. 可能、可能、不可能", value: "A" },
+                    { label: "B. 可能、不可能、可能", value: "B" },
+                    { label: "C. 不可能、可能、可能", value: "C" },
+                    { label: "D. 可能、可能、可能", value: "D" }
+                ],
+                answer: "B",
+                details: "子題 1：AI 可能過度解讀指令變成黑白；子題 2：AI 無法無中生有取得未提供的內部機密；子題 3：AI 具有隨機採樣特性，多次生成細節常有差異。"
+            },
+            {
+                id: 5,
+                code: "26-A37",
+                question: "你使用 AI 生成了一張汽車圖像（方向朝左），希望看起來像另一張圖（方向朝右）。對於每個表述，如果是你應該使用的提示詞，請選擇［是］，否則請選擇［否］：\n1. 顛倒圖像\n2. 水平鏡像圖\n3. 將汽車旋轉180度",
+                options: [
+                    { label: "A. 是、否、是", value: "A" },
+                    { label: "B. 否、是、否", value: "B" },
+                    { label: "C. 是、是、否", value: "C" },
+                    { label: "D. 否、否、是", value: "D" }
+                ],
+                answer: "B",
+                details: "子題 1：顛倒會使車子上下倒置；子題 2：水平鏡像（Horizontal Flip）可將朝左轉為朝右；子題 3：旋轉 180 度同樣會導致倒立。"
+            },
+            {
+                id: 6,
+                code: "29-A6-B9",
+                question: "你需要使用 AI 生成某品牌新款廚師機的產品正面評價影片。對於每個表述，如果它會是一個有效的提示詞，請選取［正確］，否則選取［錯誤］：\n1. 製作一段5分鐘影片，詳細介紹新款廚師機，說明易於使用和清洗並總結，鼓勵觀看者購買。\n2. 製作有關新款廚師機的影片，討論其潛在用途，鼓勵潛在買家購買。\n3. 製作廚師機的無偏見評價影片。",
+                options: [
+                    { label: "A. 正確、錯誤、錯誤", value: "A" },
+                    { label: "B. 正確、正確、錯誤", value: "B" },
+                    { label: "C. 錯誤、正確、正確", value: "C" },
+                    { label: "D. 正確、錯誤、正確", value: "D" }
+                ],
+                answer: "A",
+                details: "子題 1：明確指定長度、主題與明確立場（正面評價），結構完整；子題 2：過於含糊；子題 3：要求「無偏見」與任務目標「正面評價」衝突。"
+            },
+            {
+                id: 7,
+                code: "30-A2",
+                question: "你需要製作一段影片，其中有一個動畫猴子角色按提供的劇本進行表演。對於每個表述，如果提示詞有助於實現目標，請選取［是］，否則選取［否］：\n1. 製作一段45秒影片，其中有一隻猴子使用指定的劇本在太空中解釋複雜的太空概念。\n2. 製作一段45秒影片，使用動畫技術讓一隻猴子在太空中念劇本。\n3. 製作一段45秒影片，讓猴子當宇航員，並使用高級文本轉語音軟體，念一段關於太空的腳本。",
+                options: [
+                    { label: "A. 是、否、否", value: "A" },
+                    { label: "B. 否、是、否", value: "B" },
+                    { label: "C. 是、是、否", value: "C" },
+                    { label: "D. 否、否、是", value: "D" }
+                ],
+                answer: "A",
+                details: "子題 1：清楚指明長度、角色、主題並強調「指定的劇本」；子題 2 & 3：未明確指定使用使用者「提供的劇本」。"
+            },
+            {
+                id: 8,
+                code: "32-B15",
+                question: "你想瞭解如何建立在 iOS 和 Android 上執行的應用程式（主頁、關於、聯繫方式）。你是否應使用該提示詞？\n1. 建立一個具有三個頁面的應用程式：主頁、關於和聯繫方式。\n2. 向我展示具有三個頁面的 Android 和 iOS 應用程式在我的設備上的顯示效果。\n3. 編寫代碼以建立一個具有三個頁面的應用程式（主頁、關於、聯繫方式），能在 Android 和 iOS 上執行。",
+                options: [
+                    { label: "A. 否、是、是", value: "A" },
+                    { label: "B. 是、否、否", value: "B" },
+                    { label: "C. 否、否、是", value: "C" },
+                    { label: "D. 是、是、否", value: "D" }
+                ],
+                answer: "C",
+                details: "子題 1：未提及編寫程式碼與跨平台需求；子題 2：文字提示無法直接在設備上渲染；子題 3：精確傳達編寫代碼、頁面規格與跨平台執行環境。"
+            },
+            {
+                id: 9,
+                code: "38-B4",
+                question: "對於發給生成式 AI 的下列每個提示詞，如果 AI 會執行影像轉換，請選取［是］或［否］：\n1. 瞭解商標 Logo 的檔案格式。\n2. 將房屋的草圖轉換為具有很強真實感的表示形式。\n3. 修改度假照片的中繼資料，以更改其位置和日期。",
+                options: [
+                    { label: "A. 是、是、否", value: "A" },
+                    { label: "B. 否、是、否", value: "B" },
+                    { label: "C. 否、否、是", value: "C" },
+                    { label: "D. 是、否、是", value: "D" }
+                ],
+                answer: "B",
+                details: "子題 1：文字格式概念詢問；子題 2：草圖轉寫實照片屬於典型的 Image-to-Image 影像轉換；子題 3：修改中繼資料（Exif）屬於檔案屬性編輯。"
+            },
+            {
+                id: 10,
+                code: "39-B8",
+                question: "你要為高中製作一條鼓勵勤洗手的公益廣告。對於每個表述，如果你在建立提示詞時應遵循這種做法，請選取［是］，否則請選取［否］：\n1. 需要特定場景、人物或操作時，請提供全面的視覺和敘述性描述。\n2. 明確定義你的要求，例如指定影片類型、目標受眾和要點。\n3. 包括與影片相關的詳細背景資訊、資料、基調和風格。\n4. 假定 AI 系統瞭解專案的一般背景，減少詳細解釋。\n5. 使用直白的語言，盡可能減少誤解。",
+                options: [
+                    { label: "A. 是、是、是、是、是", value: "A" },
+                    { label: "B. 是、是、是、否、否", value: "B" },
+                    { label: "C. 是、是、是、否、是", value: "C" },
+                    { label: "D. 否、是、是、是、是", value: "D" }
+                ],
+                answer: "C",
+                details: "子題 1, 2, 3, 5 皆為提示工程最佳實踐；子題 4：AI 沒有隱含背景知識，假設 AI 懂背景而不給說明容易導致輸出不符預期。"
+            },
+            {
+                id: 11,
+                code: "52-A32",
+                question: "你要建立大型語言模型設定檔，詢問使用者心情與音樂偏好以生成播放清單。對於每條指令，如果它能實現目標，請選取［是］，否則選取［否］：\n1. 隨機生成歌曲清單。\n2. 根據當前最熱門的40首歌曲，生成一系列相應的心情問題（答案如：我覺得一樣、我覺得不一樣、與我無關）。\n3. 僅對以下問題提問並回覆 1~5 評分：你有多開心？你有多喜歡流行音樂？你有多喜歡古典音樂？",
+                options: [
+                    { label: "A. 否、是、是", value: "A" },
+                    { label: "B. 是、否、否", value: "B" },
+                    { label: "C. 是、是、否", value: "C" },
+                    { label: "D. 否、否、是", value: "D" }
+                ],
+                answer: "A",
+                details: "子題 1：隨機生成無法根據使用者偏好量身打造；子題 2 & 3：皆提供結構化問題與明確量表，能有效收集資料生成相符清單。"
+            },
+            {
+                id: 12,
+                code: "65-A29",
+                question: "你在 Microsoft Copilot 中輸入提示詞：「全球變暖是甚麼？」對於潛在輸出敘述，選取［正確］或［錯誤］：\n1. 你可以確信輸出不存在偏見。\n2. 你應查證權威科學來源的資訊。\n3. 只有科學家能夠輸入這種類型的資料。",
+                options: [
+                    { label: "A. 正確、錯誤、正確", value: "A" },
+                    { label: "B. 錯誤、正確、正確", value: "B" },
+                    { label: "C. 錯誤、正確、錯誤", value: "C" },
+                    { label: "D. 正確、正確、錯誤", value: "D" }
+                ],
+                answer: "C",
+                details: "子題 1：AI 訓練資料可能包含偏見，無法保證無偏見；子題 2：科學事實必須透過權威機構查證；子題 3：任何使用者皆可查詢科學相關提示詞。"
+            },
+            {
+                id: 13,
+                code: "76-B17",
+                question: "你編寫了一份世界歷史考試學習指南，需驗證 AI 輸出的準確性。對於每個表述，如果它可能可靠地驗證準確性，請選取［是］，否則選取［否］：\n1. 在網際網路上進行搜尋，查證學術資源中的事實。\n2. 參考可靠的歷史資料庫以查證事實。\n3. 使用另一個 AI 平台查證事實。",
+                options: [
+                    { label: "A. 是、是、是", value: "A" },
+                    { label: "B. 是、是、否", value: "B" },
+                    { label: "C. 否、是、是", value: "C" },
+                    { label: "D. 是、否、是", value: "D" }
+                ],
+                answer: "B",
+                details: "子題 1 & 2：透過獨立權威來源（學術資源、歷史資料庫）交叉比對是標準做法；子題 3：另一個 AI 同樣有幻覺風險，不能作為權威驗證基準。"
+            }
+        ];
+
+        // Web Audio API 音效產生器
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'win') {
+                const notes = [440, 554.37, 659.25, 880];
+                notes.forEach((freq, index) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.frequency.setValueAtTime(freq, audioCtx.currentTime + index * 0.1);
+                    g.gain.setValueAtTime(0.15, audioCtx.currentTime + index * 0.1);
+                    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + index * 0.1 + 0.4);
+                    o.start(audioCtx.currentTime + index * 0.1);
+                    o.stop(audioCtx.currentTime + index * 0.1 + 0.4);
+                });
+            }
+        }
+
+        // 初始化頁面
+        document.addEventListener("DOMContentLoaded", () => {
+            renderFlashcards();
+            initQuiz();
+        });
+
+        // 頁籤切換邏輯
+        function switchTab(tab) {
+            const studySection = document.getElementById("tab-study");
+            const quizSection = document.getElementById("tab-quiz");
+            const btnStudy = document.getElementById("btn-study");
+            const btnQuiz = document.getElementById("btn-quiz");
+
+            if (tab === 'study') {
+                studySection.classList.remove("hidden");
+                quizSection.classList.add("hidden");
+                btnStudy.className = "cartoon-btn bg-white text-gray-900 font-bold px-4 py-2 rounded-xl text-sm md:text-base";
+                btnQuiz.className = "cartoon-btn bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-sm md:text-base";
+            } else {
+                studySection.classList.add("hidden");
+                quizSection.classList.remove("hidden");
+                btnQuiz.className = "cartoon-btn bg-white text-gray-900 font-bold px-4 py-2 rounded-xl text-sm md:text-base";
+                btnStudy.className = "cartoon-btn bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-sm md:text-base";
+            }
+        }
+
+        // 渲染知識卡片 (Flashcards)
+        function renderFlashcards() {
+            const container = document.getElementById("flashcards-container");
+            container.innerHTML = "";
+
+            questionsData.forEach(item => {
+                const cardEl = document.createElement("div");
+                cardEl.className = "h-80 perspective-1000 cursor-pointer";
+                cardEl.innerHTML = `
+                    <div class="flip-card-inner relative w-full h-full rounded-2xl cartoon-box bg-white">
+                        <!-- 正面 -->
+                        <div class="flip-card-front absolute inset-0 w-full h-full p-6 flex flex-col justify-between bg-yellow-50 rounded-2xl overflow-y-auto">
+                            <div>
+                                <span class="bg-indigo-600 text-white text-xs font-black px-2.5 py-1 rounded-md cartoon-box-sm">第 ${item.id} 題 (${item.code})</span>
+                                <p class="text-gray-800 font-bold mt-4 whitespace-pre-line text-sm md:text-base">${item.question}</p>
+                            </div>
+                            <div class="text-center text-xs font-bold text-indigo-500 mt-2 bg-indigo-50 py-1.5 rounded-lg border border-indigo-200">
+                                🔄 點擊卡片翻轉看答案與詳解
+                            </div>
+                        </div>
+                        <!-- 背面 -->
+                        <div class="flip-card-back absolute inset-0 w-full h-full p-6 flex flex-col justify-between bg-green-50 rounded-2xl overflow-y-auto">
+                            <div>
+                                <span class="bg-green-600 text-white text-xs font-black px-2.5 py-1 rounded-md cartoon-box-sm">正確解答：${item.answer}</span>
+                                <div class="mt-3 text-gray-800 text-xs md:text-sm font-medium space-y-1">
+                                    <p class="font-bold text-green-900">📝 詳細解析：</p>
+                                    <p>${item.details}</p>
+                                </div>
+                            </div>
+                            <div class="text-center text-xs font-bold text-green-600 mt-2 bg-green-100 py-1.5 rounded-lg border border-green-200">
+                                🔄 點擊卡片翻回正面
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                cardEl.addEventListener("click", () => {
+                    const inner = cardEl.querySelector(".flip-card-inner");
+                    inner.classList.toggle("flipped");
+                });
+
+                container.appendChild(cardEl);
+            });
+        }
+
+        // 測驗系統狀態
+        let currentQuizIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        function initQuiz() {
+            currentQuizIndex = 0;
+            score = 0;
+            document.getElementById("quiz-result").classList.add("hidden");
+            document.getElementById("quiz-container").parentElement.classList.remove("hidden");
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            answered = false;
+            const item = questionsData[currentQuizIndex];
+            document.getElementById("quiz-progress").innerText = `題目 ${currentQuizIndex + 1} / ${questionsData.length}`;
+            document.getElementById("quiz-score").innerText = `得分：${score}`;
+            document.getElementById("next-btn").classList.add("hidden");
+
+            const container = document.getElementById("quiz-container");
+            container.innerHTML = `
+                <div class="bg-indigo-50 p-4 rounded-xl border-2 border-indigo-200 mb-4">
+                    <span class="bg-indigo-600 text-white text-xs font-black px-2 py-0.5 rounded">題號：${item.code}</span>
+                    <p class="text-gray-900 font-bold mt-2 whitespace-pre-line text-base md:text-lg">${item.question}</p>
+                </div>
+                <div id="options-list" class="grid grid-cols-1 gap-3">
+                    ${item.options.map(opt => `
+                        <button onclick="selectOption('${opt.value}')" data-value="${opt.value}" class="option-btn cartoon-btn bg-white hover:bg-yellow-100 text-left p-4 rounded-xl font-bold text-gray-800 text-sm md:text-base flex items-center justify-between">
+                            <span>${opt.label}</span>
+                        </button>
+                    `).join('')}
+                </div>
+                <div id="quiz-explanation" class="hidden mt-4 p-4 rounded-xl border-2"></div>
+            `;
+        }
+
+        function selectOption(selectedVal) {
+            if (answered) return;
+            answered = true;
+
+            const item = questionsData[currentQuizIndex];
+            const isCorrect = (selectedVal === item.answer);
+            
+            if (isCorrect) {
+                score += 10;
+                playSound('correct');
+            } else {
+                playSound('wrong');
+            }
+
+            document.getElementById("quiz-score").innerText = `得分：${score}`;
+
+            const optionBtns = document.querySelectorAll(".option-btn");
+            optionBtns.forEach(btn => {
+                const val = btn.getAttribute("data-value");
+                btn.disabled = true;
+                if (val === item.answer) {
+                    btn.className = "option-btn cartoon-btn bg-green-300 text-gray-900 text-left p-4 rounded-xl font-bold text-sm md:text-base flex items-center justify-between border-4 border-green-600";
+                } else if (val === selectedVal && !isCorrect) {
+                    btn.className = "option-btn cartoon-btn bg-red-300 text-gray-900 text-left p-4 rounded-xl font-bold text-sm md:text-base flex items-center justify-between border-4 border-red-600";
+                }
+            });
+
+            const expBox = document.getElementById("quiz-explanation");
+            expBox.classList.remove("hidden");
+            if (isCorrect) {
+                expBox.className = "mt-4 p-4 rounded-xl border-2 bg-green-100 border-green-400 text-green-900";
+                expBox.innerHTML = `<p class="font-black text-lg">✅ 答對了！太棒了！</p><p class="mt-1 text-sm font-medium"><strong>解析：</strong>${item.details}</p>`;
+            } else {
+                expBox.className = "mt-4 p-4 rounded-xl border-2 bg-red-100 border-red-400 text-red-900";
+                expBox.innerHTML = `<p class="font-black text-lg">❌ 答錯囉！正確答案是：${item.answer}</p><p class="mt-1 text-sm font-medium"><strong>解析：</strong>${item.details}</p>`;
+            }
+
+            const nextBtn = document.getElementById("next-btn");
+            nextBtn.classList.remove("hidden");
+            if (currentQuizIndex === questionsData.length - 1) {
+                nextBtn.innerText = "查看測驗結果 🏆";
+            }
+        }
+
+        function nextQuestion() {
+            currentQuizIndex++;
+            if (currentQuizIndex < questionsData.length) {
+                renderQuizQuestion();
+            } else {
+                showQuizResult();
+            }
+        }
+
+        function showQuizResult() {
+            playSound('win');
+            document.getElementById("quiz-container").parentElement.classList.add("hidden");
+            const resultBox = document.getElementById("quiz-result");
+            resultBox.classList.remove("hidden");
+
+            const maxScore = questionsData.length * 10;
+            const percentage = Math.round((score / maxScore) * 100);
+            let comment = "";
+
+            if (percentage === 100) {
+                comment = "🌟 滿分通關！您已經完全掌握 CCS AI 是非題考點，太神啦！";
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            } else if (percentage >= 80) {
+                comment = "🎉 成績優異！觀念非常扎實，離滿分只差一點點！";
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+            } else if (percentage >= 60) {
+                comment = "👍 及格過關！建議針對答錯的卡片再多複習幾次喔！";
+            } else {
+                comment = "💪 還需要加油喔！建議多使用「知識卡片學習」模式重新複習！";
+            }
+
+            document.getElementById("result-text").innerHTML = `
+                您的總得分：<span class="text-2xl font-black text-indigo-600">${score}</span> 分 (滿分 ${maxScore} 分)<br>
+                正確率：<span class="text-xl font-black text-green-600">${percentage}%</span><br><br>
+                <span class="text-base text-gray-700">${comment}</span>
+            `;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+    </script>
+</body>
+</html>
