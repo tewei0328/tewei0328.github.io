@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITS-Databases Part 1 即時互動自我評量</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0 0 8px 0; font-size: 1.7rem; }
+        header p { margin: 0; opacity: 0.9; font-size: 0.95rem; }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .score-item span { color: var(--primary); }
+        
+        .quiz-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .question-title {
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 15px;
+            color: #0f172a;
+        }
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: #fff;
+        }
+        .option-item:hover:not(.disabled) {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        .option-item input { margin-right: 12px; transform: scale(1.1); }
+        .option-item.correct {
+            background-color: #dcfce7 !important;
+            border-color: var(--success) !important;
+            color: #166534;
+            font-weight: 600;
+        }
+        .option-item.incorrect {
+            background-color: #fee2e2 !important;
+            border-color: var(--danger) !important;
+            color: #991b1b;
+        }
+        .disabled { cursor: default; }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 12px 15px;
+            background-color: #eff6ff;
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+            font-size: 0.95rem;
+            display: none;
+        }
+        .explanation.show { display: block; }
+        .correct-badge { color: var(--success); font-weight: bold; }
+        .incorrect-badge { color: var(--danger); font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>ITS-Databases 認證測驗 - Part 1</h1>
+        <p>40 題即時互動評量（每答一題，立即顯示答案與詳細解析）</p>
+    </header>
+
+    <div class="scoreboard">
+        <div class="score-item">已答題數：<span id="answered-count">0</span> / 40</div>
+        <div class="score-item">答對題數：<span id="correct-count">0</span></div>
+        <div class="score-item">正確率：<span id="accuracy">0%</span></div>
+    </div>
+
+    <div id="quiz-container"></div>
+</div>
+
+<script>
+const quizData = [
+    {
+        q: "Q1：您撰寫了一系列執行冗長複雜查詢的 SQL 陳述式，希望能夠在需要時隨時手動呼叫程式碼。請問您可以使用哪一個資料庫物件來儲存程式碼？",
+        options: ["A. 函式", "B. 預存程序", "C. 觸發程序", "D. 檢視表"],
+        answer: 1,
+        exp: "預存程序 (Stored Procedure) 用於封裝一至多條複雜的 SQL 陳述式，可由應用程式或手動隨時呼叫執行。"
+    },
+    {
+        q: "Q2：您正在開發一個 SQL 陳述式以建立資料表。請問哪兩個 SQL 關鍵字可用於 CREATE TABLE 陳述式？(請選擇2個答案)",
+        options: ["A. INSERT INTO", "B. ORDER BY", "C. PRIMARY KEY", "D. CONSTRAINT"],
+        answer: [2, 3],
+        type: "checkbox",
+        exp: "在 CREATE TABLE 時，用來定義約束的常見關鍵字包含 PRIMARY KEY 與 CONSTRAINT。"
+    },
+    {
+        q: "Q3：從 Volunteer 資料表中刪除 GivenName 為 'Tia' 的所有記錄。請問您應該使用哪一個 SQL 陳述式？",
+        options: ["A. DELETE FROM Volunteer WHERE GivenName EQUALS 'Tia'", "B. DELETE FROM Volunteer WHERE GivenName = 'Tia'", "C. DELETE FROM Volunteer WHERE GivenName 'Tia'", "D. DELETE FROM Volunteer WHERE GivenName IS 'Tia'"],
+        answer: 1,
+        exp: "SQL 刪除語法為 DELETE FROM 表格 WHERE 條件，字串比較使用基本等於運算子 =。"
+    },
+    {
+        q: "Q4：您建立了一個名為 Games 的資料表，需要建立一個檢視表來傳回按照字母順序排列的遊戲名稱清單。請問您應該使用哪一個查詢？",
+        options: ["A. CREATE VIEW MyGames AS SELECT Name FROM Games", "B. CREATE VIEW MyGames AS SELECT * FROM Games", "C. CREATE VIEW MyGames AS SELECT Name FROM Games ORDER BY Name", "D. CREATE VIEW MyGames AS SELECT Name FROM Games WHERE Name BETWEEN 'A' AND 'Z'"],
+        answer: 2,
+        exp: "要求按照字母順序排列需搭配 ORDER BY Name 進行升冪排序。"
+    },
+    {
+        q: "Q5：對於下列關於備份的敘述，請判斷正確性：1. 完整備份是整個資料庫複本。2. 交易記錄備份會備份所有資料。3. 差異備份只複製上次完整備份前變更的資料。4. 檔案群組還原指定要復原的部分。",
+        options: ["A. 1. 正確 / 2. 錯誤 / 3. 錯誤 / 4. 正確", "B. 全對", "C. 全錯", "D. 1. 錯誤 / 2. 正確 / 3. 正確 / 4. 錯誤"],
+        answer: 0,
+        exp: "差異備份是備份自上次「完整備份」之後發生變更的資料，而非之前。"
+    },
+    {
+        q: "Q6：請問哪一個 SQL 陳述式會傳回訂單數目少於 50 的國家/地區以及各國家/地區的訂單數目？",
+        options: ["A. SELECT Country, orderID FROM Orders WHERE COUNT(orderID) < 50; GROUP BY Country;", "B. SELECT COUNT(orderID), Country FROM Orders GROUP BY Country HAVING COUNT(orderID) < 50;", "C. SELECT Country, orderID FROM Orders GROUP BY Country WHERE COUNT(orderID) < 50;", "D. SELECT COUNT(orderID), Country FROM Orders GROUP BY Country HAVING COUNT(orderID) < 50; GROUP BY Country"],
+        answer: 1,
+        exp: "針對聚合函數的篩選須使用 HAVING 子句，且必須位於 GROUP BY 之後。"
+    },
+    {
+        q: "Q7：您需要從資料庫中移除名為 EmployeeView 的檢視表。請問您應該使用哪一個陳述式？",
+        options: ["A. DELETE EmployeeView", "B. DELETE VIEW EmployeeView", "C. DROP VIEW EmployeeView", "D. DROP EmployeeView"],
+        answer: 2,
+        exp: "在 DDL 中刪除檢視表物件的正確指令為 DROP VIEW EmployeeView。"
+    },
+    {
+        q: "Q8： Customers 資料表包含分機。您需要建立查詢傳回 LastName、PhoneNumber 以及 Extension 且分機為有效號碼（非空值）的結果集，並依姓氏排序。",
+        options: ["A. SELECT LastName, PhoneNumber, Extension FROM Customers WHERE Extension IS NOT NULL ORDER BY LastName;", "B. SELECT LastName, PhoneNumber, Extension FROM Customers WHERE Extension = NULL ORDER BY LastName;", "C. SELECT LastName, PhoneNumber, Extension FROM Customers WHERE Extension IS NULL;", "D. SELECT * FROM Customers ORDER BY LastName;"],
+        answer: 0,
+        exp: "分機為有效號碼即 Extension IS NOT NULL，排序為 ORDER BY LastName。"
+    },
+    {
+        q: "Q9：您的資料庫有一個 Department 資料表以及一個 Employee 資料表。您需要確保一位員工只能被指派到一個現有的部門。請問您應該對 Employee 資料表套用什麼？",
+        options: ["A. 唯一條件約束", "B. 外部索引鍵", "C. 資料類型", "D. 主索引鍵"],
+        answer: 1,
+        exp: "外部索引鍵 (Foreign Key) 用於維持參考完整性，確保對應至主表現有記錄。"
+    },
+    {
+        q: "Q10：您需要將資料庫正規化為第一正規形式 (1NF)。請問您必須符合哪兩項需求？(請選擇2個答案)",
+        options: ["A. 排除外部索引鍵。", "B. 排除重複資料列。", "C. 排除複合索引鍵。", "D. 排除重複群組。"],
+        answer: [1, 3],
+        type: "checkbox",
+        exp: "1NF 要求欄位皆為原子值（排除重複群組）且每個資料列必須唯一。"
+    },
+    {
+        q: "Q11：請問哪一個陳述式會刪除未輸入員工電話號碼的資料列？",
+        options: ["A. DELETE FROM Employee WHERE Phone IS NULL", "B. DELETE FROM Employee WHERE Phone IS NOT NULL", "C. DELETE FROM Employee WHERE Phone = NULLABLE", "D. DELETE FROM Employee WHERE Phone = NULL"],
+        answer: 0,
+        exp: "檢查 NULL 值必須使用 IS NULL 語法。"
+    },
+    {
+        q: "Q12：針對 TeamID 為 1 的隊伍顯示每位隊員的總分數 (PlayerStat 表: PlayerID, TeamID, Points)。",
+        options: ["A. SELECT PlayerID, SUM(Points) FROM PlayerStat WHERE TeamID = 1 GROUP BY PlayerID;", "B. SELECT PlayerID, Points FROM PlayerStat WHERE TeamID = 1;", "C. SELECT SUM(Points) FROM PlayerStat GROUP BY PlayerID;", "D. SELECT PlayerID, COUNT(Points) FROM PlayerStat WHERE TeamID = 1;"],
+        answer: 0,
+        exp: "使用 SUM(Points) 計算總分，透過 WHERE 篩選 TeamID = 1 並依 PlayerID 分組。"
+    },
+    {
+        q: "Q13：Road 資料表定義 CREATE TABLE Road (RoadID INTEGER NOT NULL, Distance INTEGER NOT NULL)，已有資料 (1234, 22)，執行 INSERT INTO Road VALUES (1234, 36)。請問結果為何？",
+        options: ["A. 發生錯誤，違反主索引鍵條件約束", "B. 發生錯誤，違反唯一條件約束", "C. Road 資料表中的新資料列", "D. 語法錯誤"],
+        answer: 2,
+        exp: "RoadID 僅設定 NOT NULL 而未設定 PRIMARY KEY 或 UNIQUE，因此允許重複值。"
+    },
+    {
+        q: "Q14：您需要刪除某個資料庫資料表。請問您應該使用哪一個資料定義語言 (DDL) 關鍵字？",
+        options: ["A. TRUNCATE", "B. ALTER", "C. DROP", "D. DELETE"],
+        answer: 2,
+        exp: "刪除整個資料表結構需使用 DROP TABLE。"
+    },
+    {
+        q: "Q15：請問哪一個查詢會正確傳回 ship_state 不含德州 (TX) 和亞利桑那州 (AZ) 之所有訂單的結果集？",
+        options: ["A. SELECT * FROM Orders WHERE NOT ship_state = 'TX' AND NOT ship_state = 'AZ';", "B. SELECT * FROM Orders WHERE NOT ship_state = 'TX' OR NOT ship_state = 'AZ';", "C. SELECT * FROM Orders WHERE ship_state <> 'TX' OR ship_state <> 'AZ';", "D. SELECT * FROM Orders WHERE ship_state = 'TX' AND ship_state = 'AZ';"],
+        answer: 0,
+        exp: "排除兩個條件需使用 AND 連接各自的否定條件。"
+    },
+    {
+        q: "Q16：函式與預存程序之間的其中一項差異在於，函式：",
+        options: ["A. 無法接受參數。", "B. 必須傳回值。", "C. 無法包含交易。", "D. 必須由觸發程序呼叫。"],
+        answer: 1,
+        exp: "使用者自訂函式 (UDF) 必須透過 RETURN 傳回一個值或資料表。"
+    },
+    {
+        q: "Q17：您正在建立一個名為 Student 的資料庫物件來儲存 ID、Name、Age。請問您應該使用哪一個語法來建立物件？",
+        options: ["A. CREATE TABLE Student (ID INT, Name VARCHAR (100), Age INT)", "B. CREATE TABLE (ID INT, Name VARCHAR (100), Age INT)", "C. CREATE Student (ID INT, Name VARCHAR (100), Age INT)", "D. CREATE (TABLE Student ID INT, Name VARCHAR (100), Age INT)"],
+        answer: 0,
+        exp: "建表標準語法格式為 CREATE TABLE 表名 (欄位名 類型, ...)。"
+    },
+    {
+        q: "Q18：對於資料表特性判斷：1. 欄位值必須唯一。2. 資料列必須唯一。3. 欄位名稱必須唯一。",
+        options: ["A. 錯誤、正確、正確", "B. 正確、錯誤、錯誤", "C. 正確、正確、正確", "D. 錯誤、錯誤、正確"],
+        answer: 0,
+        exp: "一般欄位值不需唯一，但每個資料列與欄位名稱在表中皆必須是唯一的。"
+    },
+    {
+        q: "Q19：設計 Student 資料表資料類型：StudentName (學生姓名), GradeLevel (年級 1-12), DaysAbsent (缺席天數,支援一位小數)。",
+        options: ["A. StudentName: VARCHAR, GradeLevel: INT, DaysAbsent: DECIMAL", "B. StudentName: DECIMAL, GradeLevel: INT, DaysAbsent: VARCHAR", "C. StudentName: VARCHAR, GradeLevel: DECIMAL, DaysAbsent: INT", "D. StudentName: INT, GradeLevel: VARCHAR, DaysAbsent: DECIMAL"],
+        answer: 0,
+        exp: "字串用 VARCHAR、整數用 INT、精確小數用 DECIMAL。"
+    },
+    {
+        q: "Q20：您需要建立一個查詢來傳回所有客戶及其訂單。即使某些客戶沒有任何訂單，查詢也必須傳回這些客戶。請問您應該使用哪一種聯結？",
+        options: ["A. 內聯結 (Inner Join)", "B. 交叉聯結 (Cross Join)", "C. 完整聯結 (Full Join)", "D. 自然聯結 (Natural Join)"],
+        answer: 2,
+        exp: "要保留無對應資料的另一側全部資料，需使用 OUTER JOIN（如 LEFT OUTER JOIN 或 FULL OUTER JOIN）。"
+    },
+    {
+        q: "Q21：建立預存程序的其中一個主要原因為何？",
+        options: ["A. 提升效能", "B. 減少資料表數量", "C. 允許非關聯式查詢", "D. 自動建立索引"],
+        answer: 0,
+        exp: "預存程序經編譯後可重複使用執行計畫，有效減少編譯時間並提升執行效能。"
+    },
+    {
+        q: "Q22：從 Chapter 和 Language 資料表中選取資料行，以便為 ChapterLanguage 資料表建立複合主索引鍵。請問您應該選取哪兩個資料行？",
+        options: ["A. ChapterId, LanguageId", "B. City, LanguageName", "C. Region, Locale", "D. Country, LanguageId"],
+        answer: 0,
+        exp: "多對多關聯通常會使用兩張主表各自的主鍵結合成複合主鍵。"
+    },
+    {
+        q: "Q23： Cars (3筆) LEFT OUTER JOIN Colors (5筆) 的結果集會包含多少個資料列？",
+        options: ["A. 3", "B. 5", "C. 8", "D. 15"],
+        answer: 0,
+        exp: "LEFT JOIN 會以左表 (Cars，共 3 筆) 的所有資料列為基準，故結果列數等於左表筆數 3。"
+    },
+    {
+        q: "Q24：包含超過一百萬筆記錄的 Product 資料表，使用者經常根據 Category 資料行搜尋。您應該建立哪一項來提升搜尋效能？",
+        options: ["A. 叢集索引", "B. 檢視表", "C. Category 資料行的非叢集索引", "D. Category 資料行的外部索引鍵"],
+        answer: 2,
+        exp: "針對經常作為 WHERE 條件篩選的欄位建立非叢集索引可大幅加快搜尋速度。"
+    },
+    {
+        q: "Q25：交易從 Employee 刪除 100 個資料列，在刪除 40 個後發生錯誤且交易失敗。請問結果為何？",
+        options: ["A. 剩下 60 個", "B. 剩下 40 個", "C. 保留已刪除 40 個", "D. 系統不會從資料表中刪除任何資料"],
+        answer: 3,
+        exp: "交易的原子性 (Atomicity) 確保中途失敗會自動執行 ROLLBACK，所有異動會全部復原。"
+    },
+    {
+        q: "Q26：顯示 ItemsOnOrder 資料表的訂單總數、平均單行商品總計、最高單行商品總計及所有商品總計 (LineItemTotal = Quantity * Price)。",
+        options: ["A. SELECT COUNT(ID), AVG(Quantity * Price), MAX(Quantity * Price), SUM(Quantity * Price) FROM ItemsOnOrder;", "B. SELECT SUM(ID), AVG(Quantity), MAX(Price), MIN(LineItemTotal) FROM ItemsOnOrder;", "C. SELECT COUNT(*), SUM(Quantity), AVG(Price) FROM ItemsOnOrder;", "D. SELECT * FROM ItemsOnOrder;"],
+        answer: 0,
+        exp: "分別運用 COUNT、AVG、MAX 與 SUM 函數來計算對應的統計數據。"
+    },
+    {
+        q: "Q27：刪除 Order 資料表中的資料列，OrderItem 資料表中的對應資料列也被自動刪除了。這是下列其中一種程序的範例：",
+        options: ["A. 串聯刪除 (Cascade Delete)", "B. 瀑布法刪除", "C. 觸發程序刪除", "D. 限制刪除"],
+        answer: 0,
+        exp: "設定 ON DELETE CASCADE 後，刪除主表資料會自動連帶刪除所有關聯的子表記錄。"
+    },
+    {
+        q: "Q28：請問哪一個陳述式會隱含地建立索引？",
+        options: ["A. CREATE TABLE Employee (EmployeeID INTEGER PRIMARY KEY)", "B. CREATE INDEX ...", "C. ALTER TABLE ...", "D. DROP TABLE ..."],
+        answer: 0,
+        exp: "定義 PRIMARY KEY 時，多數關聯式資料庫會自動為該欄位建立對應的叢集索引。"
+    },
+    {
+        q: "Q29：執行查詢 `SELECT EmployeeID, FirstName, DepartmentName FROM Employee, Department`。這種作業稱為：",
+        options: ["A. 等聯結", "B. 笛卡兒乘積", "C. 外部聯結", "D. 交叉聯結"],
+        answer: 1,
+        exp: "未設定聯結條件時，兩表會進行交叉相乘，產生各資料列相乘的笛卡兒乘積 (Cartesian Product)。"
+    },
+    {
+        q: "Q30：給定資料 (32, books), (25, books)... 請問哪一個資料庫詞彙是用來描述 ProductID 與 ProductCategory 之間的關聯性？",
+        options: ["A. 關聯相依", "B. 功能相依", "C. 決定性", "D. 複合"],
+        answer: 1,
+        exp: "當屬性 A 的值能決定屬性 B 的唯一值時，即稱為功能相依 (Functional Dependency)。"
+    },
+    {
+        q: "Q31：您需要確保 EmployeeName 資料行絕對不會包含空白或未填寫的值。請問您應該將哪一個條件約束套用至資料行？",
+        options: ["A. UNIQUE", "B. PRIMARY KEY", "C. NOT NULL", "D. FOREIGN KEY"],
+        answer: 2,
+        exp: "強制欄位不得為空需使用 NOT NULL 條件約束。"
+    },
+    {
+        q: "Q32：您需要在 SQL 查詢中結合兩個資料表的結果，且只傳回兩者皆有的相符記錄。請問您應該使用哪一種 JOIN？",
+        options: ["A. INNER JOIN", "B. LEFT JOIN", "C. RIGHT JOIN", "D. FULL OUTER JOIN"],
+        answer: 0,
+        exp: "內聯結 (INNER JOIN) 僅回傳兩側資料表皆符合條件的交集記錄。"
+    },
+    {
+        q: "Q33：請問哪一個資料庫物件主要用於封裝重複使用的查詢邏輯並簡化複雜查詢？",
+        options: ["A. 檢視表 (View)", "B. 觸發程序 (Trigger)", "C. 記錄檔 (Log)", "D. 交易 (Transaction)"],
+        answer: 0,
+        exp: "檢視表是虛擬資料表，可封裝複雜的 SELECT 查詢邏輯以便重複呼叫。"
+    },
+    {
+        q: "Q34：關聯式資料庫中，用來唯一識別資料表中每一個資料列的欄位或欄位組合稱為：",
+        options: ["A. 外部索引鍵", "B. 主索引鍵 (Primary Key)", "C. 索引", "D. 檢視表"],
+        answer: 1,
+        exp: "主鍵具有唯一性且不可為 NULL，用以識別每筆記錄。"
+    },
+    {
+        q: "Q35：第二正規形式 (2NF) 的要求為何？",
+        options: ["A. 必須符合 1NF, 且所有非主鍵欄位必須完全相依於主鍵（排除部分相依）。", "B. 必須符合 2NF, 且消除遞移相依。", "C. 必須包含複合主鍵。", "D. 必須沒有外部索引鍵。"],
+        answer: 0,
+        exp: "2NF 規範在 1NF 基礎上，要求非主鍵欄位必須完全依賴整個主鍵。"
+    },
+    {
+        q: "Q36：請問哪一個 SQL 指令可用來更改現有資料表的結構（例如新增欄位）？",
+        options: ["A. MODIFY TABLE", "B. ALTER TABLE", "C. CHANGE TABLE", "D. UPDATE TABLE"],
+        answer: 1,
+        exp: "DDL 中修改資料表結構的標準指令為 ALTER TABLE。"
+    },
+    {
+        q: "Q37：在資料庫交易的 ACID 特性中，字母「A」代表什麼含意？",
+        options: ["A. 可用性 (Availability)", "B. 原子性 (Atomicity)", "C. 鑑別性 (Authentication)", "D. 稽核性 (Auditing)"],
+        answer: 1,
+        exp: "ACID 分別代表原子性 (Atomicity)、一致性 (Consistency)、隔離性 (Isolation)、永久性 (Durability)。"
+    },
+    {
+        q: "Q38：請問哪一種資料庫備份只備份自上次完整備份以來發生變動的所有資料？",
+        options: ["A. 完整備份", "B. 差異備份 (Differential Backup)", "C. 交易記錄備份", "D. 檔案群組備份"],
+        answer: 1,
+        exp: "差異備份會複製自上次完整備份後所有變更過資料的集合。"
+    },
+    {
+        q: "Q39：當您執行 SELECT COUNT(*) FROM Employees 時，若 Employees 共有 150 筆且 5 筆 Email 為 NULL，請問該查詢會回傳多少？",
+        options: ["A. 145", "B. 150", "C. 5", "D. 0"],
+        answer: 1,
+        exp: "COUNT(*) 會計算整張表的總資料列數，不論欄位是否為 NULL。"
+    },
+    {
+        q: "Q40：請問哪一個 SQL 關鍵字可用於在 SELECT 查詢中過濾群組聚合後的結果？",
+        options: ["A. WHERE", "B. HAVING", "C. FILTER", "D. GROUP"],
+        answer: 1,
+        exp: "WHERE 用於過濾原始資料列，而 HAVING 用於過濾 GROUP BY 分組聚合後的結果。"
+    }
+];
+
+let answeredSet = new Set();
+let correctCount = 0;
+
+function renderQuiz() {
+    const container = document.getElementById("quiz-container");
+    let html = "";
+    quizData.forEach((item, idx) => {
+        html += `<div class="quiz-card" id="card-${idx}">
+            <div class="question-title">${item.q}</div>
+            <div class="options-list" id="options-${idx}">`;
+        
+        const inputType = item.type === "checkbox" ? "checkbox" : "radio";
+        item.options.forEach((opt, optIdx) => {
+            html += `<label class="option-item" id="opt-${idx}-${optIdx}">
+                <input type="${inputType}" name="q${idx}" value="${optIdx}" onchange="checkAnswer(${idx})">
+                ${opt}
+            </label>`;
+        });
+        
+        html += `</div>
+            <div class="explanation" id="exp-${idx}"></div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function checkAnswer(idx) {
+    if (answeredSet.has(idx)) return; // 已經答過的題目不能重複計分
+    
+    const item = quizData[idx];
+    const inputs = document.querySelectorAll(`input[name="q${idx}"]:checked`);
+    if (inputs.length === 0) return;
+
+    if (item.type !== "checkbox" && inputs.length === 0) return;
+
+    answeredSet.add(idx);
+    
+    // 鎖定該題選項
+    const allInputs = document.querySelectorAll(`input[name="q${idx}"]`);
+    allInputs.forEach(input => {
+        input.disabled = true;
+        input.parentElement.classList.add("disabled");
+    });
+
+    let isCorrect = false;
+    if (item.type === "checkbox") {
+        const selected = Array.from(inputs).map(i => parseInt(i.value)).sort();
+        const correct = [...item.answer].sort();
+        isCorrect = JSON.stringify(selected) === JSON.stringify(correct);
+        
+        correct.forEach(cIdx => {
+            document.getElementById(`opt-${idx}-${cIdx}`).classList.add("correct");
+        });
+        selected.forEach(sIdx => {
+            if (!correct.includes(sIdx)) {
+                document.getElementById(`opt-${idx}-${sIdx}`).classList.add("incorrect");
+            }
+        });
+    } else {
+        const userChoice = parseInt(inputs[0].value);
+        if (userChoice === item.answer) {
+            isCorrect = true;
+            document.getElementById(`opt-${idx}-${userChoice}`).classList.add("correct");
+        } else {
+            document.getElementById(`opt-${idx}-${userChoice}`).classList.add("incorrect");
+            document.getElementById(`opt-${idx}-${item.answer}`).classList.add("correct");
+        }
+    }
+
+    if (isCorrect) {
+        correctCount++;
+        document.getElementById(`card-${idx}`).style.borderColor = "var(--success)";
+    } else {
+        document.getElementById(`card-${idx}`).style.borderColor = "var(--danger)";
+    }
+
+    // 顯示解析
+    const expDiv = document.getElementById(`exp-${idx}`);
+    expDiv.innerHTML = isCorrect ? 
+        `<span class="correct-badge">✔ 答對了！</span><br>${item.exp}` : 
+        `<span class="incorrect-badge">✖ 答錯了。</span><br>${item.exp}`;
+    expDiv.classList.add("show");
+
+    updateScoreboard();
+}
+
+function updateScoreboard() {
+    const answered = answeredSet.size;
+    const accuracy = answered > 0 ? ((correctCount / answered) * 100).toFixed(1) : 0;
+    
+    document.getElementById("answered-count").innerText = answered;
+    document.getElementById("correct-count").innerText = correctCount;
+    document.getElementById("accuracy").innerText = accuracy + "%";
+}
+
+window.onload = renderQuiz;
+</script>
+</body>
+</html>
