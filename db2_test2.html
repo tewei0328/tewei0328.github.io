@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITS-Databases 認證考試 Part 2 互動式刷題網頁 (完整 40 題)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Microsoft JhengHei', 'PingFang TC', 'sans-serif'],
+                        mono: ['Fira Code', 'Consolas', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .code-block {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            background-color: #1e293b;
+            color: #f8fafc;
+        }
+        .dark .code-block {
+            background-color: #0f172a;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-full flex flex-col font-sans transition-colors duration-200">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-brand-600 text-white p-2.5 rounded-xl shadow-md">
+                    <i class="fa-solid font-bold fa-database text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-tight">ITS-Databases 刷題系統</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Part 2 完整題庫 • 總共 40 題即時反饋測驗</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Theme Toggle Button -->
+                <button id="themeToggle" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" title="切換深色/淺色模式">
+                    <i class="fa-solid fa-moon text-lg dark:hidden"></i>
+                    <i class="fa-solid fa-sun text-lg hidden dark:inline"></i>
+                </button>
+                
+                <!-- Quick Navigation Grid Modal Toggle -->
+                <button onclick="quizApp.toggleNavModal()" class="px-3.5 py-2 text-sm font-medium bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 hover:bg-brand-100 dark:hover:bg-brand-900/60 rounded-xl transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-th-large"></i>
+                    <span class="hidden sm:inline">題號跳轉</span>
+                </button>
+
+                <!-- Restart Quiz -->
+                <button onclick="quizApp.restartQuiz()" class="px-3.5 py-2 text-sm font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span class="hidden sm:inline">重新開始</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5">
+            <div id="progressBar" class="bg-brand-500 h-1.5 transition-all duration-300 w-0"></div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 flex flex-col justify-center">
+        
+        <!-- Score Dashboard -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+            <div class="bg-white dark:bg-slate-800 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">完成進度</span>
+                <span id="progressText" class="text-xl sm:text-2xl font-black text-brand-600 dark:text-brand-500">0 / 40</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">目前得分</span>
+                <span id="scoreText" class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">0 / 100</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">正確率</span>
+                <span id="accuracyText" class="text-xl sm:text-2xl font-black text-indigo-600 dark:text-indigo-400">0%</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">題庫總數檢核</span>
+                <span class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">40 題全</span>
+            </div>
+        </div>
+
+        <!-- Question Card View Container -->
+        <div id="questionContainer">
+            <!-- Dynamic Content Injected Here -->
+        </div>
+
+        <!-- Quiz Completed View -->
+        <div id="resultContainer" class="hidden bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-xl text-center space-y-6">
+            <div class="inline-flex p-4 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 mb-2">
+                <i class="fa-solid fa-trophy text-4xl"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">恭喜完成 Part 2 全部 40 題刷題測驗！</h2>
+            <p class="text-slate-600 dark:text-slate-300 max-w-lg mx-auto">您已完成所有 40 道題目的練習，以下是您本次測驗的完整表現結算：</p>
+
+            <div class="max-w-md mx-auto bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3 text-left">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">總題數檢核：</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200">40 / 40 題</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">答對題數：</span>
+                    <span id="finalCorrectCount" class="font-bold text-emerald-600 dark:text-emerald-400">0 題</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">換算得分：</span>
+                    <span id="finalScore" class="font-black text-2xl text-brand-600 dark:text-brand-500">0 分</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">整體正確率：</span>
+                    <span id="finalAccuracy" class="font-bold text-indigo-600 dark:text-indigo-400">0%</span>
+                </div>
+            </div>
+
+            <div id="resultFeedbackText" class="text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto"></div>
+
+            <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="quizApp.restartQuiz()" class="w-full sm:w-auto px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/25 transition-all">
+                    <i class="fa-solid fa-rotate-right mr-2"></i>重新進行完整測驗
+                </button>
+                <button onclick="quizApp.reviewAllQuestions()" class="w-full sm:w-auto px-6 py-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-semibold rounded-xl transition-all">
+                    <i class="fa-solid fa-list-check mr-2"></i>完整查看全 40 題詳解
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Quick Navigation Modal -->
+    <div id="navModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 max-w-2xl w-full shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-700 mb-4">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-th text-brand-500"></i> 全 40 題快速跳轉與狀態覽頁
+                </h3>
+                <button onclick="quizApp.toggleNavModal()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 mr-1"></span>答對
+                <span class="inline-block w-3 h-3 rounded-full bg-rose-500 ml-3 mr-1"></span>答錯
+                <span class="inline-block w-3 h-3 rounded-full bg-slate-200 dark:bg-slate-700 ml-3 mr-1"></span>未答
+            </p>
+            <div id="navGrid" class="grid grid-cols-5 sm:grid-cols-8 gap-2 overflow-y-auto p-1 flex-1">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-4 text-center text-xs text-slate-400 dark:text-slate-500 border-t border-slate-200 dark:border-slate-800">
+        ITS-Databases Certification Interactive Learning Hub &copy; 2026 • 完整 40 題庫總彙編
+    </footer>
+
+    <!-- Quiz Logic & Data Script -->
+    <script>
+        // Complete 40 Questions Data (Q1 - Q40)
+        const quizData = [
+            {
+                id: 1,
+                title: "Q1. 檢視表 (View) 底層資料刪除後的結果集狀態",
+                question: "您建立了一個檢視表，其中包含 Product 資料表中屬於 Furniture 類別的所有產品。您針對 Product 資料表執行一個陳述式來刪除屬於 Furniture 類別的所有產品。在您執行該陳述式之後，檢視表的結果集將：",
+                options: [
+                    { id: "A", text: "被刪除。" },
+                    { id: "B", text: "保持不變。" },
+                    { id: "C", text: "清空。" },
+                    { id: "D", text: "被封存。" }
+                ],
+                correctAnswer: "C",
+                explanation: "檢視表 (View) 本身不儲存實體資料，它只是儲存一段查詢邏輯。當底層實體表中的 Furniture 資料被刪除後，再次查詢該檢視表時，將會回傳空集合 (Empty)。"
+            },
+            {
+                id: 2,
+                title: "Q2. 新增欄位至既有資料表 (DDL)",
+                question: "您有一個名為 Customer 的資料表。您需要建立一個名為 District 的新資料行。請問您應該使用哪一個陳述式？",
+                options: [
+                    { id: "A", text: "ALTER TABLE Customer MODIFY (District INTEGER)" },
+                    { id: "B", text: "ALTER TABLE Customer ADD (District INTEGER)" },
+                    { id: "C", text: "ALTER TABLE Customer ADD (INTEGER District)" },
+                    { id: "D", text: "MODIFY TABLE Customer ADD (INTEGER District)" }
+                ],
+                correctAnswer: "B",
+                explanation: "新增欄位至既有資料表應使用 ALTER TABLE <資料表> ADD (<欄位名> <資料類型>) 格式。"
+            },
+            {
+                id: 3,
+                title: "Q3. 叢集索引 (Clustered Index) 的效能優勢",
+                question: "某個資料表有一個叢集索引 (Clustered Index)。請選取能夠最大化發揮叢集索引效能優勢的查詢情境與存取模式：",
+                options: [
+                    { id: "A", text: "1. 傳回大型結果集 / 2. 循序存取" },
+                    { id: "B", text: "1. 隨機存取 / 2. 少量資料列" },
+                    { id: "C", text: "1. 單一筆查詢 / 2. 雜湊比對" },
+                    { id: "D", text: "1. 頻繁更新 / 2. 刪除運算" }
+                ],
+                correctAnswer: "A",
+                explanation: "叢集索引決定了資料在磁碟上的物理排序。因此對於範圍查詢（傳回大型結果集）以及按照物理順序讀取的「循序存取 (Sequential Access)」查詢，效能提升最為顯著。"
+            },
+            {
+                id: 4,
+                title: "Q4. 第三正規化 (3NF) 與遞移相依",
+                question: "您建立了下列資料表，其中顯示過去寵物表演的獲勝者。寵物比賽獲勝者資料表：ID, Event, Year, PetID, Birthdate, City。請問哪一個資料行可防止資料表成為第三正規形式 (3NF)？",
+                options: [
+                    { id: "A", text: "Year" },
+                    { id: "B", text: "ID" },
+                    { id: "C", text: "Birthdate" },
+                    { id: "D", text: "PetID" }
+                ],
+                correctAnswer: "C",
+                explanation: "第三正規化 (3NF) 要求消除非主鍵欄位對非主鍵欄位的遞移相依 (Transitive Dependency)。Birthdate 是寵物 (PetID) 的屬性，而非比賽 (ID) 的商業邏輯主鍵屬性（存在 ID -> PetID -> Birthdate 的遞移關係），故此欄位破壞了 3NF。"
+            },
+            {
+                id: 5,
+                title: "Q5. 外鍵條件約束之刪除自動影響",
+                question: "您刪除了 Order 資料表中的資料列。OrderItem 資料表中的對應資料列也被自動刪除了。這是下列其中一種程序的範例：",
+                options: [
+                    { id: "A", text: "瀑布法刪除 (Waterfall Delete)" },
+                    { id: "B", text: "骨牌法刪除 (Domino Delete)" },
+                    { id: "C", text: "函式法刪除 (Functional Delete)" },
+                    { id: "D", text: "繼承法刪除 (Inherited Delete)" },
+                    { id: "E", text: "串聯刪除 (Cascade Delete)" }
+                ],
+                correctAnswer: "E",
+                explanation: "在外部索引鍵條件約束中設定 ON DELETE CASCADE（串聯刪除），當主表刪除紀錄時，子表中相對應的關聯紀錄也會自動被一併刪除。"
+            },
+            {
+                id: 6,
+                title: "Q6. 模糊搜尋關鍵字 SQL 語法",
+                question: "Products 資料表包含以下資料: ItemNumber, ItemName, ItemDescription, Price。請問哪一個查詢會在 ItemDescription 資料行出現 chocolate 時擷取 ItemName 和 Price？",
+                options: [
+                    { id: "A", text: "SELECT ItemName, Price FROM Products WHERE ItemDescription 'chocolate';" },
+                    { id: "B", text: "SELECT ItemName, Price FROM Products WHERE ItemDescription LIKE 'chocolate';" },
+                    { id: "C", text: "SELECT ItemName, Price FROM Products WHERE ItemDescription IN 'chocolate';" },
+                    { id: "D", text: "SELECT ItemName, Price FROM Products WHERE ItemDescription LIKE '%chocolate%';" }
+                ],
+                correctAnswer: "D",
+                explanation: "搜尋包含特定關鍵字，必須使用 LIKE 運算子搭配萬用字元 %。"
+            },
+            {
+                id: 7,
+                title: "Q7. 結合兩獨立查詢結果集",
+                question: "您需要將兩個查詢的結果結合成單一結果，而且包含這兩個查詢中的所有資料列。請問您應該使用哪一個 SQL 陳述式？",
+                options: [
+                    { id: "A", text: "EXCEPT" },
+                    { id: "B", text: "UNION" },
+                    { id: "C", text: "JOIN" },
+                    { id: "D", text: "TRUNCATE" }
+                ],
+                correctAnswer: "B",
+                explanation: "UNION（或 UNION ALL）可用於將兩個獨立 SELECT 查詢的結果集合併為一個單一的結果集。"
+            },
+            {
+                id: 8,
+                title: "Q8. 正確的 INNER JOIN 語法與 ON 子句",
+                question: "您是某間大學的資料庫管理員，該大學將學生資訊儲存在一個名為 students 的資料表中。這個資料表具有一個名為 courseID 的外部索引鍵，可連結至 courses 資料表中的主索引鍵。您需要使用這兩個根據 courseID 配對的資料表來傳回學生姓名和課程名稱。您執行了下列查詢: SELECT students.name, courses.name FROM students OUTER JOIN courses WHERE students.courseID = courses.courseID，此查詢會傳回錯誤。請問您該如何修正查詢？",
+                options: [
+                    { id: "A", text: "SELECT students.name, courses.name FROM students INNER JOIN courses WHERE students.courseID = courses.courseID" },
+                    { id: "B", text: "SELECT students.name, courses.name FROM students INNER JOIN courses ON students.courseID = courses.courseID" },
+                    { id: "C", text: "SELECT students.name, courses.name FROM students INNER JOIN ON courses WHERE students.courseID = courses.courseID" },
+                    { id: "D", text: "SELECT students.name, courses.name FROM students INNER JOIN ON students.courseID = courses.courseID" }
+                ],
+                correctAnswer: "B",
+                explanation: "使用 JOIN 進行兩表配對時，關聯條件必須搭配 ON 子句，語法為 FROM students INNER JOIN courses ON students.courseID = courses.courseID。"
+            },
+            {
+                id: 9,
+                title: "Q9. 多條件邏輯運算子 (AND) 查詢比對筆數",
+                question: "有一個名為 Cars 的資料庫資料表，其定義與資料如下：<br>(Sedan, Red, Japan), (Truck, Red, USA), (Minivan, Silver, Japan), (Hatchback, Red, Japan), (Compact, Black, Japan), (SUV, Silver, Germany), (Convertible, Black, USA), (Hybrid, Black, Germany)。<br>您設有下列 SQL 陳述式: <code>SELECT * FROM Cars c WHERE c.Origin = 'USA' AND c.Color = 'Black'</code>。請問此 SQL 陳述式會傳回多少個資料列？",
+                options: [
+                    { id: "A", text: "1" },
+                    { id: "B", text: "5" },
+                    { id: "C", text: "6" },
+                    { id: "D", text: "7" }
+                ],
+                correctAnswer: "A",
+                explanation: "檢視表格資料，同時滿足 Origin = 'USA' 並且 Color = 'Black' 的車款僅有 1 筆 (Convertible)。"
+            },
+            {
+                id: 10,
+                title: "Q10. 字串串接與 NULL 值影響",
+                question: "有一個預存程序包含以下查詢: <code>SELECT 'Greetings ' + Prefix + ' ' + FirstName FROM Person;</code>。此預存程序會傳回所有 null 值。您確認 Person 資料表包含資料。請問這個問題的可能原因為何？",
+                options: [
+                    { id: "A", text: "您必須在 SELECT 陳述式中指定 JOIN 關鍵字。" },
+                    { id: "B", text: "Prefix 或 FirstName 資料行具有 null 值。" },
+                    { id: "C", text: "您必須在查詢中指定 NULLIF 關鍵字。" },
+                    { id: "D", text: "加號(+)運算子無法用來附加字元資料。" }
+                ],
+                correctAnswer: "B",
+                explanation: "在 SQL 中，任何字串與 NULL 用 + 進行串接，結果都會變成 NULL（即 字串 + NULL = NULL）。因此若 Prefix 欄位包含 NULL，整行字串運算結果就會變成 NULL。"
+            },
+            {
+                id: 11,
+                title: "Q11. 交叉聯結 (CROSS JOIN) 笛卡兒乘積計算",
+                question: "您有兩個資料表。每個資料表都有三個資料列。您建立了一個使用交叉聯結 (CROSS JOIN) 的 SQL 查詢。這個查詢不包含 WHERE 子句。請問這兩個資料表的笛卡兒乘積會包含多少個資料列？",
+                options: [
+                    { id: "A", text: "0" },
+                    { id: "B", text: "3" },
+                    { id: "C", text: "6" },
+                    { id: "D", text: "9" }
+                ],
+                correctAnswer: "D",
+                explanation: "笛卡兒乘積的資料列總數為兩表筆數相乘：3 * 3 = 9。"
+            },
+            {
+                id: 12,
+                title: "Q12. 快速清空資料表而不逐筆紀錄日誌",
+                question: "請問哪一個陳述式會從資料表中移除所有資料列，但不記錄個別資料列刪除動作？",
+                options: [
+                    { id: "A", text: "ALTER TABLE" },
+                    { id: "B", text: "DROP TABLE" },
+                    { id: "C", text: "TRUNCATE TABLE" },
+                    { id: "D", text: "CREATE TABLE" }
+                ],
+                correctAnswer: "C",
+                explanation: "TRUNCATE TABLE 透過釋放資料頁來快速清空整個資料表，不會像 DELETE 逐筆紀錄資料列的刪除 Log，因此執行速度極快且佔用極少日誌空間。"
+            },
+            {
+                id: 13,
+                title: "Q13. 多對多中繼表之複合主索引鍵設計",
+                question: "您接受了某間地方慈善機構的 IT 實習工作。該慈善機構的資料模型有兩個資料表，名為 Chapter (ChapterId, City, Region, Country) 和 Language (LanguageId, LanguageName, Locale)。您建立了名為 ChapterLanguage 的第三個資料表來關聯 Chapter 資料表和 Language 資料表。您需要從 Chapter 和 Language 資料表中選取資料行，以便為 ChapterLanguage 資料表建立複合主索引鍵。請問您應該選取哪兩個資料行？",
+                options: [
+                    { id: "A", text: "ChapterId 與 LanguageId" },
+                    { id: "B", text: "City 與 LanguageName" },
+                    { id: "C", text: "Region 與 Locale" },
+                    { id: "D", text: "Country 與 LanguageId" }
+                ],
+                correctAnswer: "A",
+                explanation: "在多對多關聯的中繼資料表中，應將兩邊實體表的主鍵 (ChapterId 與 LanguageId) 結合起來，組成複合主索引鍵 (Composite Primary Key)。"
+            },
+            {
+                id: 14,
+                title: "Q14. 建立複合主鍵之正確 DDL 語法",
+                question: "請問哪一個陳述式會建立複合索引鍵 (Composite Key)？",
+                options: [
+                    { id: "A", text: "CREATE TABLE Order (OrderID INTEGER, OrderItemID INTEGER, PRIMARY KEY)" },
+                    { id: "B", text: "CREATE TABLE Order (OrderID INTEGER, OrderItemID INTEGER, PRIMARY KEY (OrderID, OrderItemID))" },
+                    { id: "C", text: "CREATE TABLE Order (OrderID INTEGER PRIMARY KEY, OrderItemID INTEGER PRIMARY KEY)" },
+                    { id: "D", text: "CREATE TABLE Order (OrderID INTEGER, OrderItemID INTEGER, PRIMARY KEY OrderID, PRIMARY KEY OrderItemID)" }
+                ],
+                correctAnswer: "B",
+                explanation: "要在 SQL 中建立包含多個欄位的複合主鍵，必須在欄位定義後方使用表層約束語法 PRIMARY KEY (欄位1, 欄位2)。"
+            },
+            {
+                id: 15,
+                title: "Q15. 交集運算子 (INTERSECT)",
+                question: "請問哪一個關鍵字會結合兩個查詢的結果並且僅傳回兩個結果集都有出現的資料列？",
+                options: [
+                    { id: "A", text: "UNION" },
+                    { id: "B", text: "INTERSECT" },
+                    { id: "C", text: "ALL" },
+                    { id: "D", text: "JOIN" }
+                ],
+                correctAnswer: "B",
+                explanation: "INTERSECT 表示交集，僅回傳同時存在於兩個查詢結果中的重複紀錄；UNION 表示聯集，結合兩查詢結果並排除重複。"
+            },
+            {
+                id: 16,
+                title: "Q16. 函式 (Function) 與預存程序 (Stored Procedure) 差異",
+                question: "函式與預存程序之間的其中一項差異在於，函式：",
+                options: [
+                    { id: "A", text: "無法接受參數。" },
+                    { id: "B", text: "必須傳回值。" },
+                    { id: "C", text: "無法包含交易。" },
+                    { id: "D", text: "必須由觸發程序呼叫。" }
+                ],
+                correctAnswer: "B",
+                explanation: "使用者自訂函式 (UDF) 語法規定必須宣告 RETURNS 型態並於內部包含 RETURN 語句傳回純量值或表值。而預存程序則不強制需要回傳值。"
+            },
+            {
+                id: 17,
+                title: "Q17. 建立資料表 (CREATE TABLE) 基礎語法",
+                question: "您正在建立一個名為 Student 的資料庫物件來儲存以下資料: ID (1, 2, 3), Name (Rene, Tia, Oliver), Age (18, 22, 25)。請問您應該使用哪一個語法來建立物件？",
+                options: [
+                    { id: "A", text: "CREATE TABLE Student (ID INT, Name VARCHAR (100), Age INT)" },
+                    { id: "B", text: "CREATE TABLE (ID INT, Name VARCHAR (100), Age INT)" },
+                    { id: "C", text: "CREATE Student (ID INT, Name VARCHAR (100), Age INT)" },
+                    { id: "D", text: "CREATE (TABLE Student ID INT, Name VARCHAR (100), Age INT)" }
+                ],
+                correctAnswer: "A",
+                explanation: "建表標準語法格式為 CREATE TABLE <表名> (<欄位1> <型態>, ...)。"
+            },
+            {
+                id: 18,
+                title: "Q18. 更新資料列 (UPDATE ... SET) 語法",
+                question: "您接受了某間地方慈善機構的 IT 實習工作。該慈善機構要求您使用一個名為 Volunteer 的資料庫資料表來保留志工的記錄。當志工資訊變更時，您就必須更新資料表。您需要將 Tia 的名字變更為 Kimberly。請問您應該選擇哪一個陳述式？",
+                options: [
+                    { id: "A", text: "SET Volunteer WHERE GivenName = 'Tia'" },
+                    { id: "B", text: "UPDATE Volunteer SET GivenName = 'Kimberly' WHERE GivenName = 'Tia'" },
+                    { id: "C", text: "UPDATE GivenName FROM Volunteer 'Kimberly' WHERE GivenName = 'Tia'" },
+                    { id: "D", text: "SET GivenName FROM Volunteer 'Kimberly' WHERE GivenName = 'Tia'" }
+                ],
+                correctAnswer: "B",
+                explanation: "更新數據的標準語法為 UPDATE <表名> SET <欄位 = 新值> WHERE <條件>。"
+            },
+            {
+                id: 19,
+                title: "Q19. 多條件更新與邏輯 AND 運算",
+                question: "您建立了下列名為 LoanedBooks 的資料表，其中列出您借給朋友的書籍數目: (1, Harry, New York, 2), (2, Sally, San Francisco, 3), (3, Sue, Chicago, 0), (4, Harry, San Francisco, 3), (5, William, Detroit, 1)。舊金山的 Harry 歸還了您的書籍。請問哪一個陳述式可正確更新您的資料表？",
+                options: [
+                    { id: "A", text: "UPDATE LoanedBooks SET Books = 0 WHERE (Name = 'Harry' OR City = 'San Francisco')" },
+                    { id: "B", text: "UPDATE LoanedBooks SET Books = 0 WHERE (Name = 'Harry' AND City = 'San Francisco')" },
+                    { id: "C", text: "UPDATE LoanedBooks SET Books = 0 WHERE (Name In 'Harry', 'San Francisco')" },
+                    { id: "D", text: "INSERT INTO LoanedBooks SET Books = 0 WHERE ID = 4" }
+                ],
+                correctAnswer: "B",
+                explanation: "條件必須同時滿足「名字是 Harry」並且「城市是 San Francisco」，所以必須採用邏輯運算子 AND。若使用 OR，會將所有名叫 Harry 或居住在 San Francisco 的人全數誤修改。"
+            },
+            {
+                id: 20,
+                title: "Q20. INSERT INTO 新增資料列寫法比較",
+                question: "您有一個資料庫資料表 dbo.AddressInfo 包含 StreetAddress, City, State, PostalCode。您必須在資料表中插入記錄: ('1234 Main Street', 'Dallas', 'TX', '75201')。請問您可以使用哪兩種 SQL 陳述式結構？",
+                options: [
+                    { id: "A", text: "包含明確欄位清單 (B) 與全欄位簡寫 (D) 均可" },
+                    { id: "B", text: "只能使用明確指定欄位清單 (B)" },
+                    { id: "C", text: "只能使用全欄位簡寫 (D)" },
+                    { id: "D", text: "兩者均不可，必須使用 UPDATE" }
+                ],
+                correctAnswer: "A",
+                explanation: "新增記錄可以使用明確指定欄位清單的語法：INSERT INTO AddressInfo ([StreetAddress], [City], [State], [PostalCode]) VALUES ('1234 Main Street', 'Dallas', 'TX', '75201')，或者在按順序填入全欄位值時省略欄位清單的簡寫語法。"
+            },
+            {
+                id: 21,
+                title: "Q21. 日期與排除條件比對 (AND 與 <>) ",
+                question: "請問哪一個查詢會傳回除了加州(CA)以外，其他所有州在 2017 年 1 月之後提交之訂單的結果集？",
+                options: [
+                    { id: "A", text: "SELECT * FROM orders WHERE order_date > '2017-01-01' OR ship_state <> 'CA'" },
+                    { id: "B", text: "SELECT * FROM orders WHERE order_date > '2017-01-01' AND ship_state <> 'CA'" },
+                    { id: "C", text: "SELECT * FROM orders WHERE order_date > '2017-01-01' AND ship_state LIKE 'CA'" },
+                    { id: "D", text: "SELECT * FROM orders WHERE order_date > '2017-01-01' OR ship_state LIKE 'CA'" }
+                ],
+                correctAnswer: "B",
+                explanation: "時間條件（在 2017-01-01 之後）與地區條件（不等於 CA，即 <>）需同時成立，故中間連結必須使用 AND。"
+            },
+            {
+                id: 22,
+                title: "Q22. DELETE 陳述式缺乏 WHERE 子句之影響",
+                question: "您有一個名為 Student 的資料表，其中包含 100 個資料列。部分資料列的 FirstName 資料行具有 NULL 值。您執行了下列陳述式: DELETE FROM Student。請問結果為何？",
+                options: [
+                    { id: "A", text: "系統將刪除所有資料列和資料表定義。" },
+                    { id: "B", text: "系統將刪除資料表中的所有資料列。" },
+                    { id: "C", text: "您會收到錯誤訊息。" },
+                    { id: "D", text: "系統將刪除 FirstName 資料行含有 NULL 值的所有資料列。" }
+                ],
+                correctAnswer: "B",
+                explanation: "DELETE FROM <資料表> 後方若沒有加上 WHERE 子句條件過濾，會直接刪除該資料表內所有的資料列（但資料表結構本體仍會留存）。"
+            },
+            {
+                id: 23,
+                title: "Q23. 預存程序與函式特性判斷",
+                question: "對於下列每一項敘述，請選取【正確】或【錯誤】: <br>1. 您可以使用預存程序來刪除資料。<br>2. 函式必須具有傳回值。<br>3. 預存程序必須具有傳回值。",
+                options: [
+                    { id: "A", text: "1. 正確 / 2. 正確 / 3. 錯誤" },
+                    { id: "B", text: "1. 正確 / 2. 錯誤 / 3. 正確" },
+                    { id: "C", text: "1. 錯誤 / 2. 正確 / 3. 錯誤" },
+                    { id: "D", text: "1. 正確 / 2. 正確 / 3. 正確" }
+                ],
+                correctAnswer: "A",
+                explanation: "1. 正確：預存程序內部可包含包含 DELETE 在內的任何 DML 陳述式。<br>2. 正確：SQL 自訂函數 (UDF) 必須定義傳回值。<br>3. 錯誤：預存程序可以僅執行邏輯動作而不回傳任何值。"
+            },
+            {
+                id: 24,
+                title: "Q24. 關聯式資料庫結構與唯一性觀念",
+                question: "您正在設定關聯式資料庫中某個資料表的結構。對於下列每一項敘述，請選取【正確】或【錯誤】:<br>1. 資料表中欄位的每個值都必須是唯一的。<br>2. 資料表中的每個資料列都必須是唯一的。<br>3. 資料表中的每個資料行名稱都必須是唯一的。",
+                options: [
+                    { id: "A", text: "1. 錯誤 / 2. 正確 / 3. 正確" },
+                    { id: "B", text: "1. 正確 / 2. 錯誤 / 3. 正確" },
+                    { id: "C", text: "1. 錯誤 / 2. 錯誤 / 3. 正確" },
+                    { id: "D", text: "1. 正確 / 2. 正確 / 3. 錯誤" }
+                ],
+                correctAnswer: "A",
+                explanation: "1. 錯誤：除非該欄位有設定主鍵或 UNIQUE 約束，否則一般欄位的值可以重複。<br>2. 正確：關聯式資料庫中，每個資料列必須可被唯一識別（如透過主鍵）。<br>3. 正確：同一個資料表中，資料行 (Column Name) 名稱不能重複。"
+            },
+            {
+                id: 25,
+                title: "Q25. 時間過濾 (GETDATE) 與 ORDER BY 排序填空",
+                question: "有一個名為 Flight 的資料表包含 ID, FlightNumber, OriginAirport, DestinationAirport, DepartureTime, ArrivalTime。您需要顯示今天稍晚抵達美國紐約拉瓜迪亞機場(LGA)之所有航班的航班號碼。結果應該依照最近的抵達時間來排序。請完成語法填空：<br><code>SELECT FlightNumber FROM Flight WHERE DestinationAirport = 'LGA' [1] ArrivalTime [2] GETDATE() [3] ArrivalTime [4]</code>",
+                options: [
+                    { id: "A", text: "1: AND / 2: > / 3: ORDER BY / 4: ASC" },
+                    { id: "B", text: "1: OR / 2: < / 3: GROUP BY / 4: DESC" },
+                    { id: "C", text: "1: AND / 2: = / 3: ORDER BY / 4: ASC" },
+                    { id: "D", text: "1: WHERE / 2: > / 3: ORDER BY / 4: DESC" }
+                ],
+                correctAnswer: "A",
+                explanation: "篩選目的地為 LGA 且 抵達時間晚於現在時間 (> GETDATE())。排序語法使用 ORDER BY ArrivalTime ASC。"
+            },
+            {
+                id: 26,
+                title: "Q26. 資料操作語言 (DML) 辨識",
+                question: "請問哪一個 SQL 陳述式是資料操作語言 (DML) 陳述式？",
+                options: [
+                    { id: "A", text: "SELECT INTO Employee FROM NewHires" },
+                    { id: "B", text: "INSERT INTO Employee VALUES ('Jack Smith');" },
+                    { id: "C", text: "SELECT EmployeeName FROM Employee WHERE EmployeeName = 'Jack Smith';" },
+                    { id: "D", text: "ALTER TABLE Employee ADD EmployeeName Varchar;" }
+                ],
+                correctAnswer: "B",
+                explanation: "DML (Data Manipulation Language) 用於新增、修改、刪除資料內容，包含 INSERT、UPDATE、DELETE。ALTER TABLE 屬於 DDL。"
+            },
+            {
+                id: 27,
+                title: "Q27. 聚合函數 SUM 與 GROUP BY 分組填空",
+                question: "有一個名為 PlayerStat 的資料表 (PlayerID, TeamID, GameDate, Points)。您需要針對 TeamID 為 1 的隊伍顯示每位隊員的總分數。請完成填空：<br><code>SELECT PlayerID, [1] FROM PlayerStat [2] TeamID = 1 [3] [4]</code>",
+                options: [
+                    { id: "A", text: "1: SUM(Points) / 2: WHERE / 3: GROUP BY / 4: PlayerID" },
+                    { id: "B", text: "1: COUNT(Points) / 2: HAVING / 3: GROUP BY / 4: TeamID" },
+                    { id: "C", text: "1: AVG(Points) / 2: WHERE / 3: ORDER BY / 4: PlayerID" },
+                    { id: "D", text: "1: MAX(Points) / 2: WHERE / 3: GROUP BY / 4: GameDate" }
+                ],
+                correctAnswer: "A",
+                explanation: "完整查詢為 SELECT PlayerID, SUM(Points) FROM PlayerStat WHERE TeamID = 1 GROUP BY PlayerID; 使用 SUM(Points) 計算每位隊員總分，先用 WHERE TeamID = 1 篩選第 1 隊，最後依照 GROUP BY PlayerID 進行分組加總。"
+            },
+            {
+                id: 28,
+                title: "Q28. 資料庫理論之「功能相依 (Functional Dependency)」",
+                question: "您有一個資料表包含資料: (32, books), (25, books), (67, movies), (89, movies)。請問哪一個資料庫詞彙是用來描述 ProductID 與 ProductCategory 之間的關聯性？",
+                options: [
+                    { id: "A", text: "功能相依 (Functional Dependency)" },
+                    { id: "B", text: "關聯相依 (Relational Dependency)" },
+                    { id: "C", text: "決定性 (Determinism)" },
+                    { id: "D", text: "世代 (Generations)" },
+                    { id: "E", text: "複合 (Composition)" }
+                ],
+                correctAnswer: "A",
+                explanation: "只要給定一個特定的 ProductID，就能唯一確定其對應的 ProductCategory 值，這在資料庫理論中稱為 ProductID 功能決定 ProductCategory，即功能相依 (Functional Dependency)。"
+            },
+            {
+                id: 29,
+                title: "Q29. 聚合函數條件過濾 (HAVING 子句)",
+                question: "請問哪一個 SQL 陳述式會傳回訂單數目少於 50 的國家/地區以及各國家/地區的訂單數目？orderID 代表個別訂單、Country 代表國家/地區,而 Orders 代表訂單數目。",
+                options: [
+                    { id: "A", text: "SELECT Country, orderID FROM Orders WHERE COUNT (orderID) < 50; GROUP BY Country;" },
+                    { id: "B", text: "SELECT COUNT (orderID), Country FROM Orders GROUP BY Country HAVING COUNT (orderID) < 50;" },
+                    { id: "C", text: "SELECT Country, orderID FROM Orders GROUP BY Country WHERE COUNT (orderID) < 50;" },
+                    { id: "D", text: "SELECT COUNT (orderID), Country FROM Orders HAVING COUNT (orderID) < 50; GROUP BY Country" }
+                ],
+                correctAnswer: "B",
+                explanation: "針對聚合函數的篩選過濾須使用 HAVING 子句，且必須位於 GROUP BY 之後。"
+            },
+            {
+                id: 30,
+                title: "Q30. 複雜條件組合 (AND/OR) 與 ORDER BY 降冪排序",
+                question: "您需要針對 students 資料表中的資料建立一份報表。此報表必須符合下列需求:<br>1. 顯示在 2020 年 6 月 1 日當天或之後註冊的所有學生；<br>2. 顯示在 2020 年畢業的所有學生；<br>3. 按照註冊順序傳回結果集,最新的註冊日期列在第一個。請問您應該使用哪一個查詢？",
+                options: [
+                    { id: "A", text: "SELECT * FROM students WHERE enrollment_date >= '2020-06-01' AND academic_status='Graduated' AND graduation_date >= '2020-01-01' ORDER BY enrollment_date ASC" },
+                    { id: "B", text: "SELECT * FROM students WHERE enrollment_date >= '2020-06-01' AND academic_status='Graduated' OR graduation_date >= '2020-01-01' ORDER BY enrollment_date" },
+                    { id: "C", text: "SELECT * FROM students WHERE enrollment_date >= '2020-06-01' OR academic_status='Graduated' AND graduation_date >= '2020-01-01' ORDER BY enrollment_date DESC" },
+                    { id: "D", text: "SELECT * FROM students WHERE enrollment_date >= '2020-06-01' OR academic_status='Graduated' OR graduation_date >= '2020-01-01' ORDER BY enrollment_date DESC" }
+                ],
+                correctAnswer: "C",
+                explanation: "條件組合：(在 2020/06/01 之後註冊) OR (已畢業 AND 畢業日期在 2020 年)。AND 的優先權高於 OR。降冪排序以呈現最新日期：ORDER BY enrollment_date DESC。"
+            },
+            {
+                id: 31,
+                title: "Q31. 維持參照完整性之「外部索引鍵」",
+                question: "您有兩個資料表，分別名為 SalesPerson 與 Sales。您需要確保 Sales 資料表中的每筆記錄都在 SalesPerson 資料表中保存有效的相關聯銷售人員記錄。請問您應該將哪一個資料庫物件新增至 Sales 資料表？",
+                options: [
+                    { id: "A", text: "主索引鍵" },
+                    { id: "B", text: "外部索引鍵" },
+                    { id: "C", text: "叢集索引" },
+                    { id: "D", text: "非叢集索引" }
+                ],
+                correctAnswer: "B",
+                explanation: "使用外部索引鍵 (Foreign Key) 可以約束 Sales 資料表中的銷售員欄位值，必須在 SalesPerson 主表中存在，維持參考完整性。"
+            },
+            {
+                id: 32,
+                title: "Q32. 刪除特定條件資料列 (DELETE FROM ... WHERE)",
+                question: "您的資料庫包含一個名為 Customer 的資料表。您需要從 Customer 資料表中刪除 CustomerID 為 12345 的記錄。請問您應該使用哪一個陳述式？",
+                options: [
+                    { id: "A", text: "DELETE CustomerID FROM Customer WHERE CustomerID = 12345" },
+                    { id: "B", text: "UPDATE Customer DELETE * WHERE CustomerID = 12345" },
+                    { id: "C", text: "UPDATE CustomerID FROM Customer DELETE * WHERE CustomerID = 12345" },
+                    { id: "D", text: "DELETE FROM Customer WHERE CustomerID = 12345" }
+                ],
+                correctAnswer: "D",
+                explanation: "刪除指定條件資料列的標準語法為 DELETE FROM <資料表> WHERE <條件>。"
+            },
+            {
+                id: 33,
+                title: "Q33. 主索引鍵 (Primary Key) 唯一性約束違規",
+                question: "您有一個名為 Product 的資料表包含 ProductID (3296), ProductName ('Spoon'), CategoryID (2222)。ProductID 資料行是主索引鍵。CategoryID 資料行是名為 Category 之個別資料表的外部索引鍵。您執行了下列陳述式: <code>INSERT INTO Product VALUES (3296, 'Table', 4444)</code>。請問結果為何？",
+                options: [
+                    { id: "A", text: "語法錯誤" },
+                    { id: "B", text: "Category 資料表中的新資料列" },
+                    { id: "C", text: "外部索引鍵條件約束違規" },
+                    { id: "D", text: "Product 資料表中的新資料列" },
+                    { id: "E", text: "主索引鍵條件約束違規" }
+                ],
+                correctAnswer: "E",
+                explanation: "主索引鍵 (Primary Key) 要求資料必須具備唯一性。因為 ProductID = 3296 已存在，重複插入相同的主鍵值會觸發主索引鍵條件約束違規 (Primary Key Constraint Violation) 錯誤。"
+            },
+            {
+                id: 34,
+                title: "Q34. 財務與貨幣運算資料型態 (DECIMAL)",
+                question: "您在某間咖啡廳工作。公司要求您設定網站來儲存購物費用。您需要建議公司在資料庫資料表中使用某種資料類型，以便根據收費金額執行財務函式。請問您應該建議使用哪一種資料類型？",
+                options: [
+                    { id: "A", text: "bit" },
+                    { id: "B", text: "decimal" },
+                    { id: "C", text: "binary" },
+                    { id: "D", text: "varchar" }
+                ],
+                correctAnswer: "B",
+                explanation: "decimal（或 numeric）為固定數值精確度的資料型態，不會產生浮點數的四捨五入誤差，非常適合用於儲存貨幣與金額，執行財務運算。"
+            },
+            {
+                id: 35,
+                title: "Q35. 建立檢視表 (CREATE VIEW ... AS) 語法填空",
+                question: "您需要設定一個資料庫來提供北美哺乳動物的檢視表 (NorthAmericanMammals_View)。請完成語法填空：<br><code>[區塊1] AS [區塊2] [區塊3] WHERE a.Class = 'Mammals' AND a.InNorthAmerica = 1</code>",
+                options: [
+                    { id: "A", text: "區塊1: CREATE VIEW [NorthAmericanMammals_View] / 區塊2: SELECT a.Id, a.Name / 區塊3: FROM Animal a" },
+                    { id: "B", text: "區塊1: SELECT a.Id, a.Name / 區塊2: CREATE VIEW [NorthAmericanMammals_View] / 區塊3: FROM Animal a" },
+                    { id: "C", text: "區塊1: CREATE TABLE [NorthAmericanMammals_View] / 區塊2: SELECT a.Id / 區塊3: WHERE Animal a" },
+                    { id: "D", text: "區塊1: ALTER VIEW [NorthAmericanMammals_View] / 區塊2: UPDATE Animal / 區塊3: SET a" }
+                ],
+                correctAnswer: "A",
+                explanation: "建立檢視表的標準語法結構為 CREATE VIEW <檢視表名> AS SELECT <欄位> FROM <資料表>。"
+            },
+            {
+                id: 36,
+                title: "Q36. 確保輸入資料正確性之「條件約束 (Constraints)」",
+                question: "請問關聯式資料庫會使用哪一項功能來確保輸入資料行中的資料正確？",
+                options: [
+                    { id: "A", text: "屬性" },
+                    { id: "B", text: "主索引鍵" },
+                    { id: "C", text: "條件約束" },
+                    { id: "D", text: "索引" }
+                ],
+                correctAnswer: "C",
+                explanation: "條件約束 (Constraints) 用於強制執行資料完整性規則，確保輸入資料行的資料正確無誤。"
+            },
+            {
+                id: 37,
+                title: "Q37. 新增 NOT NULL 欄位與預設值 (DEFAULT)",
+                question: "另一位開發人員嘗試使用下列查詢，在已存在資料的 Person 資料表中新增一個名為 Prefix 的資料行: <code>ALTER TABLE Person ADD Prefix varchar (4) NOT NULL;</code>。這位開發人員在執行查詢之後收到錯誤訊息。請問這個問題的可能原因為何？",
+                options: [
+                    { id: "A", text: "應該使用 DEFAULT 關鍵字來指定預設值。" },
+                    { id: "B", text: "Person 資料表是空的。" },
+                    { id: "C", text: "varchar(4) 資料類型不適用於 Person 資料表。" },
+                    { id: "D", text: "您應該先執行 DROP CONSTRAINT 查詢，再執行 ALTER TABLE 查詢。" }
+                ],
+                correctAnswer: "A",
+                explanation: "當資料表內已經存在資料時，若要新增一個設定為 NOT NULL 的新欄位，必須同時提供 DEFAULT 預設值，否則既有資料列在該新欄位會因無法填入 NULL 而導致新增失敗。"
+            },
+            {
+                id: 38,
+                title: "Q38. 計算資料表筆數 (COUNT(*))",
+                question: "您有一個名為 Employee 的資料表，其中包含下列資料行: EmployeeID, EmployeeName。請問您應該使用哪一個陳述式來傳回資料表中的資料列數目？",
+                options: [
+                    { id: "A", text: "SELECT * FROM Employee" },
+                    { id: "B", text: "SELECT COUNT(*) FROM Employee" },
+                    { id: "C", text: "SELECT SUM(*) FROM Employee" },
+                    { id: "D", text: "SELECT COUNT (rows) FROM Employee" }
+                ],
+                correctAnswer: "B",
+                explanation: "聚合函數 COUNT(*) 用於計算與傳回資料表中的總資料列（筆數）。"
+            },
+            {
+                id: 39,
+                title: "Q39. DCL 撤銷存取權限 (REVOKE)",
+                question: "您需要停用 User1 檢視 Customer 資料表中資料的存取權。請問您應該使用哪一個陳述式？",
+                options: [
+                    { id: "A", text: "REVOKE User1 FROM Customer" },
+                    { id: "B", text: "REMOVE User1 FROM Customer" },
+                    { id: "C", text: "REVOKE SELECT ON Customer FROM User1" },
+                    { id: "D", text: "REMOVE SELECT ON Customer FROM User1" }
+                ],
+                correctAnswer: "C",
+                explanation: "在 DCL (Data Control Language) 中，撤銷已授予權限的指令為 REVOKE <權限> ON <物件> FROM <使用者>。"
+            },
+            {
+                id: 40,
+                title: "Q40. 多表無條件查詢與「笛卡兒乘積 (Cartesian Product)」",
+                question: "您執行了下列查詢: <code>SELECT EmployeeID, FirstName, DepartmentName FROM Employee, Department</code>。這種作業稱為：",
+                options: [
+                    { id: "A", text: "等聯結。" },
+                    { id: "B", text: "交集。" },
+                    { id: "C", text: "外部聯結。" },
+                    { id: "D", text: "笛卡兒乘積。" }
+                ],
+                correctAnswer: "D",
+                explanation: "當查詢同時列出兩個資料表卻沒有寫出任何 WHERE 條件或 JOIN ON 匹配條件時，會產生交叉聯結，結果資料列數為兩表筆數相乘，稱為笛卡兒乘積 (Cartesian Product)。"
+            }
+        ];
+
+        // Quiz State App Controller
+        class QuizApp {
+            constructor(questions) {
+                this.questions = questions;
+                this.currentIndex = 0;
+                this.userAnswers = {}; // { questionId: { answer, isCorrect } }
+                this.score = 0;
+
+                this.initElements();
+                this.bindEvents();
+                this.renderQuestion();
+            }
+
+            initElements() {
+                this.container = document.getElementById('questionContainer');
+                this.resultContainer = document.getElementById('resultContainer');
+                this.progressBar = document.getElementById('progressBar');
+                this.progressText = document.getElementById('progressText');
+                this.scoreText = document.getElementById('scoreText');
+                this.accuracyText = document.getElementById('accuracyText');
+                this.navModal = document.getElementById('navModal');
+                this.navGrid = document.getElementById('navGrid');
+            }
+
+            bindEvents() {
+                // Theme toggle listener
+                document.getElementById('themeToggle').addEventListener('click', () => {
+                    document.documentElement.classList.toggle('dark');
+                    localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+                });
+
+                // Init theme from system/preference
+                if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+
+            updateDashboard() {
+                const total = this.questions.length;
+                const answered = Object.keys(this.userAnswers).length;
+                let correctCount = 0;
+
+                Object.values(this.userAnswers).forEach(ans => {
+                    if (ans.isCorrect) correctCount++;
+                });
+
+                this.score = (correctCount / total) * 100; // 40 questions = 2.5 pts each
+                const accuracy = answered > 0 ? Math.round((correctCount / answered) * 100) : 0;
+
+                this.progressText.innerText = `${answered} / ${total}`;
+                this.scoreText.innerText = `${Math.round(this.score)} / 100`;
+                this.accuracyText.innerText = `${accuracy}%`;
+
+                const progressPercent = (answered / total) * 100;
+                this.progressBar.style.width = `${progressPercent}%`;
+            }
+
+            renderQuestion() {
+                this.resultContainer.classList.add('hidden');
+                this.container.classList.remove('hidden');
+
+                const q = this.questions[this.currentIndex];
+                const isAnswered = !!this.userAnswers[q.id];
+                const savedState = this.userAnswers[q.id];
+
+                let html = `
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-xl transition-all">
+                        <!-- Question Header -->
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700/60 pb-3">
+                            <span class="text-xs font-bold px-3 py-1 rounded-full bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-400">
+                                單選題
+                            </span>
+                            <span class="text-xs text-slate-400 dark:text-slate-500 font-semibold">
+                                第 ${this.currentIndex + 1} 題 / 共 ${this.questions.length} 題
+                            </span>
+                        </div>
+
+                        <!-- Question Title & Context -->
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-3 leading-relaxed">
+                            ${q.title}
+                        </h2>
+                        <div class="text-slate-700 dark:text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
+                            ${q.question}
+                        </div>
+
+                        <!-- Options List -->
+                        <div class="space-y-3 mb-6">
+                `;
+
+                q.options.forEach(opt => {
+                    let btnClass = "w-full text-left p-4 rounded-2xl border transition-all flex items-start gap-3.5 text-sm sm:text-base ";
+                    let iconHtml = `<span class="w-6 h-6 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center font-semibold text-xs text-slate-500 dark:text-slate-400 shrink-0 mt-0.5">${opt.id}</span>`;
+
+                    if (isAnswered) {
+                        if (opt.id === q.correctAnswer) {
+                            btnClass += "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 dark:border-emerald-500 text-emerald-900 dark:text-emerald-200 font-medium";
+                            iconHtml = `<span class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs shrink-0 mt-0.5"><i class="fa-solid fa-check"></i></span>`;
+                        } else if (savedState.userSelection === opt.id) {
+                            btnClass += "bg-rose-50 dark:bg-rose-950/40 border-rose-500 dark:border-rose-500 text-rose-900 dark:text-rose-200";
+                            iconHtml = `<span class="w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs shrink-0 mt-0.5"><i class="fa-solid fa-xmark"></i></span>`;
+                        } else {
+                            btnClass += "bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 opacity-60";
+                        }
+                    } else {
+                        btnClass += "bg-slate-50 hover:bg-slate-100 dark:bg-slate-700/50 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-brand-300 dark:hover:border-brand-500";
+                    }
+
+                    html += `
+                        <button ${isAnswered ? 'disabled' : ''} onclick="quizApp.selectOption('${opt.id}')" class="${btnClass}">
+                            ${iconHtml}
+                            <span class="flex-1">${opt.text}</span>
+                        </button>
+                    `;
+                });
+
+                html += `</div>`;
+
+                // Answer Feedback Banner (If Answered)
+                if (isAnswered) {
+                    const isCorrect = savedState.isCorrect;
+                    html += `
+                        <div class="mt-6 p-5 rounded-2xl border ${isCorrect ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/50' : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/50'} space-y-3">
+                            <div class="flex items-center gap-2">
+                                <span class="px-3 py-1 text-xs font-bold rounded-lg text-white ${isCorrect ? 'bg-emerald-500' : 'bg-rose-500'}">
+                                    ${isCorrect ? '<i class="fa-solid fa-circle-check mr-1"></i>回答正確' : '<i class="fa-solid fa-circle-xmark mr-1"></i>回答錯誤'}
+                                </span>
+                                <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                    正確答案：${q.correctAnswer}
+                                </span>
+                            </div>
+                            <div class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed border-t border-slate-200/60 dark:border-slate-700/60 pt-3">
+                                <strong class="text-slate-900 dark:text-white block mb-1"><i class="fa-solid fa-lightbulb text-amber-500 mr-1.5"></i>考點解析：</strong>
+                                ${q.explanation}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Controls Footer
+                html += `
+                    <div class="mt-8 pt-4 border-t border-slate-100 dark:border-slate-700/60 flex justify-between items-center">
+                        <button onclick="quizApp.prevQuestion()" ${this.currentIndex === 0 ? 'disabled' : ''} class="px-4 py-2 text-sm font-medium rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrow-left"></i>上一題
+                        </button>
+
+                        <div class="flex gap-2">
+                            ${this.currentIndex < this.questions.length - 1 ? `
+                                <button onclick="quizApp.nextQuestion()" class="px-5 py-2.5 text-sm font-semibold rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-md transition-all flex items-center gap-1.5">
+                                    下一題<i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            ` : `
+                                <button onclick="quizApp.finishQuiz()" class="px-5 py-2.5 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all flex items-center gap-1.5">
+                                    結算成績<i class="fa-solid fa-flag-checkered"></i>
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+
+                html += `</div>`;
+                this.container.innerHTML = html;
+                this.updateDashboard();
+            }
+
+            selectOption(optionId) {
+                const q = this.questions[this.currentIndex];
+                const isCorrect = optionId === q.correctAnswer;
+
+                this.userAnswers[q.id] = {
+                    userSelection: optionId,
+                    isCorrect: isCorrect
+                };
+
+                this.renderQuestion();
+            }
+
+            nextQuestion() {
+                if (this.currentIndex < this.questions.length - 1) {
+                    this.currentIndex++;
+                    this.renderQuestion();
+                }
+            }
+
+            prevQuestion() {
+                if (this.currentIndex > 0) {
+                    this.currentIndex--;
+                    this.renderQuestion();
+                }
+            }
+
+            jumpToQuestion(index) {
+                this.currentIndex = index;
+                this.toggleNavModal();
+                this.renderQuestion();
+            }
+
+            toggleNavModal() {
+                if (this.navModal.classList.contains('hidden')) {
+                    // Build Grid Items
+                    let gridHtml = '';
+                    this.questions.forEach((q, idx) => {
+                        const ans = this.userAnswers[q.id];
+                        let statusBg = "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300 hover:bg-slate-200";
+                        if (ans) {
+                            statusBg = ans.isCorrect ? "bg-emerald-500 text-white" : "bg-rose-500 text-white";
+                        }
+                        if (idx === this.currentIndex) {
+                            statusBg += " ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-slate-800 font-black";
+                        }
+
+                        gridHtml += `
+                            <button onclick="quizApp.jumpToQuestion(${idx})" class="p-2.5 text-xs font-bold rounded-xl transition-all ${statusBg}">
+                                Q${idx + 1}
+                            </button>
+                        `;
+                    });
+                    this.navGrid.innerHTML = gridHtml;
+                    this.navModal.classList.remove('hidden');
+                } else {
+                    this.navModal.classList.add('hidden');
+                }
+            }
+
+            finishQuiz() {
+                this.container.classList.add('hidden');
+                this.resultContainer.classList.remove('hidden');
+
+                let correctCount = 0;
+                Object.values(this.userAnswers).forEach(ans => {
+                    if (ans.isCorrect) correctCount++;
+                });
+
+                const total = this.questions.length;
+                const finalScore = Math.round((correctCount / total) * 100);
+                const accuracy = Math.round((correctCount / total) * 100);
+
+                document.getElementById('finalCorrectCount').innerText = `${correctCount} / ${total} 題`;
+                document.getElementById('finalScore').innerText = `${finalScore} 分`;
+                document.getElementById('finalAccuracy').innerText = `${accuracy}%`;
+
+                const feedbackElem = document.getElementById('resultFeedbackText');
+                if (finalScore === 100) {
+                    feedbackElem.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200";
+                    feedbackElem.innerHTML = "<i class='fa-solid fa-star text-amber-500 mr-1.5'></i>滿分！您已完美掌握 ITS-Databases Part 2 的全部 40 道考點概念！";
+                } else if (finalScore >= 75) {
+                    feedbackElem.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-brand-100 text-brand-800 dark:bg-brand-900/50 dark:text-brand-200";
+                    feedbackElem.innerHTML = "<i class='fa-solid fa-thumbs-up text-brand-500 mr-1.5'></i>表現優異！通過考試指日可待，可點擊下方按鈕複習答錯的題目。";
+                } else {
+                    feedbackElem.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200";
+                    feedbackElem.innerHTML = "<i class='fa-solid fa-triangle-exclamation text-amber-500 mr-1.5'></i>還有進步空間，建議點選下方檢視完整解析並重新練習！";
+                }
+
+                this.progressBar.style.width = '100%';
+            }
+
+            restartQuiz() {
+                this.currentIndex = 0;
+                this.userAnswers = {};
+                this.renderQuestion();
+            }
+
+            reviewAllQuestions() {
+                this.resultContainer.classList.add('hidden');
+                this.container.classList.remove('hidden');
+
+                let reviewHtml = `
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                            <h2 class="font-bold text-slate-800 dark:text-white"><i class="fa-solid fa-list-check text-brand-500 mr-2"></i>完整 40 題題目與解析總覽</h2>
+                            <button onclick="quizApp.restartQuiz()" class="px-3.5 py-1.5 text-xs bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700">重新刷題</button>
+                        </div>
+                `;
+
+                this.questions.forEach((q, idx) => {
+                    const userAns = this.userAnswers[q.id];
+                    const isCorrect = userAns ? userAns.isCorrect : false;
+
+                    reviewHtml += `
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-900 dark:text-white">${q.title}</span>
+                                ${userAns ? (
+                                    isCorrect ? 
+                                    '<span class="text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold px-2.5 py-1 rounded-lg">答對</span>' : 
+                                    '<span class="text-xs bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 font-bold px-2.5 py-1 rounded-lg">答錯</span>'
+                                ) : '<span class="text-xs bg-slate-100 text-slate-500 font-bold px-2.5 py-1 rounded-lg">未作答</span>'}
+                            </div>
+                            <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">${q.question}</p>
+                            <div class="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-xs space-y-1">
+                                <div class="text-emerald-600 dark:text-emerald-400 font-semibold">正確答案：${q.correctAnswer}</div>
+                                <div class="text-slate-600 dark:text-slate-400">解析：${q.explanation}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                reviewHtml += `</div>`;
+                this.container.innerHTML = reviewHtml;
+            }
+        }
+
+        // Global App Initialization
+        let quizApp;
+        window.onload = function() {
+            quizApp = new QuizApp(quizData);
+        };
+    </script>
+</body>
+</html>
