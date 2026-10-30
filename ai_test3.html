@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCS 生成式 AI 認證國際題庫 80 題關卡式互動測驗</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            800: '#074e73',
+                            900: '#0c3b54',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .code-block {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            background-color: #0f172a;
+            color: #38bdf8;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-full flex flex-col font-sans transition-colors duration-200">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center gap-2">
+            <div class="flex items-center space-x-3">
+                <div class="bg-brand-600 text-white p-2.5 rounded-xl shadow-md shrink-0">
+                    <i class="fa-solid fa-brain text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-tight">CCS 生成式 AI 國際認證測驗</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">完整題庫 (Q1 - Q80) • 分階段 Quiz 小考 & 自由刷題</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Sound Toggle -->
+                <button id="soundToggle" onclick="quizApp.toggleSound()" class="p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" title="音效開關">
+                    <i id="soundIcon" class="fa-solid fa-volume-high text-lg"></i>
+                </button>
+
+                <!-- Dark Mode Toggle -->
+                <button id="themeToggle" class="p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    <i class="fa-solid fa-moon text-lg dark:hidden"></i>
+                    <i class="fa-solid fa-sun text-lg hidden dark:inline"></i>
+                </button>
+                
+                <!-- Question Map / Grid Drawer Trigger -->
+                <button onclick="quizApp.toggleQuestionGrid()" class="px-3 py-2 text-xs sm:text-sm font-medium bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/60 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <span class="hidden sm:inline">題號地圖</span>
+                </button>
+
+                <!-- Restart -->
+                <button onclick="quizApp.restartQuiz()" class="px-3 py-2 text-xs sm:text-sm font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span class="hidden sm:inline">重新測驗</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Global Progress Bar -->
+        <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5">
+            <div id="progressBar" class="bg-brand-500 h-1.5 transition-all duration-300 w-0"></div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 flex flex-col">
+        
+        <!-- Mode Switcher & Quiz Level Navigator -->
+        <div class="mb-6 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-wrap items-center justify-between gap-4">
+            <!-- Mode Selection Buttons -->
+            <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-900/60 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                <button id="modeQuizBtn" onclick="quizApp.switchMode('quiz')" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm transition-all">
+                    <i class="fa-solid fa-layer-group mr-1.5"></i>8 關卡小考模式 (Quiz 1~8)
+                </button>
+                <button id="modeFreeBtn" onclick="quizApp.switchMode('free')" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all">
+                    <i class="fa-solid fa-globe mr-1.5"></i>自由刷題 (Q1~Q80)
+                </button>
+            </div>
+
+            <!-- Quiz Stage Pills (1~8) -->
+            <div id="quizStageBar" class="flex items-center gap-1.5 overflow-x-auto py-1">
+                <!-- Injected Q1~Q8 pill buttons -->
+            </div>
+        </div>
+
+        <!-- Dashboard Widgets -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+            <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">完成進度</span>
+                <span id="progressText" class="text-lg sm:text-2xl font-black text-brand-600 dark:text-brand-500">0 / 80</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">總預估得分</span>
+                <span id="scoreText" class="text-lg sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">0 分</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">整體正確率</span>
+                <span id="accuracyText" class="text-lg sm:text-2xl font-black text-indigo-600 dark:text-indigo-400">0%</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">已星號標記</span>
+                <span id="bookmarkText" class="text-lg sm:text-2xl font-black text-amber-500">0 題</span>
+            </div>
+        </div>
+
+        <!-- Question Grid Navigation Drawer (Modal/Collapsible) -->
+        <div id="questionGridDrawer" class="hidden mb-6 bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md animate-pop">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot text-brand-500"></i>題目快速跳轉地圖 (Q1 ~ Q80)
+                </span>
+                <div class="flex items-center gap-3 text-xs">
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>答對</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>答錯</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600 inline-block"></span>未答</span>
+                </div>
+            </div>
+            
+            <div id="questionGridButtons" class="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-16 gap-2">
+                <!-- Dynamically populated Q1 - Q80 -->
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 bg-white dark:bg-slate-800 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm">
+            <div class="flex items-center gap-2 overflow-x-auto py-1">
+                <span class="text-slate-400 font-medium shrink-0"><i class="fa-solid fa-filter mr-1"></i>題庫篩選:</span>
+                <button onclick="quizApp.setFilter('all')" id="filter-all" class="filter-btn px-3 py-1.5 rounded-xl font-medium bg-brand-500 text-white transition-colors">全部 (80)</button>
+                <button onclick="quizApp.setFilter('unanswered')" id="filter-unanswered" class="filter-btn px-3 py-1.5 rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors">未答</button>
+                <button onclick="quizApp.setFilter('incorrect')" id="filter-incorrect" class="filter-btn px-3 py-1.5 rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors">錯題</button>
+                <button onclick="quizApp.setFilter('bookmarked')" id="filter-bookmarked" class="filter-btn px-3 py-1.5 rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors">星號標記</button>
+            </div>
+        </div>
+
+        <!-- Main Dynamic Question View -->
+        <div id="questionContainer" class="flex-1"></div>
+
+        <!-- Quiz Stage Summary Card (Appears after each 10-question Quiz) -->
+        <div id="quizStageSummaryCard" class="hidden bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-xl text-center space-y-6 animate-pop">
+            <div class="inline-flex p-4 rounded-full bg-brand-100 dark:bg-brand-950 text-brand-600 dark:text-brand-400 mb-1">
+                <i class="fa-solid fa-circle-check text-4xl"></i>
+            </div>
+            <h2 id="stageSummaryTitle" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">小考階段完成！</h2>
+            <p id="stageSummarySubtitle" class="text-slate-600 dark:text-slate-300 max-w-lg mx-auto">您已完成此 Quiz 小考的 10 道測驗題，以下是成績結算：</p>
+
+            <div class="max-w-md mx-auto bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3 text-left">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">本小考試題：</span>
+                    <span id="stageTotalText" class="font-bold text-slate-800 dark:text-slate-200">10 題</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">答對題數：</span>
+                    <span id="stageCorrectText" class="font-bold text-emerald-600 dark:text-emerald-400">0 題</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">本階段得分：</span>
+                    <span id="stageScoreText" class="font-black text-2xl text-brand-600 dark:text-brand-500">0 分</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">正確率：</span>
+                    <span id="stageAccuracyText" class="font-bold text-indigo-600 dark:text-indigo-400">0%</span>
+                </div>
+            </div>
+
+            <div id="stageFeedbackBadge" class="text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto"></div>
+
+            <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
+                <button id="nextQuizBtn" onclick="quizApp.nextQuizStage()" class="w-full sm:w-auto px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                    <span>進行下一個 Quiz 小考</span><i class="fa-solid fa-arrow-right"></i>
+                </button>
+                <button onclick="quizApp.retakeCurrentQuiz()" class="w-full sm:w-auto px-6 py-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-semibold rounded-xl transition-all">
+                    <i class="fa-solid fa-rotate-right mr-2"></i>重測本小考
+                </button>
+            </div>
+        </div>
+
+        <!-- Overall Quiz Finished Summary -->
+        <div id="resultContainer" class="hidden bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-xl text-center space-y-6 animate-pop">
+            <div class="inline-flex p-4 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 mb-2">
+                <i class="fa-solid fa-trophy text-4xl"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">完成 CCS 全 80 題認證測驗！</h2>
+            <p class="text-slate-600 dark:text-slate-300 max-w-lg mx-auto">恭喜您完成了全部 80 題的自我學習練習，以下是您的最終學習成果：</p>
+
+            <div class="max-w-md mx-auto bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3 text-left">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">總題數：</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200">80 題</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">答對題數：</span>
+                    <span id="finalCorrectCount" class="font-bold text-emerald-600 dark:text-emerald-400">0 題</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">最終總得分：</span>
+                    <span id="finalScore" class="font-black text-2xl text-brand-600 dark:text-brand-500">0 分</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">整體正確率：</span>
+                    <span id="finalAccuracy" class="font-bold text-indigo-600 dark:text-indigo-400">0%</span>
+                </div>
+            </div>
+
+            <div id="resultFeedbackText" class="text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto"></div>
+
+            <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="quizApp.restartQuiz()" class="w-full sm:w-auto px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl shadow-lg transition-all">
+                    <i class="fa-solid fa-rotate-right mr-2"></i>重新測驗全部 80 題
+                </button>
+                <button onclick="quizApp.reviewAllQuestions()" class="w-full sm:w-auto px-6 py-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-semibold rounded-xl transition-all">
+                    <i class="fa-solid fa-list-check mr-2"></i>瀏覽全 80 題詳細解析
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="mt-auto py-4 text-center text-xs text-slate-400 dark:text-slate-500 border-t border-slate-200 dark:border-slate-800">
+        CCS Generative AI Certification Interactive Quiz &copy; 2026
+    </footer>
+
+    <!-- Web Audio API Sound Generator -->
+    <script>
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) this.ctx = new AudioContext();
+                }
+            }
+
+            playCorrect() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.35);
+            }
+
+            playIncorrect() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now); // A3
+                osc.frequency.exponentialRampToValueAtTime(164.81, now + 0.2); // E3
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+        }
+        const sfx = new SoundFX();
+    </script>
+
+    <!-- Quiz Dataset & Logic -->
+    <script>
+        // Full Question Dataset Q1-Q80
+        const quizData = [
+            {
+                id: 1, type: "single", quizGroup: 1, title: "Q1. 生成式 AI 敘述真實性判斷",
+                question: "下列關於生成式 AI 的三項敘述中，何者正確？<br>1. 生成式 AI 僅根據搜尋條件提供結果清單。<br>2. 生成式 AI 使用神經網路來建立輸出。<br>3. 生成式 AI 可以建立文字、圖像和語音等新內容。",
+                options: [
+                    { id: "A", text: "1-錯誤, 2-正確, 3-正確" },
+                    { id: "B", text: "1-正確, 2-正確, 3-錯誤" },
+                    { id: "C", text: "1-正確, 2-錯誤, 3-正確" },
+                    { id: "D", text: "1-錯誤, 2-錯誤, 3-正確" }
+                ],
+                correctAnswer: "A",
+                explanation: "生成式 AI 使用深度神經網路創造新文本、圖像或語音內容，而非單純搜尋呈現清單（那是搜尋引擎的工作）。"
+            },
+            {
+                id: 2, type: "single", quizGroup: 1, title: "Q2. 氣溫預估 AI 類型選擇",
+                question: "你正在研究一系列歷史氣候資料，想要估算出 2200 年地球上的平均溫度。哪種類型的人工智慧 (AI) 最適合執行此任務？",
+                options: [
+                    { id: "A", text: "預測性 AI (Predictive AI)" },
+                    { id: "B", text: "鑑別式 AI (Discriminative AI)" },
+                    { id: "C", text: "擴散式 AI (Diffusion AI)" },
+                    { id: "D", text: "變分自動編碼器 (Variational Autoencoder, VAE)" }
+                ],
+                correctAnswer: "A",
+                explanation: "對未來數值或趨勢進行估算屬於「預測性 AI (Predictive AI)」的應用範疇。"
+            },
+            {
+                id: 3, type: "single", quizGroup: 1, title: "Q3. 訓練大型語言模型 (LLM) 的標準流程",
+                question: "訓練大型語言模型 (LLM) 的基本順序流程應為下列何者？",
+                options: [
+                    { id: "A", text: "收集資料集 $\\rightarrow$ 預處理和清理資料集 $\\rightarrow$ 準備要輸入的資料 $\\rightarrow$ 微調超參數" },
+                    { id: "B", text: "微調超參數 $\\rightarrow$ 收集資料集 $\\rightarrow$ 預處理和清理資料集 $\\rightarrow$ 準備要輸入的資料" },
+                    { id: "C", text: "準備要輸入的資料 $\\rightarrow$ 收集資料集 $\\rightarrow$ 微調超參數 $\\rightarrow$ 預處理" },
+                    { id: "D", text: "收集資料集 $\\rightarrow$ 微調超參數 $\\rightarrow$ 預處理 $\\rightarrow$ 準備要輸入的資料" }
+                ],
+                correctAnswer: "A",
+                explanation: "標準訓練流程先採集海量資料、進行清洗與預處理、建置分詞與輸入張量，最後於訓練過程中微調超參數。"
+            },
+            {
+                id: 4, type: "single", quizGroup: 1, title: "Q4. 電影劇本口音演繹 AI 類型",
+                question: "你收到一份電影劇本，想瞭解使用幾種不同的口音來演繹某個場景對話的效果。應使用哪種類型的人工智慧？",
+                options: [
+                    { id: "A", text: "基於文字生成語音 (Text-to-Speech)" },
+                    { id: "B", text: "基於文字生成文字" },
+                    { id: "C", text: "基於語音生成文字" },
+                    { id: "D", text: "基於語音生成影片" }
+                ],
+                correctAnswer: "A",
+                explanation: "將劇本文字輸入並轉換為帶有特定口音與語調的朗讀音訊，屬於「文字生成語音 (TTS)」技術。"
+            },
+            {
+                id: 5, type: "single", quizGroup: 1, title: "Q5. 動物救助海報製作之生成式輸出類型",
+                question: "製作以『思念』為主題的動物救助海報，需包含社區成員引言與討論詳細資訊，哪兩種生成式輸出類型最有幫助？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "圖像 與 文字" },
+                    { id: "B", text: "影片 與 語音" },
+                    { id: "C", text: "圖像 與 影片" },
+                    { id: "D", text: "語音 與 文字" }
+                ],
+                correctAnswer: "A",
+                explanation: "海報 (Poster) 為平面視覺媒體，最需要「圖像」（動物海報視覺）與「文字」（引言與詳細說明內容）。"
+            },
+            {
+                id: 6, type: "single", quizGroup: 1, title: "Q6. 客製化 Microsoft Copilot 之實現方式",
+                question: "你需要建立一個客製化的 Microsoft Copilot 來完成特定任務，應如何實現？",
+                options: [
+                    { id: "A", text: "向聊天機器人輸入一組指令和資訊（Prompt / Instructions / Context），讓它準備好執行特定任務" },
+                    { id: "B", text: "編寫一個電腦程式來指導聊天機器人" },
+                    { id: "C", text: "必須針對該特定任務對整個 LLM 進行再訓練" },
+                    { id: "D", text: "只有聊天機器人開發公司才能生成客製化機器人" }
+                ],
+                correctAnswer: "A",
+                explanation: "客製化 Copilot 或 GPTs 主要是透過設定 System Instructions、提供 Prompt 與參考知識文件來配置。"
+            },
+            {
+                id: 7, type: "single", quizGroup: 1, title: "Q7. 融合作家風格新作品生成",
+                question: "想要融合莎士比亞和 J.K. 羅琳風格創作新作品，並存有兩位作家的全套作品，應該如何建立？",
+                options: [
+                    { id: "A", text: "使用包含莎士比亞和 J.K. 羅琳作品的 Transformer 模型建立輕量 GPT (或微調指令)" },
+                    { id: "B", text: "對 Diffusion 模型的 GPT 進行微調" },
+                    { id: "C", text: "實施 CNN 進行文字分類並生成" },
+                    { id: "D", text: "開發確定性演算法程式 (Deterministic Program)" }
+                ],
+                correctAnswer: "A",
+                explanation: "文字風格生成依賴基於 Transformer 的大語言模型，可透過注入知識與風格微調/指示詞生成新作品。"
+            },
+            {
+                id: 8, type: "single", quizGroup: 1, title: "Q8. 企業商標與商業計畫現成 AI 平台",
+                question: "你想為企業建立商標、商業計畫與使用宣言，希望使用現成的解決方案，哪種平台最適合？",
+                options: [
+                    { id: "A", text: "ChatGPT" },
+                    { id: "B", text: "Stable Diffusion" },
+                    { id: "C", text: "Azure AI Studio" },
+                    { id: "D", text: "Adobe Firefly" }
+                ],
+                correctAnswer: "A",
+                explanation: "ChatGPT 具備多功能綜合能力，可寫商業計畫、使用宣言，並整合 DALL-E 繪製商標，是最佳現成綜合平台。"
+            },
+            {
+                id: 9, type: "single", quizGroup: 1, title: "Q9. AI 工具與任務配對",
+                question: "配對下列 AI 工具與其專屬功能：<br>1. 可參與對話、回答問題與提供資訊。<br>2. 允許生成圖像與獨特風格字體並預定發佈到社群。<br>3. 允許關聯一系列 AI 執行業務任務。<br>4. 用於建立設計、簡報與行銷素材。",
+                options: [
+                    { id: "A", text: "1-ChatGPT, 2-Adobe Express, 3-Azure AI Studio, 4-Canva" },
+                    { id: "B", text: "1-Canva, 2-ChatGPT, 3-Adobe Express, 4-Azure AI Studio" },
+                    { id: "C", text: "1-Azure AI Studio, 2-Canva, 3-ChatGPT, 4-Adobe Express" },
+                    { id: "D", text: "1-ChatGPT, 2-Canva, 3-Adobe Express, 4-Azure AI Studio" }
+                ],
+                correctAnswer: "A",
+                explanation: "ChatGPT 為對話助手；Adobe Express 支援社群排程與字體生成；Azure AI Studio 支援企業級 AI 流程串接；Canva 擅長設計與行銷簡報。"
+            },
+            {
+                id: 10, type: "single", quizGroup: 1, title: "Q10. 生成式 AI 局限性真偽評估",
+                question: "評估下列敘述真偽：<br>1. 輸入到提示詞中的機密資料均不會被用於訓練。(錯誤)<br>2. 存在公認標準界定如何在行業環境中使用 AI 輸出。(錯誤)<br>3. 需要對 AI 輸出進行仔細事實查證，因為模型可能會編造內容。(正確)",
+                options: [
+                    { id: "A", text: "1-錯誤, 2-錯誤, 3-正確" },
+                    { id: "B", text: "1-正確, 2-正確, 3-錯誤" },
+                    { id: "C", text: "1-錯誤, 2-正確, 3-正確" },
+                    { id: "D", text: "1-正確, 2-錯誤, 3-錯誤" }
+                ],
+                correctAnswer: "A",
+                explanation: "輸入資料預設有被用於訓練的風險；產業間尚無統一公認標準；AI 有幻覺現象因此務必人工查證。"
+            },
+            {
+                id: 11, type: "single", quizGroup: 2, title: "Q11. 生成式 AI 的核心特性",
+                question: "下列哪兩個選項準確指出了生成式 AI 的特性？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "模型可以重新訓練或微調，以便生成更符合預期的回覆；且生成回覆時利用預測對每個詞進行概率性選擇" },
+                    { id: "B", text: "生成式 AI 模型完全通過特徵工程進行手動訓練" },
+                    { id: "C", text: "模型會建立 A/B 二元分類樹以供搜尋演算法遍歷" },
+                    { id: "D", text: "模型輸出是 100% 確定性的演算法結果" }
+                ],
+                correctAnswer: "A",
+                explanation: "生成式 AI (LLM) 屬於自迴歸概率模型（Predict next token），且支援透過微調 (Fine-tuning) 重新對齊。"
+            },
+            {
+                id: 12, type: "single", quizGroup: 2, title: "Q12. 生成式 AI 與傳統搜尋引擎的差異",
+                question: "區分下列特性：<br>1. 能根據提示詞生成全新的材料<br>2. 能生成在任何網站上都找不到的內容<br>3. 總是清楚說明資訊在網路上的精確網址來源",
+                options: [
+                    { id: "A", text: "1-生成式 AI, 2-生成式 AI, 3-搜尋引擎" },
+                    { id: "B", text: "1-搜尋引擎, 2-搜尋引擎, 3-生成式 AI" },
+                    { id: "C", text: "1-生成式 AI, 2-搜尋引擎, 3-生成式 AI" },
+                    { id: "D", text: "1-搜尋引擎, 2-生成式 AI, 3-搜尋引擎" }
+                ],
+                correctAnswer: "A",
+                explanation: "生成式 AI 負責創作全新材料；搜尋引擎則是檢索網路既有網頁並列出精確網址來源。"
+            },
+            {
+                id: 13, type: "single", quizGroup: 2, title: "Q13. 擴散模型生成檯燈與桌子圖像之順序",
+                question: "提示詞『生成一張桌子上擺放著一盞檯燈的圖像』，擴散模型運作步驟順序為：",
+                options: [
+                    { id: "A", text: "1. 分詞 (Tokenization) 解析概念 $\\rightarrow$ 2. 雜訊生成隨機像素 $\\rightarrow$ 3. 擴散去噪更改數值 $\\rightarrow$ 4. 優化符合作案" },
+                    { id: "B", text: "1. 雜訊生成 $\\rightarrow$ 2. 分詞解析 $\\rightarrow$ 3. 優化演算法 $\\rightarrow$ 4. 擴散去噪" },
+                    { id: "C", text: "1. 擴散去噪 $\\rightarrow$ 2. 雜訊生成 $\\rightarrow$ 3. 分詞解析 $\\rightarrow$ 4. 優化演算法" },
+                    { id: "D", text: "1. 優化演算法 $\\rightarrow$ 2. 分詞解析 $\\rightarrow$ 3. 雜訊生成 $\\rightarrow$ 4. 擴散去噪" }
+                ],
+                correctAnswer: "A",
+                explanation: "擴散生成流程：文本分詞理解語意 $\\rightarrow$ 準備潛在空間高斯雜訊 $\\rightarrow$ 逆向擴散去噪生成特徵 $\\rightarrow$ 優化還原高清圖像。"
+            },
+            {
+                id: 14, type: "single", quizGroup: 2, title: "Q14. ChatGPT 多模態歌詞創作輸入類型",
+                question: "客戶發送產品規格文件檔，並提供產品圖片以瞭解細節。可以在 ChatGPT 中使用哪些輸入類型來生成歌詞？",
+                options: [
+                    { id: "A", text: "文件檔案、文字 和 圖像 (全包含)" },
+                    { id: "B", text: "僅文件檔案和文字" },
+                    { id: "C", text: "僅文字和圖像" },
+                    { id: "D", text: "僅文字" }
+                ],
+                correctAnswer: "A",
+                explanation: "現代 ChatGPT 支援多模態輸入，可同時解析上傳的文件 (PDF/Docx)、圖片 (Vision) 以及 Prompt 文字。"
+            },
+            {
+                id: 15, type: "single", quizGroup: 2, title: "Q15. 歌曲開頭失真效果 AI 類型",
+                question: "歌手向 AI 提交原創歌曲錄音，要求讓開頭語音聽起來有失真音效效果，這是使用了哪種類型 AI？",
+                options: [
+                    { id: "A", text: "基於語音生成語音 (Speech-to-Speech)" },
+                    { id: "B", text: "基於文字及語音生成文字" },
+                    { id: "C", text: "基於文字生成語音" },
+                    { id: "D", text: "基於文字生成文字" }
+                ],
+                correctAnswer: "A",
+                explanation: "輸入聲音檔並處理轉換後輸出新的聲音檔，屬於「語音到語音 (Speech-to-Speech)」的處理範疇。"
+            },
+            {
+                id: 16, type: "single", quizGroup: 2, title: "Q16. 客製化 T 恤互動設計系統實現",
+                question: "服裝設計師希望讓客戶回答動物、顏色、尺碼三個問題後自動生成 T 恤設計並提交，應如何實現？",
+                options: [
+                    { id: "A", text: "建立客製化 GPT (Custom GPT) 並配置工作流程" },
+                    { id: "B", text: "輸入提示詞建立非互動式網站" },
+                    { id: "C", text: "發布 DALL-E 連結" },
+                    { id: "D", text: "發布 Adobe Firefly 連結" }
+                ],
+                correctAnswer: "A",
+                explanation: "建立客製化 GPT 能導引互動式問答流程，整合圖像生成能力並可透過 Actions 提交設計。"
+            },
+            {
+                id: 17, type: "single", quizGroup: 2, title: "Q17. 課業輔導工具多科目微調架構",
+                question: "製作學生課業輔導 AI 工具，需對多個科目的行為進行微調，最有效準確的方法是：",
+                options: [
+                    { id: "A", text: "使用客製基於變換器 (Custom Transformer-based) 的模型，並針對每個科目提供具體指令" },
+                    { id: "B", text: "預設基於變換器的模型，不給具體指令" },
+                    { id: "C", text: "客製基於擴散 (Diffusion-based) 的模型" },
+                    { id: "D", text: "預設基於擴散的模型" }
+                ],
+                correctAnswer: "A",
+                explanation: "語言問答與邏輯推理任務需採用基於 Transformer 的 LLM，並透過微調與具體 Prompt 指令進行科目優化。"
+            },
+            {
+                id: 18, type: "single", quizGroup: 2, title: "Q18. 多代理人 (Multi-Agent) 貸款流程工具",
+                question: "開發貸款申請自動化程式，包含查詢信用、評分、發送簡訊通知等獨立任務，哪種 AI 工具適合推動多代理人合作？",
+                options: [
+                    { id: "A", text: "LangChain (或 AutoGen/CrewAI 代理架構)" },
+                    { id: "B", text: "Adobe Firefly" },
+                    { id: "C", text: "Microsoft Copilot" },
+                    { id: "D", text: "Stable Diffusion" }
+                ],
+                correctAnswer: "A",
+                explanation: "LangChain 是編程開發 AI Agent 多代理人鏈結與工具串接 (Chaining/Agents) 的標準框架。"
+            },
+            {
+                id: 19, type: "single", quizGroup: 2, title: "Q19. 生成結果可能性判斷",
+                question: "判斷下列情境之可能性：<br>1. 提示詞要求消除紅色，生成了黑白圖像 $\\rightarrow$ **可能**<br>2. 提示詞包含公開資訊，結果包含未發布的公司機密 $\\rightarrow$ **不可能**<br>3. 要求生成時鐘顯示指定時間，多次生成顯示時間有時不同 $\\rightarrow$ **可能**",
+                options: [
+                    { id: "A", text: "1-可能, 2-不可能, 3-可能" },
+                    { id: "B", text: "1-不可能, 2-可能, 3-不可能" },
+                    { id: "C", text: "1-可能, 2-可能, 3-不可能" },
+                    { id: "D", text: "1-不可能, 2-不可能, 3-可能" }
+                ],
+                correctAnswer: "A",
+                explanation: "AI 去色可能輸出黑白；AI 無法憑空猜測未包含且未訓練的私有機密；圖像生成具有隨機性故細節可能不同。"
+            },
+            {
+                id: 20, type: "single", quizGroup: 2, title: "Q20. 高品質行銷郵件提示詞片段類別配對",
+                question: "配對 Prompt 構造元件：<br>1.『你是一位有著豐富經驗的高級行銷經理』 $\\rightarrow$ **AI 假定角色**<br>2.『為試算表中的每個人生成電子郵件』 $\\rightarrow$ **完整上下文**<br>3.『根據喜好程度生成，使用詳細資訊清單』 $\\rightarrow$ **特定指令**<br>4.『語氣應模仿有好消息要告訴你的摯友』 $\\rightarrow$ **約束條件與風格**",
+                options: [
+                    { id: "A", text: "1-假定角色, 2-上下文, 3-特定指令, 4-約束條件" },
+                    { id: "B", text: "1-特定指令, 2-約束條件, 3-假定角色, 4-上下文" },
+                    { id: "C", text: "1-上下文, 2-假定角色, 3-約束條件, 4-特定指令" },
+                    { id: "D", text: "1-約束條件, 2-特定指令, 3-假定角色, 4-上下文" }
+                ],
+                correctAnswer: "A",
+                explanation: "角色設定（Persona）、背景資訊（Context）、明確任務（Instruction）、語氣規範（Constraint）為 Prompt 四大要素。"
+            },
+            {
+                id: 21, type: "single", quizGroup: 3, title: "Q21. 美西度假行程 Prompt 選擇",
+                question: "Kenneth 想要規劃 10 天美西戶外自然景點租車自由行，哪個提示詞最精準完整？",
+                options: [
+                    { id: "A", text: "制定一個為期十天的旅行行程，包括飛往距離其中一個景點相對較近的機場，並租車遊覽美國西部的多個著名戶外自然景點" },
+                    { id: "B", text: "制定一個旅行行程，包括飛往機場並租車遊覽美西" },
+                    { id: "C", text: "制定一個十天行程，租車遊覽五個景點，飛往七月不忙的機場" },
+                    { id: "D", text: "制定旅行行程，飛往美西參觀景點" }
+                ],
+                correctAnswer: "A",
+                explanation: "選項 A 完整涵蓋了天數限制 (10天)、地區 (美西)、活動類型 (戶外自然景點) 與交通方式 (飛機+租車)。"
+            },
+            {
+                id: 22, type: "single", quizGroup: 3, title: "Q22. 內容總結 Prompt 識別",
+                question: "下列哪兩個提示詞可以用於「總結現有內容」？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "『托爾金的<魔戒>情節是什麼？請用500字概括』與『今天會議的主要議題是什麼？(附會議記錄)』" },
+                    { id: "B", text: "『我將在邁阿密度假兩周，可以做哪些有趣的事』與『寫一首關於魔法兔子的詩』" },
+                    { id: "C", text: "『使用 Python 生成計算生日年齡的程式』與『托爾金<魔戒>情節概括』" },
+                    { id: "D", text: "『寫一首魔法兔子的詩』與『會議紀錄議題總結』" }
+                ],
+                correctAnswer: "A",
+                explanation: "「概括情節」與「從會議紀錄萃取主要議題」均屬於內容總結 (Summarization) 任務。"
+            },
+            {
+                id: 23, type: "single", quizGroup: 3, title: "Q23. 乞力馬札羅山登山計畫條件組合 Prompt",
+                question: "根據條件：初學者、預算少、旱季最安全、需有導遊。最佳提示詞語句組合為：",
+                options: [
+                    { id: "A", text: "我想『攀登乞力馬札羅山』；查找『最適合初學者的路線』與『花費最少的路線』；限制為『非洲的旱季』；選擇『專職且價格實惠的導遊』" },
+                    { id: "B", text: "我想『飛往非洲』；查找『最便宜航班』；限制為『直飛』；選擇『所有導遊』" },
+                    { id: "C", text: "我想『登頂最大山峰』；查找『所有路線』；限制為『不下雨的日子』；選擇『任意導遊』" },
+                    { id: "D", text: "我想『到訪坦尚尼亞』；查找『旅遊景點』；限制為『旱季』；選擇『平價飯店』" }
+                ],
+                correctAnswer: "A",
+                explanation: "精準反映了目標地點、初學者難度限制、預算考量、旱季季節性限制與導遊需求。"
+            },
+            {
+                id: 24, type: "single", quizGroup: 3, title: "Q24. 圖像提示詞預期效果配對",
+                question: "配對下列圖像 Prompt 與其效果：<br>1.『將照片製作成蒙娜麗莎風格』 $\\rightarrow$ **影像轉換**<br>2.『繪製大灰狼參加考試圖畫』 $\\rightarrow$ **探索藝術創想**<br>3.『附加照片中是什麼內容？』 $\\rightarrow$ **總結影像內容**<br>4.『製作包含橘色 P 字與綠漸層商標』 $\\rightarrow$ **特定用途影像**",
+                options: [
+                    { id: "A", text: "1-影像轉換, 2-探索藝術創想, 3-總結影像內容, 4-特定用途影像" },
+                    { id: "B", text: "1-特定用途影像, 2-總結影像內容, 3-影像轉換, 4-探索藝術創想" },
+                    { id: "C", text: "1-探索藝術創想, 2-影像轉換, 3-特定用途影像, 4-總結影像內容" },
+                    { id: "D", text: "1-總結影像內容, 2-特定用途影像, 3-探索藝術創想, 4-影像轉換" }
+                ],
+                correctAnswer: "A",
+                explanation: "風格遷移屬於影像轉換；抽象創意屬於探索創想；圖片問答屬於影像總結；商標屬於特定用途創作。"
+            },
+            {
+                id: 25, type: "single", quizGroup: 3, title: "Q25. 環保草坪公司商標 Prompt 優化",
+                question: "Jasmine 輸入『為環保草坪公司製作商標』只得到基本割草機，若要對生態意識消費者更有吸引力，應增加哪個提示詞？",
+                options: [
+                    { id: "A", text: "添加一個有綠色青草、五顏六色的鮮花和蜜蜂的小院" },
+                    { id: "B", text: "這不是我所要的，能否再建立一個？" },
+                    { id: "C", text: "建立另一個包含更多內容的圖像。" },
+                    { id: "D", text: "這是一台不錯的割草機，但請讓它更具吸引力。" }
+                ],
+                correctAnswer: "A",
+                explanation: "具體描述視覺元素（青草、鮮花、蜜蜂）能給予生成模型明確的生態意象引導，而非空洞的形容詞。"
+            },
+            {
+                id: 26, type: "single", quizGroup: 3, title: "Q26. 汽車圖像方向轉換提示詞",
+                question: "原本汽車車頭朝左，希望轉換為車頭朝右且結構完全一致。評估下列提示詞是否正確：<br>1. 顛倒圖像 $\\rightarrow$ **否**<br>2. 水平鏡像圖像 $\\rightarrow$ **是**<br>3. 將汽車旋轉180度 $\\rightarrow$ **否**",
+                options: [
+                    { id: "A", text: "1-否, 2-是, 3-否" },
+                    { id: "B", text: "1-是, 2-否, 3-是" },
+                    { id: "C", text: "1-是, 2-是, 3-否" },
+                    { id: "D", text: "1-否, 2-否, 3-是" }
+                ],
+                correctAnswer: "A",
+                explanation: "左右方向對調為「水平鏡像 (Horizontal Flip)」；顛倒會變成倒立；旋轉180度會變成上下倒置。"
+            },
+            {
+                id: 27, type: "single", quizGroup: 3, title: "Q27. 樂隊表演學校吉祥物鬥牛犬 Prompt 選擇",
+                question: "校報要介紹樂隊表演，希望吉祥物鬥牛犬代表樂隊表演者，哪兩個提示詞符合要求？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "『一隻友好的鬥牛犬穿著樂隊指揮服，戴著指揮帽，拿著指揮棒』與『插圖中有一隻友好的鬥牛犬穿著學校樂制服，正在吹奏薩克斯管』" },
+                    { id: "B", text: "『鬥牛犬坐在觀眾席上』與『鬥牛犬站在學校前面』" },
+                    { id: "C", text: "『鬥牛犬站在學校前面』與『鬥牛犬穿著樂隊指揮服』" },
+                    { id: "D", text: "『鬥牛犬坐在觀眾席』與『吹奏薩克斯管』" }
+                ],
+                correctAnswer: "A",
+                explanation: "明確描繪鬥牛犬擔任樂隊指揮或演奏樂器，才能精準體現「樂隊表演者」的主題。"
+            },
+            {
+                id: 28, type: "single", quizGroup: 3, title: "Q28. 影片中亮綠色毛衣學生刪除修復指示詞",
+                question: "在 30 秒影片中，一名學生穿著亮綠色毛衣穿過區域，無法重拍。要刪除該學生並保留背景內容，應使用哪種 AI 指示詞？",
+                options: [
+                    { id: "A", text: "將此影片穿著亮綠色毛衣的學生以背景影片內容取代 (Video Inpainting / Object Removal)" },
+                    { id: "B", text: "從螢幕左右兩側剪掉該學生" },
+                    { id: "C", text: "更改影片背景色" },
+                    { id: "D", text: "生成文字段落覆蓋移動的學生" }
+                ],
+                correctAnswer: "A",
+                explanation: "影片物件消除修復 (Inpainting) 是透過 AI 估算並塗抹背景填補被刪除主體的動態畫面。"
+            },
+            {
+                id: 29, type: "single", quizGroup: 3, title: "Q29. 廚師機產品評價影片有效 Prompt 判定",
+                question: "評估下列 Prompt 是否能生成有效的產品正面評價影片：<br>1.『製作5分鐘影片，包含介紹、說明易用易洗並總結鼓勵購買』 $\\rightarrow$ **正確**<br>2.『製作影片討論潛在用途，鼓勵購買』(過於籠統) $\\rightarrow$ **錯誤**<br>3.『製作無偏見評價影片』(缺乏正面行銷目標與結構) $\\rightarrow$ **錯誤**",
+                options: [
+                    { id: "A", text: "1-正確, 2-錯誤, 3-錯誤" },
+                    { id: "B", text: "1-正確, 2-正確, 3-錯誤" },
+                    { id: "C", text: "1-錯誤, 2-正確, 3-正確" },
+                    { id: "D", text: "1-錯誤, 2-錯誤, 3-正確" }
+                ],
+                correctAnswer: "A",
+                explanation: "有效的生成 Prompt 必須包含長度、結構步驟（介紹/使用/總結）與明確行動呼籲 (CTA)。"
+            },
+            {
+                id: 30, type: "single", quizGroup: 3, title: "Q30. 動畫猴子太空劇本影片 Prompt 判定",
+                question: "評估 Prompt 是否有助於生成『動畫猴子角色按劇本念太空概念』影片：<br>1.『製作45秒影片，猴子使用指定劇本在太空中解釋複雜太空概念』 $\\rightarrow$ **是**<br>2.『45秒影片，用動畫技術讓猴子在太空中念劇本』(缺乏腳本脈絡細節) $\\rightarrow$ **否**<br>3.『45秒影片，猴子當宇航員，用文字轉語音念腳本』(未指定動畫角色扮演) $\\rightarrow$ **否**",
+                options: [
+                    { id: "A", text: "1-是, 2-否, 3-否" },
+                    { id: "B", text: "1-是, 2-是, 3-否" },
+                    { id: "C", text: "1-否, 2-是, 3-是" },
+                    { id: "D", text: "1-否, 2-否, 3-是" }
+                ],
+                correctAnswer: "A",
+                explanation: "選項 1 最為具體，明確結合了時間 (45秒)、角色 (猴子)、劇本內容與太空解釋任務。"
+            },
+            {
+                id: 31, type: "single", quizGroup: 4, title: "Q31. 快速鍛鍊計畫 Prompt 貼合目標之修改",
+                question: "提示詞『制定快速鍛鍊計畫』產出了5分鐘極短運動，若要讓計畫更貼合個人健身目標，下一步應：",
+                options: [
+                    { id: "A", text: "按照 30 分鐘的力量訓練進行修改（提供精確時間與運動類型）" },
+                    { id: "B", text: "簡單說『更精細一些』" },
+                    { id: "C", text: "說明如何提升身體素質" },
+                    { id: "D", text: "增加更多輸出" }
+                ],
+                correctAnswer: "A",
+                explanation: "後續提示詞優化（Refinement）需要補足明確的參數限制，例如明確指定「30分鐘」與「力量訓練」。"
+            },
+            {
+                id: 32, type: "single", quizGroup: 4, title: "Q32. iOS/Android 跨平台應用程式程式碼 Prompt 判定",
+                question: "要使用生成式 AI 生成包含主頁、關於、聯繫方式的跨平台 App 程式碼，評估提示詞：<br>1.『建立包含三個頁面的 App』 $\\rightarrow$ **否**<br>2.『向我展示在設備上的顯示效果』 $\\rightarrow$ **否**<br>3.『編寫代碼建立包含三頁面的 App，能在 Android 和 iOS 上執行』 $\\rightarrow$ **是**",
+                options: [
+                    { id: "A", text: "1-否, 2-否, 3-是" },
+                    { id: "B", text: "1-是, 2-否, 3-是" },
+                    { id: "C", text: "1-是, 2-是, 3-否" },
+                    { id: "D", text: "1-否, 2-是, 3-否" }
+                ],
+                correctAnswer: "A",
+                explanation: "只有選項 3 明確要求「編寫代碼 (Write code)」並指定了目標平台「Android 與 iOS」與頁面結構。"
+            },
+            {
+                id: 33, type: "single", quizGroup: 4, title: "Q33. 工作會議精簡摘要 Prompt 選擇",
+                question: "會議後需要建立精簡摘要並包含所有關鍵資訊，應選擇哪兩個提示詞？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "『列出上次會議的所有行動事項和後續任務』與『僅摘錄本次會議的必要資訊和決定』" },
+                    { id: "B", text: "『設置格式』與『簡要回顧目的』" },
+                    { id: "C", text: "『簡要回顧目的』與『僅摘錄必要資訊』" },
+                    { id: "D", text: "『列出所有行動事項』與『設置格式』" }
+                ],
+                correctAnswer: "A",
+                explanation: "精簡摘要的核心包含「決策與必要資訊萃取」以及「具體行動事項 (Action Items) 清單」。"
+            },
+            {
+                id: 34, type: "single", quizGroup: 4, title: "Q34. 房屋資料集標頭標籤與 Prompt 配對",
+                question: "配對任務與所需資料標籤：<br>1. 確定社區類型中年份最新房產 $\\rightarrow$ **建造年份, 社區類型**<br>2. 確定房屋大小數量與區域相關性 $\\rightarrow$ **臥室數量, 衛浴數量, 面積, 區域**<br>3. 查找每個區域每平方米平均價格 $\\rightarrow$ **區域, 總價, 面積**<br>4. 預測市中心三房住宅價格 $\\rightarrow$ **區域, 總價, 臥室數量, 建造年份**",
+                options: [
+                    { id: "A", text: "1-(建造年份,社區類型), 2-(臥室,衛浴,面積,區域), 3-(區域,總價,面積), 4-(區域,總價,臥室,建造年份)" },
+                    { id: "B", text: "1-(區域,總價), 2-(建造年份,社區類型), 3-(臥室,衛浴), 4-(面積)" },
+                    { id: "C", text: "1-(面積), 2-(區域,總價), 3-(建造年份), 4-(臥室,衛浴)" },
+                    { id: "D", text: "1-(臥室,衛浴), 2-(面積), 3-(區域), 4-(總價)" }
+                ],
+                correctAnswer: "A",
+                explanation: "分析任務時，模型需提取並對應資料表中精確相關的欄位標籤 (Header labels)。"
+            },
+            {
+                id: 35, type: "single", quizGroup: 4, title: "Q35. 美食社群第一篇貼文 Prompt 選擇",
+                question: "創立美食社群帳號，哪兩個提示詞能生成適合第一篇貼文的內容？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "『寫一篇介紹性貼文介紹我對美食的熱情、啟發因素、喜愛菜餚與烹飪風格』與『分享一個詳細食譜，包含步驟與獨特配料介紹』" },
+                    { id: "B", text: "『分享拍攝美食照片技巧』與『記錄城市美食之旅』" },
+                    { id: "C", text: "『記錄城市美食之旅』與『寫介紹性貼文』" },
+                    { id: "D", text: "『分享拍攝技巧』與『詳細食譜』" }
+                ],
+                correctAnswer: "A",
+                explanation: "帳號首發貼文最適合「自我介紹/熱情啟發」或直接「展示招牌菜色食譜細節」。"
+            },
+            {
+                id: 36, type: "single", quizGroup: 4, title: "Q36. Healthy Eats 商標 Logo Prompt 選擇",
+                question: "Healthy Eats 食品企業要求商標含公司名稱、粉色與綠色文字、草莓圖片，哪兩個提示詞最符合？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "『名為 Healthy Eats 的小型企業商標，使用粉色與綠色文字以及草莓圖片』與『設計 Healthy Eats 商標，使用粉色與綠色以及草莓圖片，反映企業價值』" },
+                    { id: "B", text: "『草莓主題商標，強調健康飲食』與『設計商標，使用粉綠色與草莓』" },
+                    { id: "C", text: "『文字應為粉色』與『草莓主題商標』" },
+                    { id: "D", text: "『簡單設計商標』與『Healthy Eats 商標』" }
+                ],
+                correctAnswer: "A",
+                explanation: "選項 A 的兩個提示詞均精準包含了三個必備要素：公司名稱 (Healthy Eats)、配色 (粉與綠)、圖案 (草莓)。"
+            },
+            {
+                id: 37, type: "single", quizGroup: 4, title: "Q37. 科幻小說封面草圖 Prompt 必備要素",
+                question: "要生成科幻小說封面草圖提供給出版編輯與畫家參考，Prompt 中應包含哪些項目最有用？",
+                options: [
+                    { id: "A", text: "書名、主題、背景、所需的藝術風格以及封面圖應包含內容的概述" },
+                    { id: "B", text: "人物姓名、書名、作者姓名和藝術家姓名" },
+                    { id: "C", text: "藝術家提供的插圖範例、書名和頁數" },
+                    { id: "D", text: "插圖尺寸、書名、書的主題和原創藝術家的姓名" }
+                ],
+                correctAnswer: "A",
+                explanation: "繪圖 Prompt 的關鍵構成包含：主題 (Subject)、背景 (Setting)、風格 (Art style) 與畫面構圖概述。"
+            },
+            {
+                id: 38, type: "single", quizGroup: 4, title: "Q38. 提示詞是否執行「影像轉換」判定",
+                question: "評估下列 Prompt 是否屬於『影像轉換 (Image Transformation)』：<br>1. 瞭解商標 Logo 的檔案格式 $\\rightarrow$ **否**<br>2. 將房屋的草圖轉換為具有很強真實感的表示形式 $\\rightarrow$ **是**<br>3. 修改度假照片的中繼資料以更改位置與日期 $\\rightarrow$ **否**",
+                options: [
+                    { id: "A", text: "1-否, 2-是, 3-否" },
+                    { id: "B", text: "1-是, 2-是, 3-否" },
+                    { id: "C", text: "1-否, 2-否, 3-是" },
+                    { id: "D", text: "1-是, 2-否, 3-是" }
+                ],
+                correctAnswer: "A",
+                explanation: "將手繪草圖渲染轉換為逼真效果圖屬於典型的「Image-to-Image 影像轉換」；其餘為格式諮詢或文字詮釋。"
+            },
+            {
+                id: 39, type: "single", quizGroup: 4, title: "Q39. 勤洗手公益廣告 Prompt 建立原則判定",
+                question: "製作勤洗手公益廣告，評估 Prompt 建立做法：<br>1. 提供全面的視覺和敘述性描述 $\\rightarrow$ **是**<br>2. 包括詳細背景資訊、資料、基調和風格 $\\rightarrow$ **是**<br>3. 假定 AI 了解專案背景因而減少詳細解釋 $\\rightarrow$ **否**<br>4. 使用直白語言減少誤解 $\\rightarrow$ **是**",
+                options: [
+                    { id: "A", text: "1-是, 2-是, 3-否, 4-是" },
+                    { id: "B", text: "1-是, 2-否, 3-是, 4-否" },
+                    { id: "C", text: "1-否, 2-是, 3-是, 4-是" },
+                    { id: "D", text: "1-是, 2-是, 3-是, 4-否" }
+                ],
+                correctAnswer: "A",
+                explanation: "編寫影片 Prompt 應盡可能詳細、清晰並指定風格基調，絕不能預設 AI 懂盲點或省略脈絡。"
+            },
+            {
+                id: 40, type: "single", quizGroup: 4, title: "Q40. 甜菜 PPT 轉簡報影片最佳 Prompt",
+                question: "要將 PPT 簡報轉換為有關甜菜的 2 分鐘專業教育性影片，哪個 Prompt 最適當？",
+                options: [
+                    { id: "A", text: "使用提供的簡報製作一段有關甜菜的 2 分鐘影片。應採用正式場合口吻，動畫中應留出時間讓人讀出提供的文字" },
+                    { id: "B", text: "影片應生動有趣，包含 GIF 動畫和表情符號" },
+                    { id: "C", text: "查看簡報確定最佳資訊，生成一系列圖像" },
+                    { id: "D", text: "扮演新聞播報員查找甜菜新聞" }
+                ],
+                correctAnswer: "A",
+                explanation: "選項 A 包含長度 (2分鐘)、基調 (正式口吻)、任務目標 (甜菜專業教育影片) 以及閱讀時間節奏控制。"
+            },
+            {
+                id: 41, type: "single", quizGroup: 5, title: "Q41. 公園快樂狗圖像 Prompt 優化選擇",
+                question: "輸入『公園裡有一隻快樂的狗』得到卡通狗。希望狗更逼真、採復古風格且色彩飽滿，哪個 Prompt 最符合？",
+                options: [
+                    { id: "A", text: "運用鮮豔的色彩描繪城市公園裡有一隻快樂的狗的復古插圖 (繪製逼真復古風格)" },
+                    { id: "B", text: "公園裡有一隻快樂的狗的彩色影像" },
+                    { id: "C", text: "一隻快樂的狗坐在城市公園裡的 $200\\times200$ 像素影像" },
+                    { id: "D", text: "城市公園裡有一隻快樂的金毛獵犬的影像" }
+                ],
+                correctAnswer: "A",
+                explanation: "明確指明了「鮮豔色彩 (飽滿)」、「復古 (Vintage style)」以及「具體場景」補足了原 Prompt 的不足。"
+            },
+            {
+                id: 42, type: "single", quizGroup: 5, title: "Q42. 大壩拆除摘要 Prompt 偏見評估",
+                question: "評估下列 Prompt 是否本質上存在偏見：<br>1.『摘要主要成就，重點關注最重大影響』 $\\rightarrow$ **有偏見** (預設正面成就)<br>2.『包含公用事業公司提出的生態恢復建議』 $\\rightarrow$ **有偏見** (單一方立場)<br>3.『摘要獨立第三方研究針對拆除大壩提供的可行性見解』 $\\rightarrow$ **無偏見**",
+                options: [
+                    { id: "A", text: "1-有偏見, 2-有偏見, 3-無偏見" },
+                    { id: "B", text: "1-無偏見, 2-無偏見, 3-有偏見" },
+                    { id: "C", text: "1-無偏見, 2-有偏見, 3-無偏見" },
+                    { id: "D", text: "1-有偏見, 2-無偏見, 3-有偏見" }
+                ],
+                correctAnswer: "A",
+                explanation: "預設單一方（公用事業公司）或預設特定立場（主要成就）皆有偏見；引用獨立第三方客觀研究則無偏見。"
+            },
+            {
+                id: 43, type: "single", quizGroup: 5, title: "Q43. 高脂肪飲食與藥物圖表說故事 Prompt",
+                question: "橫條圖顯示高脂肪食物攝入量與藥物用量增加的關聯，哪個 Prompt 最能幫助建立引人入勝的內容？",
+                options: [
+                    { id: "A", text: "為醫院候診室編寫一本宣傳冊，用通俗的語言解釋橫條圖中呈現的資料，並提供生活實例" },
+                    { id: "B", text: "編寫橫條圖摘要，包含所有技術術語" },
+                    { id: "C", text: "發現一個故事" },
+                    { id: "D", text: "創作一首說唱歌曲" }
+                ],
+                correctAnswer: "A",
+                explanation: "將專業數據轉化為候診室科普宣傳冊，並運用通俗語言與實例，最適合將圖表資訊說成好故事。"
+            },
+            {
+                id: 44, type: "single", quizGroup: 5, title: "Q44. 議論文寫作技巧編輯 Prompt",
+                question: "Nicole 寫完議論文上傳至 AI 工具，想尋求寫作技巧與論證品質改善幫助，應使用哪個提示詞？",
+                options: [
+                    { id: "A", text: "分析上傳的文章，提供有關內容以及論證任務相符性的建議" },
+                    { id: "B", text: "分析上傳的文章，提供語法、標點、拼寫和大寫方面的建議" },
+                    { id: "C", text: "寫一篇符合高中生風格的規範作文" },
+                    { id: "D", text: "撰寫一篇能夠獲得高分的議論文" }
+                ],
+                correctAnswer: "A",
+                explanation: "寫作技巧與論證品質屬於內容結構審查（選項 A）；選項 B 僅為錯別字字面檢查。"
+            },
+            {
+                id: 45, type: "single", quizGroup: 5, title: "Q45. 銷量與消費者年齡數據視覺化 Prompt",
+                question: "銷售簡報欲探討消費者年齡（連續變數）與購買產品數量（連續變數）之間的關係，哪個 Prompt 最可能生成恰當圖表？",
+                options: [
+                    { id: "A", text: "建立一個散點圖 (Scatter Plot)，顯示特定產品的銷售量與消費者年齡之間的關係" },
+                    { id: "B", text: "說明一個圓形圖，顯示暢銷產品" },
+                    { id: "C", text: "長條圖優點" },
+                    { id: "D", text: "製作圖表顯示總銷售量" }
+                ],
+                correctAnswer: "A",
+                explanation: "呈現兩組連續型數量變數（年齡 vs 購買量）之間的相關性，最佳圖表為散點圖 (Scatter Plot)。"
+            },
+            {
+                id: 46, type: "single", quizGroup: 5, title: "Q46. 零售店每週淨利散點圖轉換為報告 Prompt 判定",
+                question: "散點圖包含趨勢線顯示零售店每週淨利，要在年終會議宣讀，評估提示詞：<br>1. 轉換為公司年收入直觀圖形 $\\rightarrow$ **否**<br>2. 設計宣傳傳單 $\\rightarrow$ **否**<br>3. 製作語音說明趨勢模式 $\\rightarrow$ **否**<br>4. 將每週淨利資料轉換為季度報告，總結季度總淨利與平均淨利 $\\rightarrow$ **是**",
+                options: [
+                    { id: "A", text: "1-否, 2-否, 3-否, 4-是" },
+                    { id: "B", text: "1-是, 2-否, 3-是, 4-否" },
+                    { id: "C", text: "1-否, 2-是, 3-否, 4-否" },
+                    { id: "D", text: "1-是, 2-是, 3-否, 4-是" }
+                ],
+                correctAnswer: "A",
+                explanation: "選項 4 精準地將散點圖每週數據歸納為「季度總淨利與平均淨利」，最適合作為年終會議宣讀報告內容。"
+            },
+            {
+                id: 47, type: "single", quizGroup: 5, title: "Q47. 個性化健身計畫 Prompt 改進",
+                question: "輸入『制定每週鍛鍊計畫』後因個人身體狀況與工作時間無法執行，Brianna 應如何改進提示詞？",
+                options: [
+                    { id: "A", text: "Brianna 應提供自己的時間表，並說明他身體狀況面臨的限制" },
+                    { id: "B", text: "重新輸入提示詞讓 AI 再制定一個" },
+                    { id: "C", text: "要求 AI 提供飲食建議" },
+                    { id: "D", text: "嘗試執行原計畫" }
+                ],
+                correctAnswer: "A",
+                explanation: "Prompt 優化的關鍵在於補足約束條件 (Constraints)，包括個人的可用時間與身體物理限制。"
+            },
+            {
+                id: 48, type: "single", quizGroup: 5, title: "Q48. 社群貼文格式一致性後續 Prompt",
+                question: "在同一對話中生成社群貼文，某次生成的格式不符預期，希望格式與之前貼文一致，應使用哪個後續 Prompt？",
+                options: [
+                    { id: "A", text: "請修改貼文，使其看起來像之前生成的社群貼文" },
+                    { id: "B", text: "這裡有一些來自其他使用者的貼文" },
+                    { id: "C", text: "這裡有一些朋友回覆的截圖" },
+                    { id: "D", text: "加入主題標籤 (Hashtags)" }
+                ],
+                correctAnswer: "A",
+                explanation: "利用對話記憶 (In-context Learning)，直接要求模型參照「之前對話生成的格式」進行修正即可。"
+            },
+            {
+                id: 49, type: "single", quizGroup: 5, title: "Q49. 驗證國家人口統計資料可靠性步驟",
+                question: "AI 工具提供了某國家人口規模統計，採取哪兩個步驟可驗證其可靠性？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "『交叉引用政府發佈的最新人口普查資料』與『檢查聯合國或世界銀行等國際組織報告』" },
+                    { id: "B", text: "『查閱熱門新聞文章』與『交叉引用政府資料』" },
+                    { id: "C", text: "『使用經濟預測』與『檢查國際組織報告』" },
+                    { id: "D", text: "『查閱熱門新聞』與『使用經濟預測』" }
+                ],
+                correctAnswer: "A",
+                explanation: "驗證數據可靠性的最佳作法是查驗權威官方來源（政府人口普查）與知名國際組織（聯合國/世界銀行）。"
+            },
+            {
+                id: 50, type: "single", quizGroup: 5, title: "Q50. 科技部落格 AI 趨勢深入追問 Prompt",
+                question: "輸入『撰寫有關最新 AI 趨勢概述』後得到關於機器學習演算法優化的簡短回覆，接下來應使用哪個提示詞獲得更詳細回覆？",
+                options: [
+                    { id: "A", text: "提供詳細的範例，說明最近在機器學習演算法方面取得的突破及其對汽車和金融行業的影響" },
+                    { id: "B", text: "概述 AI 助手的硬體要求" },
+                    { id: "C", text: "總結 AI 的歷史進程" },
+                    { id: "D", text: "預測未來十年發展" }
+                ],
+                correctAnswer: "A",
+                explanation: "針對初次回覆提及的「機器學習演算法優化」，進一步要求提供「具體範例與產業影響」能深化內容。"
+            },
+            {
+                id: 51, type: "single", quizGroup: 6, title: "Q51. 提示詞鏈接 (Prompt Chaining) 定義",
+                question: "哪項定義正確地描述了『提示詞鏈接 (Prompt Chaining)』技術？",
+                options: [
+                    { id: "A", text: "將任務分解為更小的子任務，並使用一個提示詞的輸出作為下一個提示詞的輸入" },
+                    { id: "B", text: "提供若干範例說明如何回答問題" },
+                    { id: "C", text: "提供需要進行數值計算的問題與範例" },
+                    { id: "D", text: "發出有關一個主題的提示詞，然後再發出另一個無關主題" }
+                ],
+                correctAnswer: "A",
+                explanation: "Prompt Chaining 鏈結技術是指將複雜任務拆解，前一步驟 (Step A) 的輸出作為下步驟 (Step B) 的輸入 Prompt。"
+            },
+            {
+                id: 52, type: "single", quizGroup: 6, title: "Q52. 音樂播放清單 LLM 設定檔指令判定",
+                question: "建立 LLM 設定檔，透過問題詢問喜好音樂並生成播放清單，評估指令：<br>1. 隨機生成歌曲清單 $\\rightarrow$ **否**<br>2. 根據榜單 40 首歌曲生成心情問題 $\\rightarrow$ **是**<br>3. 僅提問要求回復 1~5 評分 $\\rightarrow$ **是**",
+                options: [
+                    { id: "A", text: "1-否, 2-是, 3-是" },
+                    { id: "B", text: "1-是, 2-否, 3-否" },
+                    { id: "C", text: "1-是, 2-是, 3-否" },
+                    { id: "D", text: "1-否, 2-否, 3-是" }
+                ],
+                correctAnswer: "A",
+                explanation: "設定檔需要結構化問答流程（如量表評分 1~5 與榜單心情問題），而非完全隨機產生。"
+            },
+            {
+                id: 53, type: "single", quizGroup: 6, title: "Q53. 二戰關鍵事件歷史事實查證方法",
+                question: "AI 聊天機器人列出了二戰關鍵事件與日期，哪兩種方法可以很好地查證事實正確性？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "『在搜尋引擎中查找相應事件並確認日期』與『查閱權威歷史書籍來確認日期』" },
+                    { id: "B", text: "『重新執行 AI 請求確認日期』與『詢問好友』" },
+                    { id: "C", text: "『讓另一個聊天機器人比較輸出』與『重新執行 AI』" },
+                    { id: "D", text: "『詢問好友』與『查閱權威歷史書籍』" }
+                ],
+                correctAnswer: "A",
+                explanation: "查證事實應依賴獨立且權威的外部真實資料源（歷史專業書籍與網路上公認的歷史檔案）。"
+            },
+            {
+                id: 54, type: "single", quizGroup: 6, title: "Q54. 安全漏洞報告轉非技術簡報 Prompt",
+                question: "將技術性的資安漏洞掃描報告轉換為適合非技術專業受眾的簡報，應使用哪個提示詞？",
+                options: [
+                    { id: "A", text: "使用較為簡單的語言重新編寫報告，並添加視覺輔助和生活範例" },
+                    { id: "B", text: "擴展安全掃描報告的技術詳細資訊" },
+                    { id: "C", text: "總結報告要點" },
+                    { id: "D", text: "提供詳細、批判性分析" }
+                ],
+                correctAnswer: "A",
+                explanation: "面向非技術受眾（Non-technical audience），Prompt 應強調「簡化語言 (Plain language)」、「視覺輔助」與「通俗範例」。"
+            },
+            {
+                id: 55, type: "single", quizGroup: 6, title: "Q55. 反向提示詞 (Reverse Prompting) 履歷生成",
+                question: "想使用反向提示詞（AI 主動提問引導）讓 AI 為你生成細節完整的履歷，哪個 Prompt 最有幫助？",
+                options: [
+                    { id: "A", text: "請一步步詢問我生成履歷所需的每個關鍵細節，在我回答完後再使用這些資訊生成履歷" },
+                    { id: "B", text: "使用標準範本生成包含可信細節的履歷" },
+                    { id: "C", text: "我是 5 年經驗教師，請為我寫履歷" },
+                    { id: "D", text: "我從事電腦行業 4 年，請為我寫高級職位履歷" }
+                ],
+                correctAnswer: "A",
+                explanation: "反向提示詞 (Reverse Prompting) 是讓 AI 作為面試官主動向使用者提問，從而收集完整精確的細節資訊。"
+            },
+            {
+                id: 56, type: "single", quizGroup: 6, title: "Q56. 新員工手冊轉簡報促進學習 Prompt",
+                question: "將新員工手冊轉換為簡報，哪個 Prompt 最有可能生成促進學習效果的簡報？",
+                options: [
+                    { id: "A", text: "製作一個簡報，將內容轉換為吸引人且易於理解的格式，包含關鍵圖表與互動討論" },
+                    { id: "B", text: "重新調整格式，使用一致的幻燈片佈局" },
+                    { id: "C", text: "製作新員工手冊" },
+                    { id: "D", text: "重點關注公司的價值觀" }
+                ],
+                correctAnswer: "A",
+                explanation: "促進學習 (Facilitate learning) 需要將枯燥文字轉化為易懂、吸引人且具視覺提示的教學架構。"
+            },
+            {
+                id: 57, type: "single", quizGroup: 6, title: "Q57. 色彩混合範例提示詞類型識別",
+                question: "Prompt 中提供了『純紅+純藍=紫色』的範例與說明，接著詢問『紅與藍 2:1 混合生成什麼？』，這是哪種類型的 Prompt？",
+                options: [
+                    { id: "A", text: "少樣本學習 (Few-shot Prompting)" },
+                    { id: "B", text: "思維鏈 (CoT)" },
+                    { id: "C", text: "零樣本學習 (Zero-shot)" },
+                    { id: "D", text: "自一致性推理 (Self-consistency)" }
+                ],
+                correctAnswer: "A",
+                explanation: "在 Prompt 中先提供一個或多個「問題 $\\rightarrow$ 標準答案解析」的示範範例，屬於 Few-shot Prompting。"
+            },
+            {
+                id: 58, type: "single", quizGroup: 6, title: "Q58. 小學光合作用解釋提示詞優化",
+                question: "對 AI 發出『解釋光合作用』結果太複雜，如何優化以適合小學生？",
+                options: [
+                    { id: "A", text: "重新為兒童目標受眾編寫內容，避免使用複雜術語，並提供具體的比喻與範例" },
+                    { id: "B", text: "解釋得更簡單一點" },
+                    { id: "C", text: "避免使用複雜語言" },
+                    { id: "D", text: "提供更簡短的解釋" }
+                ],
+                correctAnswer: "A",
+                explanation: "優化時必須明確指出目標受眾 (Target Audience) 為小學生，並要求使用比喻與具體生活範例。"
+            },
+            {
+                id: 59, type: "single", quizGroup: 6, title: "Q59. 西班牙與南非人口歷史趨勢圖表 Prompt",
+                question: "生成了 2000-2005 年西班牙與南非人口長條圖，若要呈現兩國人口在歷史上持續發生的變化，應指定哪個附加 Prompt？",
+                options: [
+                    { id: "A", text: "重新生成現有資料表示，將格式更改為折線圖 (Line Chart)" },
+                    { id: "B", text: "使用人口預測資料" },
+                    { id: "C", text: "預測未來幾年變化" },
+                    { id: "D", text: "使用圓形圖格式" }
+                ],
+                correctAnswer: "A",
+                explanation: "折線圖（Line Chart）是呈現時間序列上連續歷史變化與演進趨勢的最佳圖表型態。"
+            },
+            {
+                id: 60, type: "single", quizGroup: 6, title: "Q60. 生成式 AI 的社會正面影響選擇",
+                question: "哪三個表述描述了生成式 AI 對社會的正面影響？（選擇 3 項）",
+                options: [
+                    { id: "A", text: "『訪問海量資料進行醫學研究』、『促進精準高效耕作』與『詳細瞭解世界文化』" },
+                    { id: "B", text: "『避免人與人溝通』、『促進高效耕作』與『家庭作業作弊』" },
+                    { id: "C", text: "『家庭作業作弊』、『醫學研究』與『避免溝通』" },
+                    { id: "D", text: "『詳細瞭解世界文化』、『家庭作業作弊』與『醫學研究』" }
+                ],
+                correctAnswer: "A",
+                explanation: "醫學研究賦能、農業智慧轉型以及文化跨國推廣均為生成式 AI 的正面社會效益。"
+            },
+            {
+                id: 61, type: "single", quizGroup: 7, title: "Q61. 保健公司客戶個資訓練模型之風險後果",
+                question: "保健公司未經防範將客戶姓名、電話、健康資訊用於訓練 AI 模型，可能產生哪三種後果？（選擇 3 項）",
+                options: [
+                    { id: "A", text: "『客戶身分被盜用』、『陷入消費者資料隱私訴訟』與『失去客戶信任』" },
+                    { id: "B", text: "『公司的公共資訊暴露』、『客戶身分被盜用』與『模型運算變慢』" },
+                    { id: "C", text: "『失去客戶信任』、『模型運算變慢』與『隱私訴訟』" },
+                    { id: "D", text: "『公司公共資訊暴露』、『失去信任』與『運算變慢』" }
+                ],
+                correctAnswer: "A",
+                explanation: "個資外洩直接導致詐騙冒用、面臨個資法規（如 GDPR）法律訴訟，並嚴重打擊企業商譽。"
+            },
+            {
+                id: 62, type: "single", quizGroup: 7, title: "Q62. ChatGPT 記憶設定與隱私責任判定",
+                question: "上傳包含應試者密碼的分數表至 ChatGPT，已關閉記憶與全域訓練。判定：<br>1. ChatGPT 會記住帳號密碼多久？ $\\rightarrow$ **在當前對話中記住**<br>2. 後續對話是否可將 IP 與資料關聯？ $\\rightarrow$ **否**<br>3. 若密碼遭洩漏誰承擔責任？ $\\rightarrow$ **你和你的公司承擔責任**",
+                options: [
+                    { id: "A", text: "1-當前對話中, 2-否, 3-你和你的公司承擔責任" },
+                    { id: "B", text: "1-永遠記住, 2-是, 3-ChatGPT 承擔責任" },
+                    { id: "C", text: "1-忽略個資, 2-否, 3-ChatGPT 承擔責任" },
+                    { id: "D", text: "1-當前對話中, 2-是, 3-ChatGPT 承擔責任" }
+                ],
+                correctAnswer: "A",
+                explanation: "關閉記憶下僅留存於 Session；關閉改善訓練則不會關聯 IP 與跨對話；但個資上傳責任完全由企業自行負擔。"
+            },
+            {
+                id: 63, type: "single", quizGroup: 7, title: "Q63. 老師在論文加入隱藏同色文字之原因",
+                question: "老師在論文中加入與背景同色的隱藏不相關文字讓學生做摘要，其兩個主要原因為？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "『瞭解學生是否盲目使用 AI 複製貼上進行作弊』與『確保學生負責撰寫原創作品』" },
+                    { id: "B", text: "『幫助學生提供有創意的分析』與『提示學生修正拼寫錯誤』" },
+                    { id: "C", text: "『提示學生修正拼寫錯誤』與『瞭解學生是否使用 AI』" },
+                    { id: "D", text: "『幫助學生提供有創意的分析』與『確保原創作品』" }
+                ],
+                correctAnswer: "A",
+                explanation: "這種同色隱藏文字被稱為「AI 水印提示陷阱」，直接用 AI 抓取會包含隱藏干擾字，能精準查出代筆作弊。"
+            },
+            {
+                id: 64, type: "single", quizGroup: 7, title: "Q64. 選舉候選人研究 AI 之兩大局限性",
+                question: "使用 AI 收集選舉候選人資訊，最可能發現哪兩項局限性？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "『發現收集的資訊可能不精確或不可靠 (幻覺)』與『發現某些資訊似乎存在偏見』" },
+                    { id: "B", text: "『資訊按時間順序提供』與『提供大量資訊』" },
+                    { id: "C", text: "『資訊不可靠』與『資訊按時間順序提供』" },
+                    { id: "D", text: "『存在偏見』與『提供大量資訊』" }
+                ],
+                correctAnswer: "A",
+                explanation: "政治與選舉敏感主題中，AI 最主要的兩大限制就是幻覺捏造（不可靠）與訓練數據偏見。"
+            },
+            {
+                id: 65, type: "single", quizGroup: 7, title: "Q65. Copilot 全球變暖搜尋結果判讀",
+                question: "Copilot 回答『全球變暖是什麼』，評估敘述：<br>1. 可以確信輸出不存在偏見 $\\rightarrow$ **錯誤**<br>2. 應查證權威科學來源的資訊 $\\rightarrow$ **正確**<br>3. 只有科學家能輸入此類問題 $\\rightarrow$ **錯誤**",
+                options: [
+                    { id: "A", text: "1-錯誤, 2-正確, 3-錯誤" },
+                    { id: "B", text: "1-正確, 2-正確, 3-錯誤" },
+                    { id: "C", text: "1-錯誤, 2-錯誤, 3-正確" },
+                    { id: "D", text: "1-正確, 2-錯誤, 3-錯誤" }
+                ],
+                correctAnswer: "A",
+                explanation: "AI 輸出仍可能有偏見與誤差，必須向真實科學權威機構查證；且一般大眾皆可使用 AI 諮詢。"
+            },
+            {
+                id: 66, type: "single", quizGroup: 7, title: "Q66. AI 偏見敘述真偽評估",
+                question: "評估下列關於 AI 偏見的敘述：<br>1. 有偏見資料訓練的模型會輸出有偏見圖像 $\\rightarrow$ **正確**<br>2. ChatGPT 能可靠地完全消除偏見 $\\rightarrow$ **錯誤**<br>3. 應人工審查 AI 生成內容是否存在偏見 $\\rightarrow$ **正確**",
+                options: [
+                    { id: "A", text: "1-正確, 2-錯誤, 3-正確" },
+                    { id: "B", text: "1-正確, 2-正確, 3-錯誤" },
+                    { id: "C", text: "1-錯誤, 2-錯誤, 3-正確" },
+                    { id: "D", text: "1-錯誤, 2-正確, 3-正確" }
+                ],
+                correctAnswer: "A",
+                explanation: "模型偏見源於訓練資料；AI 現階段無法自動完備消除偏見，因此人為監督 (Human Review) 絕對必要。"
+            },
+            {
+                id: 67, type: "single", quizGroup: 7, title: "Q67. 自動駕駛 AI 偏見發生階段配對",
+                question: "配對偏見場景與生命週期階段：<br>1. 僅對標誌和信號燈進行分詞標記 $\\rightarrow$ **數據標注**<br>2. 車銷往全球但僅在本地城市測試 $\\rightarrow$ **部署**<br>3. 攝影機僅在白天錄製 $\\rightarrow$ **資料收集**<br>4. 依身高對行人採用不同加權值 $\\rightarrow$ **模型訓練**",
+                options: [
+                    { id: "A", text: "1-數據標注, 2-部署, 3-資料收集, 4-模型訓練" },
+                    { id: "B", text: "1-資料收集, 2-模型訓練, 3-數據標注, 4-部署" },
+                    { id: "C", text: "1-模型訓練, 2-數據標注, 3-部署, 4-資料收集" },
+                    { id: "D", text: "1-部署, 2-資料收集, 3-模型訓練, 4-數據標注" }
+                ],
+                correctAnswer: "A",
+                explanation: "採集畫面時間屬資料收集；標記標誌屬數據標注；加權演算法屬模型訓練；全球銷售僅本地測試屬部署盲點。"
+            },
+            {
+                id: 68, type: "single", quizGroup: 7, title: "Q68. 招聘流程使用生成式 AI 相關法律",
+                question: "律師事務所研究在招募流程中使用生成式 AI，哪三種類型法律最為相關？（選擇 3 項）",
+                options: [
+                    { id: "A", text: "『個人資料保護法』、『勞動與就業法』與『智慧財產權法』" },
+                    { id: "B", text: "『房地產法』、『個人資料保護法』與『勞動法』" },
+                    { id: "C", text: "『房地產法』、『智慧財產權法』與『勞動法』" },
+                    { id: "D", text: "『房地產法』、『刑法』與『個人資料保護法』" }
+                ],
+                correctAnswer: "A",
+                explanation: "履歷處理涉及個資隱私；招聘篩選涉及就業歧視與勞動法規；AI 生成報告涉及智財權。"
+            },
+            {
+                id: 69, type: "single", quizGroup: 7, title: "Q69. 專利申請中 AI 的法律角色",
+                question: "法院裁定 AI 不能是唯一的專利發明者，如何使用生成式 AI 才能合法申請專利？",
+                options: [
+                    { id: "A", text: "由人類發明家主導構思，將生成式 AI 作為輔助工具來設計與產出計畫" },
+                    { id: "B", text: "使用 AI 更正現有設計不準確處" },
+                    { id: "C", text: "直接提交 AI 生成的全新計畫" },
+                    { id: "D", text: "利用空白範本讓 AI 生成" }
+                ],
+                correctAnswer: "A",
+                explanation: "專利發明人必須為人類自然人，AI 僅能作為提效與輔助設計工具。"
+            },
+            {
+                id: 70, type: "single", quizGroup: 7, title: "Q70. 避免向 LLM 洩漏個人資訊的做法",
+                question: "應該如何避免向大型語言模型 (LLM) 洩漏個人隱私資訊？",
+                options: [
+                    { id: "A", text: "在 Prompt 中主動去識別化，避免輸入姓名、年齡、地址、身分證字號與社群帳號等識別資訊" },
+                    { id: "B", text: "避免上傳工程圖" },
+                    { id: "C", text: "避免讓 LLM 使用事實" },
+                    { id: "D", text: "避免使用角色扮演" }
+                ],
+                correctAnswer: "A",
+                explanation: "去識別化 (Anonymization) 與刪除 PII (個人可識別資訊) 是防止個資外洩的最基本做法。"
+            },
+            {
+                id: 71, type: "single", quizGroup: 8, title: "Q71. 生成式 AI 內容責任與風險識別",
+                question: "哪兩個描述正確識別了生成式 AI 及其使用相關的風險？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "『你必須對使用生成式 AI 建立的內容負最終責任』與『使用 AI 建立違法有害內容可引發民事或刑事訴訟』" },
+                    { id: "B", text: "『AI 可自動阻止有害內容無須人為干預』與『AI 無需人為監督』" },
+                    { id: "C", text: "『AI 無需人為監督』與『你對內容負責任』" },
+                    { id: "D", text: "『AI 可自動阻止有害內容』與『引發民事訴訟』" }
+                ],
+                correctAnswer: "A",
+                explanation: "AI 只是工具，使用者及企業需承擔內容產出的法律責任；散播有害或侵權內容會觸犯民刑事法律。"
+            },
+            {
+                id: 72, type: "single", quizGroup: 8, title: "Q72. 金融客服 AI 聊天機器人合規風險判定",
+                question: "評估金融客服聊天機器人風險敘述：<br>1. 敏感財務資料處理不當導致客戶不滿 $\\rightarrow$ **正確**<br>2. 敏感個人資料處理不當導致客戶不滿 $\\rightarrow$ **正確**<br>3. 未能提供心理情緒支持導致客戶不滿 $\\rightarrow$ **錯誤**",
+                options: [
+                    { id: "A", text: "1-正確, 2-正確, 3-錯誤" },
+                    { id: "B", text: "1-正確, 2-錯誤, 3-正確" },
+                    { id: "C", text: "1-錯誤, 2-正確, 3-正確" },
+                    { id: "D", text: "1-錯誤, 2-錯誤, 3-錯誤" }
+                ],
+                correctAnswer: "A",
+                explanation: "金融客服核心風險在於財務與個資隱私洩漏；客服機器人並非心理諮商師，提供情緒支持非其合規風險點。"
+            },
+            {
+                id: 73, type: "single", quizGroup: 8, title: "Q73. AI 社會影響場景正負面判定",
+                question: "判定場景正負面：<br>1. Sara 使用 AI 詳細瞭解朋友的分歧觀點 $\\rightarrow$ **正面**<br>2. 選舉中使用 Deepfake 偽造對手沒說過的話 $\\rightarrow$ **負面**<br>3. Sara 使用 AI 構思部落格文章大綱 $\\rightarrow$ **正面**",
+                options: [
+                    { id: "A", text: "1-正面, 2-負面, 3-正面" },
+                    { id: "B", text: "1-負面, 2-負面, 3-正面" },
+                    { id: "C", text: "1-正面, 2-正面, 3-負面" },
+                    { id: "D", text: "1-負面, 2-正面, 3-負面" }
+                ],
+                correctAnswer: "A",
+                explanation: "促進理解與腦力激盪構思屬正面效益；利用 Deepfake 造假進行政治抹黑屬於負面濫用。"
+            },
+            {
+                id: 74, type: "single", quizGroup: 8, title: "Q74. 生成式 AI 對工作與思考真實影響",
+                question: "哪兩個有關生成式 AI 影響的描述是真實的？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "『生成式 AI 可以讓員工節省時間並提高工作效率』與『生成式 AI 可以為發散性的思考與創新腦力激盪提供支援』" },
+                    { id: "B", text: "『平均減少螢幕時間 5 小時』與『減少人類藝術需求』" },
+                    { id: "C", text: "『提高工作效率』與『減少螢幕時間』" },
+                    { id: "D", text: "『發散性思考支援』與『減少藝術需求』" }
+                ],
+                correctAnswer: "A",
+                explanation: "AI 能自動化重複工作以提升效率，並能在靈感枯竭時提供發散式思考支援。"
+            },
+            {
+                id: 75, type: "single", quizGroup: 8, title: "Q75. PowerPoint 呈現生成式 AI 兩大局限性",
+                question: "向管理團隊簡報生成式 AI 局限性，應選擇哪兩個範例？（選擇 2 項）",
+                options: [
+                    { id: "A", text: "『由於缺乏人為監督，存在內容不準確 (幻覺) 的問題』與『歧視性或有偏見的訓練輸入會導致偏見輸出』" },
+                    { id: "B", text: "『充滿情緒』與『缺乏創造力內容單調』" },
+                    { id: "C", text: "『缺乏自動化效率低下』與『內容不準確』" },
+                    { id: "D", text: "『偏見輸出』與『充滿情緒』" }
+                ],
+                correctAnswer: "A",
+                explanation: "幻覺不準確性（Inaccuracy）與資料偏見（Bias）是目前生成式 AI 部署最重要的兩大局限性。"
+            },
+            {
+                id: 76, type: "single", quizGroup: 8, title: "Q76. 世界歷史資料查證可靠性判定",
+                question: "評估查證 AI 歷史資料之做法：<br>1. 搜尋網路查證學術資源事實 $\\rightarrow$ **是**<br>2. 參考可靠的歷史資料庫查證事實 $\\rightarrow$ **是**<br>3. 使用另一個 AI 平台查證事實 $\\rightarrow$ **否**",
+                options: [
+                    { id: "A", text: "1-是, 2-是, 3-否" },
+                    { id: "B", text: "1-是, 2-否, 3-是" },
+                    { id: "C", text: "1-否, 2-是, 3-是" },
+                    { id: "D", text: "1-否, 2-否, 3-是" }
+                ],
+                correctAnswer: "A",
+                explanation: "事實查證必須對照真實世界權威源（學術資源/歷史資料庫）；以 AI 驗證另一個 AI 無法克服幻覺問題。"
+            },
+            {
+                id: 77, type: "single", quizGroup: 8, title: "Q77. 生成式 AI 對教育影響判定",
+                question: "評估 AI 對教育的重大影響：<br>1. 學生使用 AI 提交非自己撰寫的作品 (代筆) $\\rightarrow$ **是**<br>2. 專任教師職位被大幅取消 $\\rightarrow$ **否**<br>3. 生成式 AI 可以用來補充課程內容 $\\rightarrow$ **是**",
+                options: [
+                    { id: "A", text: "1-是, 2-否, 3-是" },
+                    { id: "B", text: "1-是, 2-是, 3-否" },
+                    { id: "C", text: "1-否, 2-否, 3-是" },
+                    { id: "D", text: "1-否, 2-是, 3-否" }
+                ],
+                correctAnswer: "A",
+                explanation: "AI 為教育帶來學術誠信衝擊（作弊代筆）與備課輔助價值，但並未取代教師的教育主體與職位。"
+            },
+            {
+                id: 78, type: "single", quizGroup: 8, title: "Q78. 能源議題 Prompt 固有偏見判定",
+                question: "評估 Prompt 偏見：<br>1.『強調可再生能源比化石燃料更低可靠...』 $\\rightarrow$ **有偏見**<br>2.『分析各種可再生能源優缺點，客觀展示發現』 $\\rightarrow$ **無偏見**<br>3.『強調太陽能卓越的環境效益與成本節省』 $\\rightarrow$ **有偏見**",
+                options: [
+                    { id: "A", text: "1-有偏見, 2-無偏見, 3-有偏見" },
+                    { id: "B", text: "1-無偏見, 2-無偏見, 3-有偏見" },
+                    { id: "C", text: "1-無偏見, 2-有偏見, 3-無偏見" },
+                    { id: "D", text: "1-有偏見, 2-有偏見, 3-無偏見" }
+                ],
+                correctAnswer: "A",
+                explanation: "引導 AI 預設立場（強調某方更好）屬於偏見 Prompt；要求分析優缺點並客觀呈現在於中性無偏見。"
+            },
+            {
+                id: 79, type: "single", quizGroup: 8, title: "Q79. 散布 AI 描繪他人非法活動圖片之法律責任",
+                question: "甲用 AI 生成圖片描繪乙從事非法活動並公開貼文爆紅，這是否合法？",
+                options: [
+                    { id: "A", text: "不合法，這被視為誹謗 (Defamation)，屬於非法行為" },
+                    { id: "B", text: "合法，因為沒有使用真實照片" },
+                    { id: "C", text: "不合法，因為 AI 不遵循版權法" },
+                    { id: "D", text: "合法，因為是 AI 建立的圖片" }
+                ],
+                correctAnswer: "A",
+                explanation: "散布虛構惡意圖片毀損他人名譽，在法律上構成加重誹謗罪與公然侮辱罪。"
+            },
+            {
+                id: 80, type: "single", quizGroup: 8, title: "Q80. AI 生成內容法律侵權類型配對",
+                question: "配對侵權類型：<br>1. 樂譜與某作曲家譜寫的樂譜雷同 $\\rightarrow$ **版權侵權 (Copyright)**<br>2. 商標 Logo 與知名運動品牌 Logo 相同 $\\rightarrow$ **商標侵權 (Trademark)**<br>3. 3D 相機工程圖與程式與已備案非常相似 $\\rightarrow$ **專利侵權 (Patent)**",
+                options: [
+                    { id: "A", text: "1-版權侵權, 2-商標侵權, 3-專利侵權" },
+                    { id: "B", text: "1-商標侵權, 2-專利侵權, 3-版權侵權" },
+                    { id: "C", text: "1-專利侵權, 2-版權侵權, 3-商標侵權" },
+                    { id: "D", text: "1-版權侵權, 2-專利侵權, 3-商標侵權" }
+                ],
+                correctAnswer: "A",
+                explanation: "音樂創作歸版權/著作權保護；品牌識別標誌歸商標法；技術發明與工程結構歸專利法保護。"
+            }
+        ];
+
+        class QuizApp {
+            constructor(questions) {
+                this.questions = questions;
+                this.currentMode = 'quiz'; // 'quiz' (1~8 level) or 'free' (1~80)
+                this.currentQuizGroup = 1; // 1 to 8
+                this.currentIndex = 0; // global question index 0~79
+                this.userAnswers = {}; // { qId: { userSelection, isCorrect } }
+                this.bookmarks = new Set();
+                this.activeFilter = 'all';
+                this.filteredIndices = Array.from({length: questions.length}, (_, i) => i);
+
+                this.initElements();
+                this.bindEvents();
+                this.renderQuizStagePills();
+                this.renderGridButtons();
+                this.renderQuestion();
+            }
+
+            initElements() {
+                this.container = document.getElementById('questionContainer');
+                this.stageSummaryCard = document.getElementById('quizStageSummaryCard');
+                this.resultContainer = document.getElementById('resultContainer');
+                this.progressBar = document.getElementById('progressBar');
+                this.progressText = document.getElementById('progressText');
+                this.scoreText = document.getElementById('scoreText');
+                this.accuracyText = document.getElementById('accuracyText');
+                this.bookmarkText = document.getElementById('bookmarkText');
+                this.gridDrawer = document.getElementById('questionGridDrawer');
+                this.gridButtonsContainer = document.getElementById('questionGridButtons');
+                this.stageBar = document.getElementById('quizStageBar');
+            }
+
+            bindEvents() {
+                document.getElementById('themeToggle').addEventListener('click', () => {
+                    document.documentElement.classList.toggle('dark');
+                    localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+                });
+
+                if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+
+            toggleSound() {
+                sfx.enabled = !sfx.enabled;
+                const icon = document.getElementById('soundIcon');
+                if (sfx.enabled) {
+                    icon.className = "fa-solid fa-volume-high text-lg";
+                } else {
+                    icon.className = "fa-solid fa-volume-xmark text-lg text-slate-400";
+                }
+            }
+
+            switchMode(mode) {
+                this.currentMode = mode;
+                const quizBtn = document.getElementById('modeQuizBtn');
+                const freeBtn = document.getElementById('modeFreeBtn');
+
+                if (mode === 'quiz') {
+                    quizBtn.className = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm transition-all";
+                    freeBtn.className = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all";
+                    this.stageBar.classList.remove('hidden');
+                    // jump to current quiz group start
+                    this.currentIndex = (this.currentQuizGroup - 1) * 10;
+                } else {
+                    freeBtn.className = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm transition-all";
+                    quizBtn.className = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all";
+                    this.stageBar.classList.add('hidden');
+                }
+                this.stageSummaryCard.classList.add('hidden');
+                this.renderQuestion();
+            }
+
+            renderQuizStagePills() {
+                this.stageBar.innerHTML = '';
+                for (let i = 1; i <= 8; i++) {
+                    const btn = document.createElement('button');
+                    const isActive = this.currentQuizGroup === i && this.currentMode === 'quiz';
+                    
+                    btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                        isActive 
+                        ? 'bg-brand-600 text-white shadow-sm' 
+                        : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                    }`;
+                    btn.innerHTML = `Quiz ${i} <span class="text-[10px] opacity-75">(Q${(i-1)*10+1}~${i*10})</span>`;
+                    btn.onclick = () => {
+                        this.currentQuizGroup = i;
+                        this.currentIndex = (i - 1) * 10;
+                        this.currentMode = 'quiz';
+                        this.switchMode('quiz');
+                    };
+                    this.stageBar.appendChild(btn);
+                }
+            }
+
+            toggleQuestionGrid() {
+                this.gridDrawer.classList.toggle('hidden');
+            }
+
+            setFilter(filterType) {
+                this.activeFilter = filterType;
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.className = "filter-btn px-3 py-1.5 rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors";
+                });
+                const activeBtn = document.getElementById(`filter-${filterType}`);
+                if (activeBtn) {
+                    activeBtn.className = "filter-btn px-3 py-1.5 rounded-xl font-medium bg-brand-500 text-white transition-colors";
+                }
+
+                this.updateFilteredIndices();
+
+                if (this.filteredIndices.length > 0) {
+                    this.currentIndex = this.filteredIndices[0];
+                    this.stageSummaryCard.classList.add('hidden');
+                    this.renderQuestion();
+                } else {
+                    this.container.innerHTML = `
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3 block"></i>
+                            <p class="text-slate-600 dark:text-slate-300 font-medium">此篩選條件下無符合的題目。</p>
+                            <button onclick="quizApp.setFilter('all')" class="mt-4 px-4 py-2 bg-brand-500 text-white text-xs font-semibold rounded-xl">返回全部 80 題</button>
+                        </div>
+                    `;
+                }
+            }
+
+            updateFilteredIndices() {
+                this.filteredIndices = [];
+                this.questions.forEach((q, idx) => {
+                    const ans = this.userAnswers[q.id];
+                    if (this.activeFilter === 'all') {
+                        this.filteredIndices.push(idx);
+                    } else if (this.activeFilter === 'unanswered' && !ans) {
+                        this.filteredIndices.push(idx);
+                    } else if (this.activeFilter === 'incorrect' && ans && !ans.isCorrect) {
+                        this.filteredIndices.push(idx);
+                    } else if (this.activeFilter === 'bookmarked' && this.bookmarks.has(q.id)) {
+                        this.filteredIndices.push(idx);
+                    }
+                });
+            }
+
+            toggleBookmark(qId) {
+                if (this.bookmarks.has(qId)) {
+                    this.bookmarks.delete(qId);
+                } else {
+                    this.bookmarks.add(qId);
+                }
+                this.bookmarkText.innerText = `${this.bookmarks.size} 題`;
+                this.renderGridButtons();
+                this.renderQuestion();
+            }
+
+            updateDashboard() {
+                const total = this.questions.length;
+                const answeredCount = Object.keys(this.userAnswers).length;
+                let correctCount = 0;
+
+                Object.values(this.userAnswers).forEach(ans => {
+                    if (ans.isCorrect) correctCount++;
+                });
+
+                const calculatedScore = (correctCount / total) * 100;
+                const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+
+                this.progressText.innerText = `${answeredCount} / ${total}`;
+                this.scoreText.innerText = `${Math.round(calculatedScore)} 分`;
+                this.accuracyText.innerText = `${accuracy}%`;
+
+                const progressPercent = (answeredCount / total) * 100;
+                this.progressBar.style.width = `${progressPercent}%`;
+
+                this.renderQuizStagePills();
+                this.renderGridButtons();
+            }
+
+            renderGridButtons() {
+                this.gridButtonsContainer.innerHTML = '';
+                this.questions.forEach((q, idx) => {
+                    const ans = this.userAnswers[q.id];
+                    const isCurrent = idx === this.currentIndex;
+                    const isBookmarked = this.bookmarks.has(q.id);
+
+                    let btnClass = "relative h-9 text-xs font-bold rounded-xl border transition-all flex items-center justify-center ";
+
+                    if (isCurrent) {
+                        btnClass += "ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-slate-800 ";
+                    }
+
+                    if (ans) {
+                        if (ans.isCorrect) {
+                            btnClass += "bg-emerald-500 text-white border-emerald-600";
+                        } else {
+                            btnClass += "bg-rose-500 text-white border-rose-600";
+                        }
+                    } else {
+                        btnClass += "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-200";
+                    }
+
+                    const btn = document.createElement('button');
+                    btn.className = btnClass;
+                    btn.innerHTML = `
+                        Q${idx + 1}
+                        ${isBookmarked ? '<span class="absolute -top-1 -right-1 text-amber-400 text-[10px]"><i class="fa-solid fa-star"></i></span>' : ''}
+                    `;
+                    btn.onclick = () => {
+                        this.currentIndex = idx;
+                        this.currentQuizGroup = Math.floor(idx / 10) + 1;
+                        this.stageSummaryCard.classList.add('hidden');
+                        this.renderQuestion();
+                        this.gridDrawer.classList.add('hidden');
+                    };
+
+                    this.gridButtonsContainer.appendChild(btn);
+                });
+            }
+
+            renderQuestion() {
+                this.resultContainer.classList.add('hidden');
+                this.stageSummaryCard.classList.add('hidden');
+                this.container.classList.remove('hidden');
+
+                const q = this.questions[this.currentIndex];
+                const isAnswered = !!this.userAnswers[q.id];
+                const savedState = this.userAnswers[q.id];
+                const isBookmarked = this.bookmarks.has(q.id);
+
+                let html = `
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-xl transition-all animate-pop">
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700/60 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold px-3 py-1 rounded-full bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-400">
+                                    Quiz ${q.quizGroup} (Q${(q.quizGroup-1)*10+1}~Q${q.quizGroup*10})
+                                </span>
+                                <span class="text-xs font-semibold text-slate-400">
+                                    題號: #${q.id}
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <button onclick="quizApp.toggleBookmark(${q.id})" class="text-sm font-medium text-slate-400 hover:text-amber-500 flex items-center gap-1 transition-colors">
+                                    <i class="${isBookmarked ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark"></i>
+                                    <span class="text-xs hidden sm:inline">${isBookmarked ? '已標記' : '標記此題'}</span>
+                                </button>
+                                <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                    第 ${this.currentIndex + 1} / 80 題
+                                </span>
+                            </div>
+                        </div>
+
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-3 leading-relaxed">
+                            ${q.title}
+                        </h2>
+                        <div class="text-slate-700 dark:text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
+                            ${q.question}
+                        </div>
+                `;
+
+                html += `<div class="space-y-3 mb-6">`;
+                q.options.forEach(opt => {
+                    let btnClass = "w-full text-left p-4 rounded-2xl border transition-all flex items-start gap-3.5 text-sm sm:text-base ";
+                    let iconHtml = `<span class="w-6 h-6 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center font-semibold text-xs text-slate-500 dark:text-slate-400 shrink-0 mt-0.5">${opt.id}</span>`;
+
+                    if (isAnswered) {
+                        if (opt.id === q.correctAnswer) {
+                            btnClass += "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-medium";
+                            iconHtml = `<span class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs shrink-0 mt-0.5"><i class="fa-solid fa-check"></i></span>`;
+                        } else if (savedState.userSelection === opt.id) {
+                            btnClass += "bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-900 dark:text-rose-200";
+                            iconHtml = `<span class="w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs shrink-0 mt-0.5"><i class="fa-solid fa-xmark"></i></span>`;
+                        } else {
+                            btnClass += "bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 opacity-60";
+                        }
+                    } else {
+                        btnClass += "bg-slate-50 hover:bg-slate-100 dark:bg-slate-700/50 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-brand-300 dark:hover:border-brand-500";
+                    }
+
+                    html += `
+                        <button ${isAnswered ? 'disabled' : ''} onclick="quizApp.selectOption('${opt.id}')" class="${btnClass}">
+                            ${iconHtml}
+                            <span class="flex-1">${opt.text}</span>
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+
+                if (isAnswered) {
+                    const isCorrect = savedState.isCorrect;
+                    html += `
+                        <div class="mt-6 p-5 rounded-2xl border ${isCorrect ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/50' : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/50'} space-y-3">
+                            <div class="flex items-center gap-2">
+                                <span class="px-3 py-1 text-xs font-bold rounded-lg text-white ${isCorrect ? 'bg-emerald-500' : 'bg-rose-500'}">
+                                    ${isCorrect ? '<i class="fa-solid fa-circle-check mr-1"></i>回答正確' : '<i class="fa-solid fa-circle-xmark mr-1"></i>回答錯誤'}
+                                </span>
+                                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                    標準答案：${q.correctAnswer}
+                                </span>
+                            </div>
+                            <div class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed border-t border-slate-200/60 dark:border-slate-700/60 pt-3">
+                                <strong class="text-slate-900 dark:text-white block mb-1"><i class="fa-solid fa-lightbulb text-amber-500 mr-1.5"></i>詳解與觀念說明：</strong>
+                                ${q.explanation}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                    <div class="mt-8 pt-4 border-t border-slate-100 dark:border-slate-700/60 flex justify-between items-center">
+                        <button onclick="quizApp.prevQuestion()" ${this.currentIndex === 0 ? 'disabled' : ''} class="px-4 py-2 text-sm font-medium rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrow-left"></i>上一題
+                        </button>
+
+                        <div class="flex gap-2">
+                            ${this.currentIndex < this.questions.length - 1 ? `
+                                <button onclick="quizApp.nextQuestion()" class="px-5 py-2.5 text-sm font-semibold rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-md transition-all flex items-center gap-1.5">
+                                    下一題<i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            ` : `
+                                <button onclick="quizApp.finishQuiz()" class="px-5 py-2.5 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all flex items-center gap-1.5">
+                                    完成全測驗<i class="fa-solid fa-flag-checkered"></i>
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+
+                html += `</div>`;
+                this.container.innerHTML = html;
+                this.updateDashboard();
+            }
+
+            selectOption(optionId) {
+                const q = this.questions[this.currentIndex];
+                const isCorrect = optionId === q.correctAnswer;
+
+                this.userAnswers[q.id] = {
+                    userSelection: optionId,
+                    isCorrect: isCorrect
+                };
+
+                if (isCorrect) {
+                    sfx.playCorrect();
+                } else {
+                    sfx.playIncorrect();
+                }
+
+                this.renderQuestion();
+            }
+
+            nextQuestion() {
+                // Check if in Quiz Mode and completing a 10-question stage
+                const nextIdx = this.currentIndex + 1;
+                if (this.currentMode === 'quiz' && (nextIdx % 10 === 0) && (nextIdx / 10 === this.currentQuizGroup)) {
+                    this.showStageSummary(this.currentQuizGroup);
+                    return;
+                }
+
+                if (this.currentIndex < this.questions.length - 1) {
+                    this.currentIndex++;
+                    this.currentQuizGroup = Math.floor(this.currentIndex / 10) + 1;
+                    this.renderQuestion();
+                }
+            }
+
+            prevQuestion() {
+                if (this.currentIndex > 0) {
+                    this.currentIndex--;
+                    this.currentQuizGroup = Math.floor(this.currentIndex / 10) + 1;
+                    this.renderQuestion();
+                }
+            }
+
+            showStageSummary(quizNum) {
+                this.container.classList.add('hidden');
+                this.stageSummaryCard.classList.remove('hidden');
+
+                const startQ = (quizNum - 1) * 10 + 1;
+                const endQ = quizNum * 10;
+                let correctCount = 0;
+
+                for (let i = startQ; i <= endQ; i++) {
+                    const ans = this.userAnswers[i];
+                    if (ans && ans.isCorrect) correctCount++;
+                }
+
+                const score = correctCount * 10;
+                const accuracy = Math.round((correctCount / 10) * 100);
+
+                document.getElementById('stageSummaryTitle').innerText = `Quiz ${quizNum} 小考完成！`;
+                document.getElementById('stageSummarySubtitle').innerText = `您已完成 Quiz ${quizNum} (第 ${startQ} ~ ${endQ} 題) 的練習，以下是成績評估：`;
+                document.getElementById('stageTotalText').innerText = `10 題`;
+                document.getElementById('stageCorrectText').innerText = `${correctCount} 題`;
+                document.getElementById('stageScoreText').innerText = `${score} 分`;
+                document.getElementById('stageAccuracyText').innerText = `${accuracy}%`;
+
+                const badge = document.getElementById('stageFeedbackBadge');
+                const nextBtn = document.getElementById('nextQuizBtn');
+
+                if (score >= 80) {
+                    badge.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200";
+                    badge.innerHTML = `<i class="fa-solid fa-star text-amber-500 mr-1.5"></i>表現極為優異！完全掌握了 Quiz ${quizNum} 的考點概念！`;
+                } else if (score >= 60) {
+                    badge.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-brand-100 text-brand-800 dark:bg-brand-950 dark:text-brand-200";
+                    badge.innerHTML = `<i class="fa-solid fa-circle-check text-brand-500 mr-1.5"></i>通過本階段測驗！可繼續前往下一小考關卡。`;
+                } else {
+                    badge.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200";
+                    badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5"></i>未達 60 分關卡標準，建議點擊下方重測本小考！`;
+                }
+
+                if (quizNum >= 8) {
+                    nextBtn.innerHTML = `<span>查看全 80 題最終總結果</span><i class="fa-solid fa-trophy"></i>`;
+                    nextBtn.onclick = () => this.finishQuiz();
+                } else {
+                    nextBtn.innerHTML = `<span>進行下一個 Quiz 小考 (Quiz ${quizNum + 1})</span><i class="fa-solid fa-arrow-right"></i>`;
+                    nextBtn.onclick = () => this.nextQuizStage();
+                }
+            }
+
+            nextQuizStage() {
+                if (this.currentQuizGroup < 8) {
+                    this.currentQuizGroup++;
+                    this.currentIndex = (this.currentQuizGroup - 1) * 10;
+                    this.stageSummaryCard.classList.add('hidden');
+                    this.renderQuestion();
+                } else {
+                    this.finishQuiz();
+                }
+            }
+
+            retakeCurrentQuiz() {
+                const startQ = (this.currentQuizGroup - 1) * 10 + 1;
+                const endQ = this.currentQuizGroup * 10;
+                for (let i = startQ; i <= endQ; i++) {
+                    delete this.userAnswers[i];
+                }
+                this.currentIndex = startQ - 1;
+                this.stageSummaryCard.classList.add('hidden');
+                this.renderQuestion();
+            }
+
+            finishQuiz() {
+                this.container.classList.add('hidden');
+                this.stageSummaryCard.classList.add('hidden');
+                this.resultContainer.classList.remove('hidden');
+
+                let correctCount = 0;
+                Object.values(this.userAnswers).forEach(ans => {
+                    if (ans.isCorrect) correctCount++;
+                });
+
+                const finalScore = Math.round((correctCount / this.questions.length) * 100);
+                const accuracy = Math.round((correctCount / this.questions.length) * 100);
+
+                document.getElementById('finalCorrectCount').innerText = `${correctCount} / ${this.questions.length} 題`;
+                document.getElementById('finalScore').innerText = `${finalScore} 分`;
+                document.getElementById('finalAccuracy').innerText = `${accuracy}%`;
+
+                const feedbackElem = document.getElementById('resultFeedbackText');
+                if (finalScore === 100) {
+                    feedbackElem.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200";
+                    feedbackElem.innerHTML = "<i class='fa-solid fa-star text-amber-500 mr-1.5'></i>太震撼了！獲得 100 滿分！您已完美通關 CCS 生成式 AI 國際認證全部 80 題！";
+                } else if (finalScore >= 70) {
+                    feedbackElem.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-brand-100 text-brand-800 dark:bg-brand-950 dark:text-brand-200";
+                    feedbackElem.innerHTML = "<i class='fa-solid fa-circle-check text-brand-500 mr-1.5'></i>恭喜順利通過國際認證門檻 (70分)！針對錯題進行複習即可高分拿標章！";
+                } else {
+                    feedbackElem.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200";
+                    feedbackElem.innerHTML = "<i class='fa-solid fa-triangle-exclamation text-amber-500 mr-1.5'></i>未達 70 分及格標準，建議利用「錯題篩選模式」加強複習！";
+                }
+
+                this.progressBar.style.width = '100%';
+            }
+
+            restartQuiz() {
+                this.currentIndex = 0;
+                this.currentQuizGroup = 1;
+                this.userAnswers = {};
+                this.activeFilter = 'all';
+                this.updateFilteredIndices();
+                this.stageSummaryCard.classList.add('hidden');
+                this.renderQuestion();
+            }
+
+            reviewAllQuestions() {
+                this.resultContainer.classList.add('hidden');
+                this.stageSummaryCard.classList.add('hidden');
+                this.container.classList.remove('hidden');
+
+                let reviewHtml = `
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <h2 class="font-bold text-slate-800 dark:text-white text-base sm:text-lg"><i class="fa-solid fa-list-check text-brand-500 mr-2"></i>全 80 題完整題目與詳細解析總覽</h2>
+                            <button onclick="quizApp.restartQuiz()" class="px-4 py-2 text-xs bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700">重新測驗</button>
+                        </div>
+                `;
+
+                this.questions.forEach((q, idx) => {
+                    const userAns = this.userAnswers[q.id];
+                    const isCorrect = userAns ? userAns.isCorrect : false;
+
+                    reviewHtml += `
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-900 dark:text-white">${q.title}</span>
+                                ${userAns ? (
+                                    isCorrect ? 
+                                    '<span class="text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold px-2.5 py-1 rounded-lg">答對</span>' : 
+                                    '<span class="text-xs bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 font-bold px-2.5 py-1 rounded-lg">答錯</span>'
+                                ) : '<span class="text-xs bg-slate-100 text-slate-500 font-bold px-2.5 py-1 rounded-lg">未作答</span>'}
+                            </div>
+                            <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">${q.question}</p>
+                            <div class="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-xs sm:text-sm space-y-2 border border-slate-100 dark:border-slate-800">
+                                <div class="text-emerald-600 dark:text-emerald-400 font-semibold">標準答案：${q.correctAnswer}</div>
+                                <div class="text-slate-600 dark:text-slate-400 leading-relaxed"><strong class="text-slate-700 dark:text-slate-300">詳解：</strong>${q.explanation}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                reviewHtml += `</div>`;
+                this.container.innerHTML = reviewHtml;
+            }
+        }
+
+        let quizApp;
+        window.onload = function() {
+            quizApp = new QuizApp(quizData);
+        };
+    </script>
+</body>
+</html>
