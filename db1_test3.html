@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITS-Databases 認證考試互動刷題系統 - Part 2</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Microsoft JhengHei', 'PingFang TC', 'sans-serif'],
+                        mono: ['Fira Code', 'Consolas', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .code-block {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            background-color: #1e293b;
+            color: #f8fafc;
+        }
+        .dark .code-block {
+            background-color: #0f172a;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-full flex flex-col font-sans transition-colors duration-200">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-brand-600 text-white p-2.5 rounded-xl shadow-md">
+                    <i class="fa-solid font-bold fa-database text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 dark:text-white leading-tight">ITS-Databases 刷題測驗</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Part 2 實戰隨堂考 • 即時反饋模式</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <!-- Theme Toggle Button -->
+                <button id="themeToggle" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    <i class="fa-solid fa-moon text-lg dark:hidden"></i>
+                    <i class="fa-solid fa-sun text-lg hidden dark:inline"></i>
+                </button>
+                
+                <!-- Restart Quiz -->
+                <button onclick="quizApp.restartQuiz()" class="px-3.5 py-2 text-sm font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span class="hidden sm:inline">重新開始</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5">
+            <div id="progressBar" class="bg-brand-500 h-1.5 transition-all duration-300 w-0"></div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 flex flex-col justify-center">
+        
+        <!-- Score Dashboard -->
+        <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+            <div class="bg-white dark:bg-slate-800 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">完成進度</span>
+                <span id="progressText" class="text-xl sm:text-2xl font-black text-brand-600 dark:text-brand-500">0 / 8</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">目前得分</span>
+                <span id="scoreText" class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">0 分</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">正確率</span>
+                <span id="accuracyText" class="text-xl sm:text-2xl font-black text-indigo-600 dark:text-indigo-400">0%</span>
+            </div>
+        </div>
+
+        <!-- Question Card View Container -->
+        <div id="questionContainer">
+            <!-- Dynamic Content Injected Here -->
+        </div>
+
+        <!-- Quiz Completed View -->
+        <div id="resultContainer" class="hidden bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-xl text-center space-y-6">
+            <div class="inline-flex p-4 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 mb-2">
+                <i class="fa-solid fa-trophy text-4xl"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">恭喜完成 Part 2 刷題測驗！</h2>
+            <p class="text-slate-600 dark:text-slate-300 max-w-lg mx-auto">你已完成了本單元的所有題目，以下是你的本次測驗表現總結：</p>
+
+            <div class="max-w-md mx-auto bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3 text-left">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">總題數：</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200">8 題</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">答對題數：</span>
+                    <span id="finalCorrectCount" class="font-bold text-emerald-600 dark:text-emerald-400">0 題</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">最終得分：</span>
+                    <span id="finalScore" class="font-black text-2xl text-brand-600 dark:text-brand-500">0 分</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">整體正確率：</span>
+                    <span id="finalAccuracy" class="font-bold text-indigo-600 dark:text-indigo-400">0%</span>
+                </div>
+            </div>
+
+            <div id="resultFeedbackText" class="text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto"></div>
+
+            <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="quizApp.restartQuiz()" class="w-full sm:w-auto px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/25 transition-all">
+                    <i class="fa-solid fa-rotate-right mr-2"></i>再測驗一次
+                </button>
+                <button onclick="quizApp.reviewAllQuestions()" class="w-full sm:w-auto px-6 py-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-semibold rounded-xl transition-all">
+                    <i class="fa-solid fa-list-check mr-2"></i>完整查看試題與解析
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-4 text-center text-xs text-slate-400 dark:text-slate-500 border-t border-slate-200 dark:border-slate-800">
+        ITS-Databases Certification Interactive Learning Hub &copy; 2026
+    </footer>
+
+    <!-- Quiz Logic & Data Script -->
+    <script>
+        // Questions Data Array derived from Google Doc
+        const quizData = [
+            {
+                id: 1,
+                type: "single",
+                title: "Q1. 檢視表 (View) 的底層資料表刪除行為",
+                question: "在資料庫中有一個名為 `Customer` 的實體資料表，並基於它建立了一個名為 `Customer_View` 的檢視表。若後來將 `Customer` 資料表中的所有資料列刪除（Delete），此時查詢 `Customer_View` 會出現什麼結果？",
+                options: [
+                    { id: "A", text: "保留原本的資料" },
+                    { id: "B", text: "報錯：找不到資料" },
+                    { id: "C", text: "清空（回傳空集合 Empty）" },
+                    { id: "D", text: "自動還原實體表資料" }
+                ],
+                correctAnswer: "C",
+                explanation: "檢視表 (View) 本身為虛擬表，不儲存實體資料，其內容是動態來自底層實體資料表 (Base Table)。當底層 `Customer` 資料表內的紀錄被全部刪除後，查詢 `Customer_View` 時底層已無資料，因此查詢結果為空集合 (Empty)。"
+            },
+            {
+                id: 2,
+                type: "single",
+                title: "Q2. 修改資料表結構 (DDL) 增加欄位",
+                question: "若要為現有的 `Customer` 資料表新增一個名為 `District` 且型別為 `INTEGER` 的欄位，下列哪一個 SQL 語法最為正確？",
+                options: [
+                    { id: "A", text: "UPDATE TABLE Customer ADD District INTEGER;" },
+                    { id: "B", text: "ALTER TABLE Customer ADD (District INTEGER);" },
+                    { id: "C", text: "INSERT INTO Customer (District INTEGER);" },
+                    { id: "D", text: "MODIFY TABLE Customer ADD District INTEGER;" }
+                ],
+                correctAnswer: "B",
+                explanation: "修改資料表欄位結構屬於 DDL 語法，必須使用 `ALTER TABLE <表名> ADD (<欄位名> <型別>)`。"
+            },
+            {
+                id: 3,
+                type: "fill",
+                title: "Q3. 叢集索引 (Clustered Index) 最佳適用情境選填",
+                question: "請挑選最適合建立 **叢集索引 (Clustered Index)** 的兩種查詢效能情境：",
+                subText: "請分別點選下方選項拖填或選入對應位置：",
+                fillCount: 2,
+                availableOptions: [
+                    "傳回大型結果集",
+                    "頻繁進行少量點查詢",
+                    "循序存取",
+                    "高頻率隨機寫入"
+                ],
+                correctAnswer: ["傳回大型結果集", "循序存取"],
+                explanation: "叢集索引 (Clustered Index) 決定了資料在磁碟上的物理儲存排序。因此最適合用在「傳回大型結果集」（範圍查詢）以及「循序存取」的查詢上，可顯著減少磁碟 I/O 隨機讀取成本。"
+            },
+            {
+                id: 4,
+                type: "single",
+                title: "Q4. 第三正規化 (3NF) 與遞移相依判斷",
+                question: "資料表結構包含：`ID` (主鍵)、`PetID` (寵物編號)、`PetName` (寵物名字)、`Birthdate` (寵物生日)。<br>其中 `ID` $\\rightarrow$ `PetID`，而 `PetID` $\\rightarrow$ `Birthdate`。請問哪一個欄位破壞了第三正規化 (3NF) 的原則？",
+                options: [
+                    { id: "A", text: "ID" },
+                    { id: "B", text: "PetID" },
+                    { id: "C", text: "Birthdate" },
+                    { id: "D", text: "PetName" }
+                ],
+                correctAnswer: "C",
+                explanation: "第三正規化 (3NF) 要求消除非主鍵欄位對主鍵的「遞移相依」(Transitive Dependency)。此處 `Birthdate` 實際上是相依於 `PetID` 而非直接相依於 `ID` ($ID \\rightarrow PetID \\rightarrow Birthdate$)，因此 `Birthdate` 造成了遞移相依，應單獨拆分至寵物主表以符合 3NF。"
+            },
+            {
+                id: 5,
+                type: "single",
+                title: "Q5. 外鍵條件約束 (Foreign Key Constraint)",
+                question: "當設定外鍵限制時，希望「當主表 (Parent Table) 的某筆資料紀錄被刪除時，子表 (Child Table) 中所有對應關聯的紀錄也會被系統自動刪除」，應該設定何種外鍵約束條件？",
+                options: [
+                    { id: "A", text: "拒絕刪除 (Restrict)" },
+                    { id: "B", text: "設為 NULL (Set Null)" },
+                    { id: "C", text: "不採取任何動作 (No Action)" },
+                    { id: "D", text: "設為預設值 (Set Default)" },
+                    { id: "E", text: "串聯刪除 (Cascade Delete)" }
+                ],
+                correctAnswer: "E",
+                explanation: "設定 `ON DELETE CASCADE` (串聯刪除) 時，一旦父表主鍵紀錄被刪除，子表中所有參照該主鍵的外鍵紀錄均會一併自動被刪除，維護參照完整性。"
+            },
+            {
+                id: 6,
+                type: "single",
+                title: "Q6. 模糊搜尋關鍵字 SQL 語法",
+                question: "要從 `Products` 表中找出商品描述 (`ItemDescription`) 內容**包含**「chocolate」關鍵字的所有商品，並列出名稱與價格，應使用哪一個 SELECT 語法？",
+                options: [
+                    { id: "A", text: "SELECT ItemName, Price FROM Products WHERE ItemDescription = 'chocolate';" },
+                    { id: "B", text: "SELECT ItemName, Price FROM Products WHERE ItemDescription IN ('chocolate');" },
+                    { id: "C", text: "SELECT ItemName, Price FROM Products WHERE ItemDescription LIKE 'chocolate%';" },
+                    { id: "D", text: "SELECT ItemName, Price FROM Products WHERE ItemDescription LIKE '%chocolate%';" }
+                ],
+                correctAnswer: "D",
+                explanation: "模糊查詢子字串必須使用 `LIKE` 運算子，並在關鍵字前後加上通配符 `%`，即 `LIKE '%chocolate%'` 才能比對出出現在任何位置的關鍵字。"
+            },
+            {
+                id: 7,
+                type: "single",
+                title: "Q7. 合併兩個獨立查詢結果集",
+                question: "若有兩個架構相同的 SELECT 查詢指令，想要將這兩個查詢所產生的結果集合併為單一結果集（並自動去除重複資料），應該使用哪一個 SQL 關鍵字？",
+                options: [
+                    { id: "A", text: "JOIN" },
+                    { id: "B", text: "UNION" },
+                    { id: "C", text: "GROUP BY" },
+                    { id: "D", text: "INTERSECT" }
+                ],
+                correctAnswer: "B",
+                explanation: "`UNION` 集合運算子用來將兩個以上的 SELECT 查詢結果集垂直合併為單一結果集，預設會剔除重複列（若要保留重複資料則用 `UNION ALL`）。"
+            },
+            {
+                id: 8,
+                type: "single",
+                title: "Q8. 正確的 INNER JOIN 語法與條件子句",
+                question: "欲將 `students` 表與 `courses` 表透過 `courseID` 進行內部連接 (INNER JOIN) 並查詢學生姓名與課程名稱，下列何者為語法正確的 SQL 語句？",
+                options: [
+                    { id: "A", text: "SELECT students.name, courses.name FROM students INNER JOIN courses WHERE students.courseID = courses.courseID;" },
+                    { id: "B", text: "SELECT students.name, courses.name FROM students INNER JOIN courses ON students.courseID = courses.courseID;" },
+                    { id: "C", text: "SELECT students.name, courses.name FROM students JOIN courses USING WHERE students.courseID = courses.courseID;" },
+                    { id: "D", text: "SELECT students.name, courses.name FROM students, courses ON students.courseID = courses.courseID;" }
+                ],
+                correctAnswer: "B",
+                explanation: "ANSI SQL 標準的 `INNER JOIN` 語法必須搭配 `ON` 子句來指定連接的欄位條件（例如：`INNER JOIN courses ON students.courseID = courses.courseID`）。"
+            }
+        ];
+
+        // Quiz State App Controller
+        class QuizApp {
+            constructor(questions) {
+                this.questions = questions;
+                this.currentIndex = 0;
+                this.userAnswers = {}; // { questionId: { answer, isCorrect } }
+                this.score = 0;
+                this.fillSelections = []; // Temporary holding for fill-in questions
+
+                this.initElements();
+                this.bindEvents();
+                this.renderQuestion();
+            }
+
+            initElements() {
+                this.container = document.getElementById('questionContainer');
+                this.resultContainer = document.getElementById('resultContainer');
+                this.progressBar = document.getElementById('progressBar');
+                this.progressText = document.getElementById('progressText');
+                this.scoreText = document.getElementById('scoreText');
+                this.accuracyText = document.getElementById('accuracyText');
+            }
+
+            bindEvents() {
+                // Theme toggle listener
+                document.getElementById('themeToggle').addEventListener('click', () => {
+                    document.documentElement.classList.toggle('dark');
+                    localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+                });
+
+                // Init theme from system/preference
+                if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+
+            updateDashboard() {
+                const total = this.questions.length;
+                const answered = Object.keys(this.userAnswers).length;
+                let correctCount = 0;
+
+                Object.values(this.userAnswers).forEach(ans => {
+                    if (ans.isCorrect) correctCount++;
+                });
+
+                this.score = correctCount * 12.5; // 8 questions = 100 max score
+                const accuracy = answered > 0 ? Math.round((correctCount / answered) * 100) : 0;
+
+                this.progressText.innerText = `${answered} / ${total}`;
+                this.scoreText.innerText = `${Math.round(this.score)} 分`;
+                this.accuracyText.innerText = `${accuracy}%`;
+
+                const progressPercent = (answered / total) * 100;
+                this.progressBar.style.width = `${progressPercent}%`;
+            }
+
+            renderQuestion() {
+                this.resultContainer.classList.add('hidden');
+                this.container.classList.remove('hidden');
+
+                const q = this.questions[this.currentIndex];
+                const isAnswered = !!this.userAnswers[q.id];
+                const savedState = this.userAnswers[q.id];
+
+                let html = `
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-xl transition-all">
+                        <!-- Question Header -->
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700/60 pb-3">
+                            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-400">
+                                ${q.type === 'single' ? '單選題' : '情境填空 / 選擇題'}
+                            </span>
+                            <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                第 ${this.currentIndex + 1} 題 / 共 ${this.questions.length} 題
+                            </span>
+                        </div>
+
+                        <!-- Question Title & Context -->
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-3 leading-relaxed">
+                            ${q.title}
+                        </h2>
+                        <div class="text-slate-700 dark:text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
+                            ${q.question}
+                        </div>
+                `;
+
+                // Render options based on Question Type
+                if (q.type === 'single') {
+                    html += `<div class="space-y-3 mb-6">`;
+                    q.options.forEach(opt => {
+                        let btnClass = "w-full text-left p-4 rounded-2xl border transition-all flex items-start gap-3.5 text-sm sm:text-base ";
+                        let iconHtml = `<span class="w-6 h-6 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center font-semibold text-xs text-slate-500 dark:text-slate-400 shrink-0 mt-0.5">${opt.id}</span>`;
+
+                        if (isAnswered) {
+                            if (opt.id === q.correctAnswer) {
+                                btnClass += "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 dark:border-emerald-500 text-emerald-900 dark:text-emerald-200 font-medium";
+                                iconHtml = `<span class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs shrink-0 mt-0.5"><i class="fa-solid fa-check"></i></span>`;
+                            } else if (savedState.userSelection === opt.id) {
+                                btnClass += "bg-rose-50 dark:bg-rose-950/40 border-rose-500 dark:border-rose-500 text-rose-900 dark:text-rose-200";
+                                iconHtml = `<span class="w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs shrink-0 mt-0.5"><i class="fa-solid fa-xmark"></i></span>`;
+                            } else {
+                                btnClass += "bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 opacity-60";
+                            }
+                        } else {
+                            btnClass += "bg-slate-50 hover:bg-slate-100 dark:bg-slate-700/50 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-brand-300 dark:hover:border-brand-500";
+                        }
+
+                        html += `
+                            <button ${isAnswered ? 'disabled' : ''} onclick="quizApp.selectSingleOption('${opt.id}')" class="${btnClass}">
+                                ${iconHtml}
+                                <span class="flex-1">${opt.text}</span>
+                            </button>
+                        `;
+                    });
+                    html += `</div>`;
+                } else if (q.type === 'fill') {
+                    // Fill in blanks card mode
+                    const currentSelected = isAnswered ? savedState.userSelection : this.fillSelections;
+
+                    html += `
+                        <div class="mb-6 space-y-4">
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">${q.subText}</p>
+                            
+                            <!-- Selected Slots -->
+                            <div class="p-4 bg-slate-100 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                <span class="text-xs text-slate-400 block mb-2 font-medium">已勾選的答案屬性 (需選 ${q.fillCount} 項)：</span>
+                                <div class="flex flex-wrap gap-2 min-h-[42px] items-center">
+                                    ${currentSelected.length === 0 ? '<span class="text-xs text-slate-400 italic">點擊下方選項填入...</span>' : ''}
+                                    ${currentSelected.map((item, idx) => `
+                                        <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-500 text-white text-xs sm:text-sm font-medium rounded-xl shadow-sm">
+                                            ${item}
+                                            ${!isAnswered ? `<i class="fa-solid fa-xmark cursor-pointer hover:text-rose-200" onclick="quizApp.toggleFillOption('${item}')"></i>` : ''}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <!-- Options List -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                ${q.availableOptions.map(opt => {
+                                    const selected = currentSelected.includes(opt);
+                                    let fillBtnStyle = "p-3.5 text-xs sm:text-sm text-left rounded-xl border font-medium transition-all flex items-center justify-between ";
+
+                                    if (isAnswered) {
+                                        const isCorrectOpt = q.correctAnswer.includes(opt);
+                                        if (isCorrectOpt) {
+                                            fillBtnStyle += "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-800 dark:text-emerald-200";
+                                        } else if (selected && !isCorrectOpt) {
+                                            fillBtnStyle += "bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-800 dark:text-rose-200";
+                                        } else {
+                                            fillBtnStyle += "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-400 opacity-60";
+                                        }
+                                    } else {
+                                        if (selected) {
+                                            fillBtnStyle += "bg-brand-50 dark:bg-brand-900/30 border-brand-500 text-brand-700 dark:text-brand-300";
+                                        } else {
+                                            fillBtnStyle += "bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200";
+                                        }
+                                    }
+
+                                    return `
+                                        <button ${isAnswered ? 'disabled' : ''} onclick="quizApp.toggleFillOption('${opt}')" class="${fillBtnStyle}">
+                                            <span>${opt}</span>
+                                            ${selected ? '<i class="fa-solid fa-circle-check text-brand-500"></i>' : '<i class="fa-regular fa-circle text-slate-300"></i>'}
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+
+                            ${!isAnswered ? `
+                                <button onclick="quizApp.submitFillAnswer()" ${currentSelected.length !== q.fillCount ? 'disabled' : ''} class="w-full mt-3 py-3 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 disabled:hover:bg-brand-600 text-white font-semibold rounded-xl transition-all shadow-md">
+                                    確認提交答案
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+                // Answer Feedback Banner (If Answered)
+                if (isAnswered) {
+                    const isCorrect = savedState.isCorrect;
+                    html += `
+                        <div class="mt-6 p-5 rounded-2xl border ${isCorrect ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/50' : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/50'} space-y-3 animate-fade-in">
+                            <div class="flex items-center gap-2">
+                                <span class="px-3 py-1 text-xs font-bold rounded-lg text-white ${isCorrect ? 'bg-emerald-500' : 'bg-rose-500'}">
+                                    ${isCorrect ? '<i class="fa-solid fa-circle-check mr-1"></i>回答正確' : '<i class="fa-solid fa-circle-xmark mr-1"></i>回答錯誤'}
+                                </span>
+                                <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                    正確答案：${Array.isArray(q.correctAnswer) ? q.correctAnswer.join("、") : q.correctAnswer}
+                                </span>
+                            </div>
+                            <div class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed border-t border-slate-200/60 dark:border-slate-700/60 pt-3">
+                                <strong class="text-slate-900 dark:text-white block mb-1"><i class="fa-solid fa-lightbulb text-amber-500 mr-1.5"></i>詳解與觀念剖析：</strong>
+                                ${q.explanation}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Controls Footer
+                html += `
+                    <div class="mt-8 pt-4 border-t border-slate-100 dark:border-slate-700/60 flex justify-between items-center">
+                        <button onclick="quizApp.prevQuestion()" ${this.currentIndex === 0 ? 'disabled' : ''} class="px-4 py-2 text-sm font-medium rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrow-left"></i>上一題
+                        </button>
+
+                        <div class="flex gap-2">
+                            ${this.currentIndex < this.questions.length - 1 ? `
+                                <button onclick="quizApp.nextQuestion()" class="px-5 py-2.5 text-sm font-semibold rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-md transition-all flex items-center gap-1.5">
+                                    下一題<i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            ` : `
+                                <button onclick="quizApp.finishQuiz()" class="px-5 py-2.5 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all flex items-center gap-1.5">
+                                    完成測驗<i class="fa-solid fa-flag-checkered"></i>
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+
+                html += `</div>`;
+                this.container.innerHTML = html;
+                this.updateDashboard();
+            }
+
+            selectSingleOption(optionId) {
+                const q = this.questions[this.currentIndex];
+                const isCorrect = optionId === q.correctAnswer;
+
+                this.userAnswers[q.id] = {
+                    userSelection: optionId,
+                    isCorrect: isCorrect
+                };
+
+                this.renderQuestion();
+            }
+
+            toggleFillOption(optionText) {
+                const q = this.questions[this.currentIndex];
+                if (this.userAnswers[q.id]) return; // Already submitted
+
+                const index = this.fillSelections.indexOf(optionText);
+                if (index > -1) {
+                    this.fillSelections.splice(index, 1);
+                } else {
+                    if (this.fillSelections.length < q.fillCount) {
+                        this.fillSelections.push(optionText);
+                    }
+                }
+                this.renderQuestion();
+            }
+
+            submitFillAnswer() {
+                const q = this.questions[this.currentIndex];
+                if (this.fillSelections.length !== q.fillCount) return;
+
+                // Check correctness (both items present)
+                const isCorrect = q.correctAnswer.every(item => this.fillSelections.includes(item)) && this.fillSelections.length === q.correctAnswer.length;
+
+                this.userAnswers[q.id] = {
+                    userSelection: [...this.fillSelections],
+                    isCorrect: isCorrect
+                };
+
+                this.fillSelections = [];
+                this.renderQuestion();
+            }
+
+            nextQuestion() {
+                if (this.currentIndex < this.questions.length - 1) {
+                    this.currentIndex++;
+                    this.fillSelections = [];
+                    this.renderQuestion();
+                }
+            }
+
+            prevQuestion() {
+                if (this.currentIndex > 0) {
+                    this.currentIndex--;
+                    this.fillSelections = [];
+                    this.renderQuestion();
+                }
+            }
+
+            finishQuiz() {
+                this.container.classList.add('hidden');
+                this.resultContainer.classList.remove('hidden');
+
+                let correctCount = 0;
+                Object.values(this.userAnswers).forEach(ans => {
+                    if (ans.isCorrect) correctCount++;
+                });
+
+                const finalScore = Math.round((correctCount / this.questions.length) * 100);
+                const accuracy = Math.round((correctCount / this.questions.length) * 100);
+
+                document.getElementById('finalCorrectCount').innerText = `${correctCount} / ${this.questions.length} 題`;
+                document.getElementById('finalScore').innerText = `${finalScore} 分`;
+                document.getElementById('finalAccuracy').innerText = `${accuracy}%`;
+
+                const feedbackElem = document.getElementById('resultFeedbackText');
+                if (finalScore === 100) {
+                    feedbackElem.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200";
+                    feedbackElem.innerHTML = "<i class='fa-solid fa-star text-amber-500 mr-1.5'></i>完美的表現！您已經徹底掌握 ITS-Databases Part 2 的所有考點概念！";
+                } else if (finalScore >= 75) {
+                    feedbackElem.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-brand-100 text-brand-800 dark:bg-brand-900/50 dark:text-brand-200";
+                    feedbackElem.innerHTML = "<i class='fa-solid fa-thumbs-up text-brand-500 mr-1.5'></i>成績十分優秀！建議可針對答錯的觀念題進行複習即可順利通過考試。";
+                } else {
+                    feedbackElem.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200";
+                    feedbackElem.innerHTML = "<i class='fa-solid fa-triangle-exclamation text-amber-500 mr-1.5'></i>仍有改進空間，建議點選下方按鈕重新查看完整解析並再度刷題！";
+                }
+
+                this.progressBar.style.width = '100%';
+            }
+
+            restartQuiz() {
+                this.currentIndex = 0;
+                this.userAnswers = {};
+                this.fillSelections = [];
+                this.renderQuestion();
+            }
+
+            reviewAllQuestions() {
+                this.resultContainer.classList.add('hidden');
+                this.container.classList.remove('hidden');
+
+                let reviewHtml = `
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                            <h2 class="font-bold text-slate-800 dark:text-white"><i class="fa-solid fa-list-check text-brand-500 mr-2"></i>完整題目與答案解析</h2>
+                            <button onclick="quizApp.restartQuiz()" class="px-3.5 py-1.5 text-xs bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700">重新刷題</button>
+                        </div>
+                `;
+
+                this.questions.forEach((q, idx) => {
+                    const userAns = this.userAnswers[q.id];
+                    const isCorrect = userAns ? userAns.isCorrect : false;
+
+                    reviewHtml += `
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-900 dark:text-white">${q.title}</span>
+                                ${userAns ? (
+                                    isCorrect ? 
+                                    '<span class="text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold px-2.5 py-1 rounded-lg">答對</span>' : 
+                                    '<span class="text-xs bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 font-bold px-2.5 py-1 rounded-lg">答錯</span>'
+                                ) : '<span class="text-xs bg-slate-100 text-slate-500 font-bold px-2.5 py-1 rounded-lg">未作答</span>'}
+                            </div>
+                            <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">${q.question}</p>
+                            <div class="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-xs space-y-1">
+                                <div class="text-emerald-600 dark:text-emerald-400 font-semibold">正確答案：${Array.isArray(q.correctAnswer) ? q.correctAnswer.join("、") : q.correctAnswer}</div>
+                                <div class="text-slate-600 dark:text-slate-400">解析：${q.explanation}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                reviewHtml += `</div>`;
+                this.container.innerHTML = reviewHtml;
+            }
+        }
+
+        // Global App Initialization
+        let quizApp;
+        window.onload = function() {
+            quizApp = new QuizApp(quizData);
+        };
+    </script>
+</body>
+</html>
