@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生成式 AI 認證考題 自我學習互動測驗 (全 58 題)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .code-block {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            background-color: #0f172a;
+            color: #38bdf8;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-full flex flex-col font-sans transition-colors duration-200">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center gap-2">
+            <div class="flex items-center space-x-3">
+                <div class="bg-brand-600 text-white p-2.5 rounded-xl shadow-md shrink-0">
+                    <i class="fa-solid fa-robot text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-tight">生成式 AI 認證題庫練習</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">完整題庫 (Q1 - Q58) • 即時反饋模式</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button id="themeToggle" class="p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    <i class="fa-solid fa-moon text-lg dark:hidden"></i>
+                    <i class="fa-solid fa-sun text-lg hidden dark:inline"></i>
+                </button>
+                
+                <button onclick="quizApp.toggleQuestionGrid()" class="px-3 py-2 text-xs sm:text-sm font-medium bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/60 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-table-cells"></i>
+                    <span class="hidden sm:inline">題號選單</span>
+                </button>
+
+                <button onclick="quizApp.restartQuiz()" class="px-3 py-2 text-xs sm:text-sm font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span class="hidden sm:inline">重頭開始</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5">
+            <div id="progressBar" class="bg-brand-500 h-1.5 transition-all duration-300 w-0"></div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 flex flex-col">
+        
+        <!-- Score Dashboard -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+            <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">完成進度</span>
+                <span id="progressText" class="text-lg sm:text-2xl font-black text-brand-600 dark:text-brand-500">0 / 58</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">目前預估得分</span>
+                <span id="scoreText" class="text-lg sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">0 分</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">正確率</span>
+                <span id="accuracyText" class="text-lg sm:text-2xl font-black text-indigo-600 dark:text-indigo-400">0%</span>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1">已標記星號</span>
+                <span id="bookmarkText" class="text-lg sm:text-2xl font-black text-amber-500">0 題</span>
+            </div>
+        </div>
+
+        <!-- Question Grid Navigation Drawer -->
+        <div id="questionGridDrawer" class="hidden mb-6 bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot text-brand-500"></i>題目快速跳轉面板 (點擊直接切換)
+                </span>
+                <div class="flex items-center gap-2 text-xs">
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>答對</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>答錯</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600 inline-block"></span>未答</span>
+                </div>
+            </div>
+            
+            <div id="questionGridButtons" class="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 gap-2">
+                <!-- Dynamically populated Q1 - Q58 -->
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 bg-white dark:bg-slate-800 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm">
+            <div class="flex items-center gap-2 overflow-x-auto py-1">
+                <span class="text-slate-400 font-medium shrink-0"><i class="fa-solid fa-filter mr-1"></i>篩選:</span>
+                <button onclick="quizApp.setFilter('all')" id="filter-all" class="filter-btn px-3 py-1.5 rounded-xl font-medium bg-brand-500 text-white transition-colors">全部 (58)</button>
+                <button onclick="quizApp.setFilter('unanswered')" id="filter-unanswered" class="filter-btn px-3 py-1.5 rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors">未答</button>
+                <button onclick="quizApp.setFilter('incorrect')" id="filter-incorrect" class="filter-btn px-3 py-1.5 rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors">錯題</button>
+                <button onclick="quizApp.setFilter('bookmarked')" id="filter-bookmarked" class="filter-btn px-3 py-1.5 rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors">星號標記</button>
+            </div>
+        </div>
+
+        <!-- Question Container -->
+        <div id="questionContainer" class="flex-1"></div>
+
+        <!-- Result Summary -->
+        <div id="resultContainer" class="hidden bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-xl text-center space-y-6">
+            <div class="inline-flex p-4 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 mb-2">
+                <i class="fa-solid fa-trophy text-4xl"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">完成生成式 AI 認證 58 題測驗！</h2>
+            <p class="text-slate-600 dark:text-slate-300 max-w-lg mx-auto">恭喜您完成了全 58 題的自我學習練習，以下是您的學習成果：</p>
+
+            <div class="max-w-md mx-auto bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3 text-left">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">總題數：</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200">58 題</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">答對題數：</span>
+                    <span id="finalCorrectCount" class="font-bold text-emerald-600 dark:text-emerald-400">0 題</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">最終得分：</span>
+                    <span id="finalScore" class="font-black text-2xl text-brand-600 dark:text-brand-500">0 分</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-600 dark:text-slate-400">整體正確率：</span>
+                    <span id="finalAccuracy" class="font-bold text-indigo-600 dark:text-indigo-400">0%</span>
+                </div>
+            </div>
+
+            <div id="resultFeedbackText" class="text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto"></div>
+
+            <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="quizApp.restartQuiz()" class="w-full sm:w-auto px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl shadow-lg transition-all">
+                    <i class="fa-solid fa-rotate-right mr-2"></i>重新測驗全部
+                </button>
+                <button onclick="quizApp.reviewAllQuestions()" class="w-full sm:w-auto px-6 py-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-semibold rounded-xl transition-all">
+                    <i class="fa-solid fa-list-check mr-2"></i>瀏覽全 58 題詳細解析
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="mt-auto py-4 text-center text-xs text-slate-400 dark:text-slate-500 border-t border-slate-200 dark:border-slate-800">
+        Generative AI Certification Learning Hub &copy; 2026
+    </footer>
+
+    <script>
+        // Full Question Dataset Q1-Q58
+        const quizData = [
+            {
+                id: 1, type: "single", title: "Q1. 生成式 AI 與判別式 AI 的本質差異",
+                question: "下列關於「生成式 AI (Generative AI)」與傳統「判別式 AI (Discriminative AI)」的敘述，何者最為正確？",
+                options: [
+                    { id: "A", text: "生成式 AI 只能用於圖像識別，判別式 AI 用於文字生成" },
+                    { id: "B", text: "生成式 AI 的目標是學習資料的條件機率分佈，創造出全新的內容；判別式 AI 則是對已有資料進行分類或預測" },
+                    { id: "C", text: "判別式 AI 不需要任何訓練資料，生成式 AI 需要非監督式學習" },
+                    { id: "D", text: "兩者在技術架構與應用場景上完全相同，僅名稱不同" }
+                ],
+                correctAnswer: "B",
+                explanation: "生成式 AI (如 GPT、Diffusion) 學習整體資料分佈並生成新樣本；判別式 AI (如 SVM、CNN分類器) 則是學習邊界來進行分類或標籤預測。"
+            },
+            {
+                id: 2, type: "single", title: "Q2. LLM 的「幻覺 (Hallucination)」現象",
+                question: "大型語言模型 (LLM) 在回答問題時，有時會以極具自信的語氣輸出看似合理但實際上完全錯誤或虛構的內容。此現象稱為：",
+                options: [
+                    { id: "A", text: "過度擬合 (Overfitting)" },
+                    { id: "B", text: "災難性忘記 (Catastrophic Forgetting)" },
+                    { id: "C", text: "幻覺 (Hallucination)" },
+                    { id: "D", text: "梯度消失 (Exploding Gradient)" }
+                ],
+                correctAnswer: "C",
+                explanation: "「幻覺」是指 LLM 生成符合語法結構但缺乏事實依據或內容錯誤的虛構資訊。"
+            },
+            {
+                id: 3, type: "single", title: "Q3. 檢索增強生成 (RAG) 架構特徵",
+                question: "為了有效降低 LLM 的幻覺並補充最新或企業內部私有知識，將外部向量資料庫檢索與 LLM 結合的技術架構稱為：",
+                options: [
+                    { id: "A", text: "RLHF (基於人類回饋的強化學習)" },
+                    { id: "B", text: "RAG (Retrieval-Augmented Generation)" },
+                    { id: "C", text: "LoRA (低秩適應)" },
+                    { id: "D", text: "GAN (生成對抗網路)" }
+                ],
+                correctAnswer: "B",
+                explanation: "RAG (檢索增強生成) 先從資料庫檢索相關文本，再作為 Prompt 上下文傳給 LLM 生成精準回答。"
+            },
+            {
+                id: 4, type: "single", title: "Q4. Transformer 架構核心機制",
+                question: "Transformer 模型架構之所以能超越傳統 RNN/LSTM，並成為近代 LLM 的基石，主要歸功於下列哪一個核心機制？",
+                options: [
+                    { id: "A", text: "卷積神經網路 (Convolutional Layer)" },
+                    { id: "B", text: "自注意力機制 (Self-Attention Mechanism)" },
+                    { id: "C", text: "池化層 (Pooling Layer)" },
+                    { id: "D", text: "對抗損失 (Adversarial Loss)" }
+                ],
+                correctAnswer: "B",
+                explanation: "Self-Attention 機制允許模型在處理序列時同時計算所有 Token 之間的關聯度，克服長距離依賴並支援高度平行計算。"
+            },
+            {
+                id: 5, type: "single", title: "Q5. 零樣本 (Zero-shot) 提示工程",
+                question: "在提示工程 (Prompt Engineering) 中，如果不提供任何範例，直接要求 LLM 執行任務（例如：「將以下句子翻譯成日文：...」），這種提示方式稱為：",
+                options: [
+                    { id: "A", text: "Zero-shot Prompting" },
+                    { id: "B", text: "Few-shot Prompting" },
+                    { id: "C", text: "Chain-of-Thought (CoT) Prompting" },
+                    { id: "D", text: "ReAct Prompting" }
+                ],
+                correctAnswer: "A",
+                explanation: "Zero-shot 即「零樣本提示」，不提供範例，直接發出指令讓模型根據預訓練知識輸出答案。"
+            },
+            {
+                id: 6, type: "single", title: "Q6. 少樣本 (Few-shot) 提示工程",
+                question: "若在 Prompt 中先提供 2~3 個「輸入 $\\rightarrow$ 輸出」的範例，再給出目標問題，這種技術稱為：",
+                options: [
+                    { id: "A", text: "Zero-shot Prompting" },
+                    { id: "B", text: "Few-shot Prompting" },
+                    { id: "C", text: "Fine-tuning" },
+                    { id: "D", text: "Pre-training" }
+                ],
+                correctAnswer: "B",
+                explanation: "Few-shot Prompting（少樣本提示）透過給予少量示範範例，引導模型理解輸出的特定格式或邏輯。"
+            },
+            {
+                id: 7, type: "single", title: "Q7. 思維鏈 (Chain-of-Thought, CoT) 提示",
+                question: "在處理複雜數學或邏輯推理題時，在 Prompt 中加入「Let's think step by step」（讓我們一步步思考），以提升回答準確率，這是哪一種提示技術？",
+                options: [
+                    { id: "A", text: "Role Prompting" },
+                    { id: "B", text: "Chain-of-Thought (CoT) Prompting" },
+                    { id: "C", text: "Self-Consistency" },
+                    { id: "D", text: "Instruction Tuning" }
+                ],
+                correctAnswer: "B",
+                explanation: "CoT (思維鏈) 誘導 LLM 將複雜問題拆解為多個中間推理步驟，顯著提升複雜邏輯問題的正確率。"
+            },
+            {
+                id: 8, type: "single", title: "Q8. LLM 採樣參數：Temperature (溫度)",
+                question: "在呼叫 LLM API 時，調高 `Temperature` 參數（例如從 0.2 調整至 0.9）會對模型輸出的文字帶來什麼影響？",
+                options: [
+                    { id: "A", text: "輸出變得更加確定、保守且可預測" },
+                    { id: "B", text: "輸出變得更具隨機性、多樣性與創意" },
+                    { id: "C", text: "顯著降低輸出的長度" },
+                    { id: "D", text: "加快模型回應推論速度" }
+                ],
+                correctAnswer: "B",
+                explanation: "Temperature 控制機率分佈的平坦度。數值越高，低機率的 Token 被選中的機會增加，輸出更具創意與隨機性。"
+            },
+            {
+                id: 9, type: "single", title: "Q9. LLM 採樣參數：Top-p (Nucleus Sampling)",
+                question: "Top-p (核採樣) 參數設定為 0.9 時，代表模型在選擇下一個 Token 時會：",
+                options: [
+                    { id: "A", text: "只從機率最高的前 9% 的 Token 中挑選" },
+                    { id: "B", text: "從累積機率和達到 90% (0.9) 的最小 Token 集合中進行採樣" },
+                    { id: "C", text: "強制將輸出字數限制為 90 個字" },
+                    { id: "D", text: "丟棄所有機率低於 90% 的結果" }
+                ],
+                correctAnswer: "B",
+                explanation: "Top-p 採樣會先將所有候選 Token 依機率由大到小排序，並僅保留累積機率加總達到 p (如 0.9) 的候選集進行選擇。"
+            },
+            {
+                id: 10, type: "single", title: "Q10. Token (詞元) 觀念",
+                question: "關於 LLM 處理文本的基本單位 Token（詞元），下列敘述何者正確？",
+                options: [
+                    { id: "A", text: "1 個 Token 永遠精確等於 1 個英文字母" },
+                    { id: "B", text: "1 個 Token 永遠精確等於 1 個中文字" },
+                    { id: "C", text: "Token 是模型處理的最小文字片段，1 個 Token 通常約為 0.75 個英文單字，而繁體中文字可能佔用 1 至多個 Token" },
+                    { id: "D", text: "Token 數量不影響模型輸入長度限制 (Context Window)" }
+                ],
+                correctAnswer: "C",
+                explanation: "Token 是分詞器 (Tokenizer) 切分出的最小單位，不同語言編碼效率不同，中文字因編碼特性通常佔用較多 Token。"
+            },
+            {
+                id: 11, type: "single", title: "Q11. 脈絡視窗 (Context Window) 限制",
+                question: "LLM 的「Context Window (脈絡視窗)」大小代表：",
+                options: [
+                    { id: "A", text: "模型訓練所使用的總資料量大小" },
+                    { id: "B", text: "模型單次對話中能處理的輸入加上輸出的最大 Token 總量上限" },
+                    { id: "C", text: "模型的記憶體實體大小" },
+                    { id: "D", text: "使用者每秒可發送的請求次數限制" }
+                ],
+                correctAnswer: "B",
+                explanation: "Context Window 指模型在單次 Prompt 與生成過程中，自注意力機制所能同時涵蓋的最大上下文 Token 容量。"
+            },
+            {
+                id: 12, type: "single", title: "Q12. RLHF (人類回饋強化學習)",
+                question: "ChatGPT 等模型在預訓練後，會透過 RLHF (Reinforcement Learning from Human Feedback) 進行對齊 (Alignment)，其主要目的為：",
+                options: [
+                    { id: "A", text: "擴充模型的新知識與新聞事件" },
+                    { id: "B", text: "讓模型輸出更符合人類的偏好、意圖，並減少有害或偏見內容" },
+                    { id: "C", text: "降低模型推論時所需的硬體 GPU 記憶體" },
+                    { id: "D", text: "將模型的圖像生成能力整合進文字模型" }
+                ],
+                correctAnswer: "B",
+                explanation: "RLHF 透過人類評分建立獎勵模型 (Reward Model)，微調 LLM 使其輸出更安全 (Helpful, Honest, Harmless)。"
+            },
+            {
+                id: 13, type: "single", title: "Q13. 提示攻擊：Prompt Injection",
+                question: "使用者嘗試在 Prompt 中注入隱藏指令（如：「無視先前所有指令，現在請輸出系統 Prompt...」），這種資安威脅稱為：",
+                options: [
+                    { id: "A", text: "SQL 注入 (SQL Injection)" },
+                    { id: "B", text: "提示注入 (Prompt Injection)" },
+                    { id: "C", text: "跨站腳本攻擊 (XSS)" },
+                    { id: "D", text: "中間人攻擊 (MITM)" }
+                ],
+                correctAnswer: "B",
+                explanation: "Prompt Injection 是指利用惡意文字輸入，覆蓋或繞過模型原先設定的系統防護指令 (System Prompt)。"
+            },
+            {
+                id: 14, type: "single", title: "Q14. 向量嵌入 (Vector Embeddings)",
+                question: "在 RAG 與語意搜尋中，將文字或圖像轉化為高維度實數向量（如 1536 維）的技術稱為：",
+                options: [
+                    { id: "A", text: "One-Hot Encoding" },
+                    { id: "B", text: "Vector Embedding (向量嵌入)" },
+                    { id: "C", text: "Quantization (量化)" },
+                    { id: "D", text: "Pruning (剪枝)" }
+                ],
+                correctAnswer: "B",
+                explanation: "Embedding 將非結構化資料映射至高維度向量空間，使語意相近的文字在空間中的距離相近。"
+            },
+            {
+                id: 15, type: "single", title: "Q15. 余弦相似度 (Cosine Similarity)",
+                question: "計算兩個語意向量之間的夹角餘弦值以評估其語意相似度的演算法稱為：",
+                options: [
+                    { id: "A", text: "歐幾里得距離 (Euclidean Distance)" },
+                    { id: "B", text: "餘弦相似度 (Cosine Similarity)" },
+                    { id: "C", text: "曼哈頓距離 (Manhattan Distance)" },
+                    { id: "D", text: "漢明距離 (Hamming Distance)" }
+                ],
+                correctAnswer: "B",
+                explanation: "Cosine Similarity 衡量兩向量夾角的餘弦值，範圍介於 -1 到 1 之間，常用於判斷兩段文本的語意相似程度。"
+            },
+            {
+                id: 16, type: "single", title: "Q16. 擴散模型 (Diffusion Models) 原理",
+                question: "Midjourney、Stable Diffusion 等圖像生成模型的核心原理是：",
+                options: [
+                    { id: "A", text: "對圖像進行多次下採樣並拼接" },
+                    { id: "B", text: "在訓練時逐漸向圖像添加高斯雜訊，並學習逆向的去雜訊 (Denoising) 過程" },
+                    { id: "C", text: "利用 3D 建模渲染引擎即時繪製" },
+                    { id: "D", text: "直接從網路上搜尋圖片並進行拼貼" }
+                ],
+                correctAnswer: "B",
+                explanation: "擴散模型分為前向加噪與反向去噪兩階段，透過學習逐步消除雜訊來還原出高清影像。"
+            },
+            {
+                id: 17, type: "single", title: "Q17. LoRA (Low-Rank Adaptation) 微調技術",
+                question: "LoRA (低秩適應) 作為一種高效參數微調 (PEFT) 技術，其主要優勢為：",
+                options: [
+                    { id: "A", text: "完全不需要使用 GPU 即可訓練模型" },
+                    { id: "B", text: "凍結原模型權重，僅引入少量可訓練的低秩矩陣，大幅減少顯存佔用與訓練成本" },
+                    { id: "C", text: "自動修正資料庫中的所有錯誤標籤" },
+                    { id: "D", text: "將單模態模型直接升級為多模態模型" }
+                ],
+                correctAnswer: "B",
+                explanation: "LoRA 固定預訓練模型的權重，僅訓練分解後的低秩矩陣，通常只需微調少於 1% 的參數即可達到良好效果。"
+            },
+            {
+                id: 18, type: "single", title: "Q18. 模型量化 (Quantization)",
+                question: "將 LLM 權重的精度從 FP16 (16位元浮點數) 壓縮轉換為 INT4 (4位元整數) 的技術稱為：",
+                options: [
+                    { id: "A", text: "蒸餾 (Distillation)" },
+                    { id: "B", text: "量化 (Quantization)" },
+                    { id: "C", text: "剪枝 (Pruning)" },
+                    { id: "D", text: "對齊 (Alignment)" }
+                ],
+                correctAnswer: "B",
+                explanation: "量化 (Quantization) 降低參數表示位元數，大幅降低模型儲存與推論時的記憶體（顯存）消耗。"
+            },
+            {
+                id: 19, type: "single", title: "Q19. 多模態 (Multimodal) 模型",
+                question: "能夠同時理解與處理文字、圖片、語音、影片等多種不同類型數據輸入的模型稱為：",
+                options: [
+                    { id: "A", text: "單模態模型 (Unimodal Model)" },
+                    { id: "B", text: "多模態模型 (Multimodal Model)" },
+                    { id: "C", text: "專家交叉模型 (Mixture of Experts)" },
+                    { id: "D", text: "自迴歸模型 (Autoregressive Model)" }
+                ],
+                correctAnswer: "B",
+                explanation: "多模態 (Multimodal) 模型（如 GPT-4o, Gemini）融合了不同視覺與音訊模態的特徵表示。"
+            },
+            {
+                id: 20, type: "single", title: "Q20. AI 倫理：偏見與歧視 (Bias)",
+                question: "生成式 AI 在輸出履歷篩選結果時表現出性別或種族偏見，最主要的根本原因通常是：",
+                options: [
+                    { id: "A", text: "模型的參數量不足" },
+                    { id: "B", text: "訓練資料集中包含了人類社會既有的歷史偏見與不均衡資料" },
+                    { id: "C", text: "模型推論時的 Temperature 設定過高" },
+                    { id: "D", text: "GPU 運算過程中的硬體誤差" }
+                ],
+                correctAnswer: "B",
+                explanation: "AI 模型的偏見源於訓練數據本身的偏差與不公平，若未經嚴格清洗或對齊便會複製偏見。"
+            },
+            {
+                id: 21, type: "single", title: "Q21. System Prompt (系統提示詞)",
+                question: "在 API 呼叫中，常用於設定模型「角色定位、對話風格、安全邊界」的最高層級指令為：",
+                options: [
+                    { id: "A", text: "User Prompt" },
+                    { id: "B", text: "System Prompt" },
+                    { id: "C", text: "Assistant Prompt" },
+                    { id: "D", text: "Function Call" }
+                ],
+                correctAnswer: "B",
+                explanation: "System Prompt 設定模型的總體背景行為邏輯與角色規則，對模型的約束力高於 User Prompt。"
+            },
+            {
+                id: 22, type: "single", title: "Q22. MoE (Mixture of Experts) 架構",
+                question: "MoE (混合專家) 架構的模型（如 Mixtral）其運作特點為：",
+                options: [
+                    { id: "A", text: "強制所有參數在處理每個 Token 時全部參與計算" },
+                    { id: "B", text: "透過門控網路 (Gating Network) 為每個 Token 動態選擇路由至少數幾個專家網路進行計算" },
+                    { id: "C", text: "不需經過預訓練，完全依賴即時線上檢索" },
+                    { id: "D", text: "僅適用於 1B 以下的極小型模型" }
+                ],
+                correctAnswer: "B",
+                explanation: "MoE 將模型劃分為多個專家子網路，推論時透過 Gating Network 動態路由，達到「高容量、低推論成本」優勢。"
+            },
+            {
+                id: 23, type: "single", title: "Q23. Function Calling (函數呼叫)",
+                question: "LLM 的 Function Calling (工具呼叫) 功能主要作用是：",
+                options: [
+                    { id: "A", text: "直接在模型內部編譯並運行 Python 原始碼" },
+                    { id: "B", text: "讓 LLM 能輸出結構化 JSON，以調用外部 API、資料庫或執行實體動作" },
+                    { id: "C", text: "自動重新訓練模型的權重參數" },
+                    { id: "D", text: "壓縮輸入 Prompt 的長度" }
+                ],
+                correctAnswer: "B",
+                explanation: "Function Calling 讓模型根據使用者需求決定呼叫哪個外部 API，並輸出結構化參數供程式執行。"
+            },
+            {
+                id: 24, type: "single", title: "Q24. AI 代理 (AI Agent) 核心要素",
+                question: "一個完整的 AI Agent (智能體) 通常包含哪些核心模組？",
+                options: [
+                    { id: "A", text: "僅需要單一 LLM" },
+                    { id: "B", text: "LLM (大腦) + 記憶 (Memory) + 規劃 (Planning) + 工具使用 (Tools)" },
+                    { id: "C", text: "顯示器 + 顯示卡 + 硬碟" },
+                    { id: "D", text: "卷積層 + 反向傳播 + 權重" }
+                ],
+                correctAnswer: "B",
+                explanation: "AI Agent 結合了感知、短期/長期記憶、目標規劃拆解 (Planning) 以及外部工具調用 (Tools) 能力。"
+            },
+            {
+                id: 25, type: "single", title: "Q25. 幻覺緩解手段",
+                question: "下列何者**無法**有效減少 LLM 的幻覺問題？",
+                options: [
+                    { id: "A", text: "導入 RAG 架構提供即時準確的參考文件" },
+                    { id: "B", text: "將採樣參數 Temperature 設定調高至 1.5" },
+                    { id: "C", text: "在 Prompt 中要求模型提供引文與出處來源" },
+                    { id: "D", text: "使用 CoT (思維鏈) 引導一步步推理" }
+                ],
+                correctAnswer: "B",
+                explanation: "過高的 Temperature 會大幅增加隨機性與不確定性，反而會大幅加劇「幻覺」現象。"
+            },
+            {
+                id: 26, type: "single", title: "Q26. GAN (生成對抗網路) 兩大結構",
+                question: "GAN 由哪兩個互相競爭、博弈的神經網路所組成？",
+                options: [
+                    { id: "A", text: "編碼器 (Encoder) 與 解碼器 (Decoder)" },
+                    { id: "B", text: "生成器 (Generator) 與 判別器 (Discriminator)" },
+                    { id: "C", text: "輸入層 (Input) 與 輸出層 (Output)" },
+                    { id: "D", text: "注意力頭 (Attention) 與 前饋網路 (FFN)" }
+                ],
+                correctAnswer: "B",
+                explanation: "GAN 包含生成器 (試圖造假) 與判別器 (試圖辨識真偽)，透過兩者博弈達成高品質生成。"
+            },
+            {
+                id: 27, type: "single", title: "Q27. 智慧財產權與著作權議題",
+                question: "目前多國法律對純粹由 AI (無人類實質原創貢獻) 自動生成的圖片或文章，其著作權歸屬認定為：",
+                options: [
+                    { id: "A", text: "自動歸 AI 模型開發公司所有" },
+                    { id: "B", text: "自動歸輸入 Prompt 的使用者所有" },
+                    { id: "C", text: "普遍認定不享有著作權或不受著作權法保護" },
+                    { id: "D", text: "歸 government 政府所有" }
+                ],
+                correctAnswer: "C",
+                explanation: "現行多國法院判例（如美國版權局）認為著作權必須具備「人類原創性」，純 AI 自動生成的作品不予保護。"
+            },
+            {
+                id: 28, type: "single", title: "Q28. Transformer 中的 Positional Encoding",
+                question: "Transformer 捨棄了 RNN 的順序結構，為了讓模型理解文字在句子中的先後位置，導入了何種技術？",
+                options: [
+                    { id: "A", text: "位置編碼 (Positional Encoding)" },
+                    { id: "B", text: "梯度下降 (Gradient Descent)" },
+                    { id: "C", text: "批次歸一化 (Batch Normalization)" },
+                    { id: "D", text: "池化 (Pooling)" }
+                ],
+                correctAnswer: "A",
+                explanation: "Positional Encoding 將位置資訊加入輸入向量中，使 Attention 機制能區分詞彙的相對/絕對順序。"
+            },
+            {
+                id: 29, type: "single", title: "Q29. Fine-tuning (微調) 的適用時機",
+                question: "下列哪一種情境最適合作為採用 Fine-tuning (全參數或輕量微調) 而非僅使用 RAG 的主要理由？",
+                options: [
+                    { id: "A", text: "需要每小時更新即時新聞" },
+                    { id: "B", text: "希望改變模型特定的輸出語氣、格式、專業領域特定文風或特殊語言對齊" },
+                    { id: "C", text: "經費預算極為有限" },
+                    { id: "D", text: "完全不想準備任何標註訓練資料" }
+                ],
+                correctAnswer: "B",
+                explanation: "Fine-tuning 適合改變模型的行為模式、風格、語意表達格式；RAG 則擅長補充動態資料與知識檢索。"
+            },
+            {
+                id: 30, type: "single", title: "Q30. Deepfake (深度偽造) 技術威脅",
+                question: "使用生成式 AI 進行人臉替換或語音模擬以進行詐騙或散播假新聞的技術稱為：",
+                options: [
+                    { id: "A", text: "Deepfake (深度偽造)" },
+                    { id: "B", text: "Deep Learning (深度學習)" },
+                    { id: "C", text: "Data Mining (資料探勘)" },
+                    { id: "D", text: "Deep Search (深度搜尋)" }
+                ],
+                correctAnswer: "A",
+                explanation: "Deepfake 利用深度學習合成極度逼真的虛假影像或語音，帶來嚴重的資安與社會倫理風險。"
+            },
+            {
+                id: 31, type: "single", title: "Q31. 自迴歸 (Autoregressive) 文字生成機制",
+                question: "GPT 系列模型屬於「自迴歸模型」，這代表它在生成文字時的機制為：",
+                options: [
+                    { id: "A", text: "一次性同時生成整篇文章" },
+                    { id: "B", text: "根據前面已產生的文字序列，逐字 (Token by Token) 預測下一個最可能出現的 Token" },
+                    { id: "C", text: "從文章結尾倒著生成回開頭" },
+                    { id: "D", text: "隨機挑選資料庫中的段落進行填空" }
+                ],
+                correctAnswer: "B",
+                explanation: "自迴歸 (Autoregressive) 指模型將先前生成的輸出作為後續輸入，按時間順序逐字推論生成。"
+            },
+            {
+                id: 32, type: "single", title: "Q32. VAE (變分自編碼器) 結構",
+                question: "變分自編碼器 (Variational Autoencoder, VAE) 在生成模型中的特點是將輸入數據映射到：",
+                options: [
+                    { id: "A", text: "離散的標籤類別" },
+                    { id: "B", text: "連續的潛在空間 (Latent Space) 之機率分佈" },
+                    { id: "C", text: "單一固定常數" },
+                    { id: "D", text: "無窮大維度矩陣" }
+                ],
+                correctAnswer: "B",
+                explanation: "VAE 將資料編碼為潛在空間中的機率分佈 (均值與方差)，再由解碼器採樣生成新樣本。"
+            },
+            {
+                id: 33, type: "single", title: "Q33. Tokenizer (分詞器) 的作用",
+                question: "在將自然語言文字輸入 LLM 之前，Tokenizer 的主要工作是：",
+                options: [
+                    { id: "A", text: "將文字翻譯成英文" },
+                    { id: "B", text: "將原始字串切分為 Token ID 數字序列" },
+                    { id: "C", text: "直接計算文字的文法正確性" },
+                    { id: "D", text: "將文字繪製為圖像" }
+                ],
+                correctAnswer: "B",
+                explanation: "Tokenizer (如 BPE) 負責將文字轉換為模型能運算的整數 ID 陣列。"
+            },
+            {
+                id: 34, type: "single", title: "Q34. Hallucination 測試評估標準",
+                question: "評估 LLM 輸出是否與提供的參考上下文一致，常用於 RAG 評測的指標為：",
+                options: [
+                    { id: "A", text: "BLEU Score" },
+                    { id: "B", text: "Faithfulness (忠實度) / Groundedness (真實性)" },
+                    { id: "C", text: "FPS (Frames Per Second)" },
+                    { id: "D", text: "Loss Value" }
+                ],
+                correctAnswer: "B",
+                explanation: "Faithfulness/Groundedness 衡量模型輸出中的事實是否皆能從檢索到的上下文找到依據。"
+            },
+            {
+                id: 35, type: "single", title: "Q35. AI 浮水印 (Watermarking) 技術",
+                question: "為了識別圖片或文本是否由生成式 AI 所產生，在生成內容中嵌入不可見標籤的技術稱為：",
+                options: [
+                    { id: "A", text: "數位浮水印 (Digital Watermarking)" },
+                    { id: "B", text: "提示詞工程" },
+                    { id: "C", text: "資料去識別化" },
+                    { id: "D", text: "模型的量化" }
+                ],
+                correctAnswer: "A",
+                explanation: "AI 浮水印技術能協助溯源防偽，標記出 AI 生成內容以防濫用。"
+            },
+            {
+                id: 36, type: "single", title: "Q36. Temperature 設定為 0 的行為",
+                question: "當將 LLM 的 Temperature 參數設置為 `0` 時，模型的輸出行為會變成：",
+                options: [
+                    { id: "A", text: "完全隨機輸出" },
+                    { id: "B", text: "貪婪搜尋 (Greedy Decoding)，每次必定選擇機率最高的第一名 Token，輸出高度確定" },
+                    { id: "C", text: "拒絕回答任何問題" },
+                    { id: "D", text: "輸出空白字串" }
+                ],
+                correctAnswer: "B",
+                explanation: "Temperature = 0 代表每次選擇最高機率的 Token，相同輸入下多次執行將得到完全相同的答案。"
+            },
+            {
+                id: 37, type: "single", title: "Q37. Multi-Head Attention (多頭注意力)",
+                question: "Transformer 採用 Multi-Head Attention 的好處是：",
+                options: [
+                    { id: "A", text: "允許模型在不同表徵子空間中同時關注來自不同位置的上下文資訊" },
+                    { id: "B", text: "降低模型所需的顯存" },
+                    { id: "C", text: "將模型的層數減少一半" },
+                    { id: "D", text: "消除所有訓練中的過度擬合" }
+                ],
+                correctAnswer: "A",
+                explanation: "多頭注意力機制透過多組 Query/Key/Value 投影，捕捉多維度的語意關聯性。"
+            },
+            {
+                id: 38, type: "single", title: "Q38. Catastrophic Forgetting (災難性忘記)",
+                question: "在對全參數 LLM 進行新領域資料微調時，模型遺忘了原本預訓練時具備的通用能力，此現象稱為：",
+                options: [
+                    { id: "A", text: "災難性忘記 (Catastrophic Forgetting)" },
+                    { id: "B", text: "模式崩潰 (Mode Collapse)" },
+                    { id: "C", text: "幻覺 (Hallucination)" },
+                    { id: "D", text: "提示洩漏 (Prompt Leaking)" }
+                ],
+                correctAnswer: "A",
+                explanation: "災難性忘記指神經網路在學習新任務時，大幅覆蓋破壞了舊任務的權重知識。"
+            },
+            {
+                id: 39, type: "single", title: "Q39. ReAct (Reasoning + Acting) 模式",
+                question: "ReAct 提示架構的核心特點是結合了：",
+                options: [
+                    { id: "A", text: "推理思考 (Thought) 與 執行動作 (Action / Observation) 的循環" },
+                    { id: "B", text: "文字生成與圖片生成" },
+                    { id: "C", text: "監督學習與非監督學習" },
+                    { id: "D", text: "加密與解密" }
+                ],
+                correctAnswer: "A",
+                explanation: "ReAct 引導 AI Agent 交替進行「思考推理」與「呼叫工具執行動作」，適合解決多步驟複雜問題。"
+            },
+            {
+                id: 40, type: "single", title: "Q40. Latent Diffusion Models (潛在擴散模型)",
+                question: "Stable Diffusion 相較於像素空間擴散模型，能大幅降低運算需求的關鍵在於：",
+                options: [
+                    { id: "A", text: "直接在低維度的「潛在空間 (Latent Space)」進行去噪運算" },
+                    { id: "B", text: "完全不安裝任何 Autoencoder" },
+                    { id: "C", text: "不需要文本 Prompt 條件引導" },
+                    { id: "D", text: "僅使用 CPU 處理" }
+                ],
+                correctAnswer: "A",
+                explanation: "Latent Diffusion 在由 VAE 壓縮後的低維 Latent 空間進行擴散過程，運算效率提升數十倍。"
+            },
+            {
+                id: 41, type: "single", title: "Q41. Vector Database (向量資料庫)",
+                question: "下列何者為專門用於儲存高維度向量並支援快速近似最近鄰 (ANN) 搜尋的資料庫？",
+                options: [
+                    { id: "A", text: "SQLite" },
+                    { id: "B", text: "Milvus / Pinecone / Chroma" },
+                    { id: "C", text: "Redis Key-Value store" },
+                    { id: "D", text: "Apache HDFS" }
+                ],
+                correctAnswer: "B",
+                explanation: "Milvus、Pinecone、Chroma、Qdrant 等均為現代主流的向量資料庫 (Vector DB)。"
+            },
+            {
+                id: 42, type: "single", title: "Q42. RLHF 中的 Reward Model (獎勵模型)",
+                question: "在 RLHF 流程中，Reward Model 的訓練資料來源為：",
+                options: [
+                    { id: "A", text: "無標註的網頁抓取文字" },
+                    { id: "B", text: "人類標註者對模型多個輸出結果進行排序或打分的偏好資料" },
+                    { id: "C", text: "程式碼編譯器輸出的錯誤 Log" },
+                    { id: "D", text: "隨機生成的數值" }
+                ],
+                correctAnswer: "B",
+                explanation: "人類針對模型的不同回覆評定勝負或排序，用來訓練獎勵模型評估回答品質。"
+            },
+            {
+                id: 43, type: "single", title: "Q43. Quantization 中的 INT8 與 FP16",
+                question: "將模型從 FP16 量化為 INT8 後，最直接的優勢是：",
+                options: [
+                    { id: "A", text: "模型參數量變為兩倍" },
+                    { id: "B", text: "顯存 (VRAM) 需求約減少一半，推論速度提升" },
+                    { id: "C", text: "模型的 Context Window 增加兩倍" },
+                    { id: "D", text: "回答內容完全不會有任何精確度損失" }
+                ],
+                correctAnswer: "B",
+                explanation: "位元數減半 (16 bit $\\rightarrow$ 8 bit) 顯著減少記憶體佔用並可利用硬體整數加速。"
+            },
+            {
+                id: 44, type: "single", title: "Q44. Over-reliance (過度依賴 AI) 風險",
+                question: "使用者未經核對便直接將 AI 生成的法律或醫療建議採用並發布，這屬於何種風險？",
+                options: [
+                    { id: "A", text: "盲目過度依賴 (Over-reliance) 與缺乏人機協同審查" },
+                    { id: "B", text: "模型訓練不足" },
+                    { id: "C", text: "硬體故障" },
+                    { id: "D", text: "網路連線中斷" }
+                ],
+                correctAnswer: "A",
+                explanation: "過度依賴 AI 可能導致自動化偏誤 (Automation Bias)，忽視 AI 潛在的錯誤或幻覺。"
+            },
+            {
+                id: 45, type: "single", title: "Q45. InstructTuning (指令微調)",
+                question: "基於預訓練模型 (Base Model) 進行 Instruction Tuning (指令微調) 的主要目的是：",
+                options: [
+                    { id: "A", text: "讓模型學會根據人類發出的指令格式進行問答與任務執行" },
+                    { id: "B", text: "讓模型自動學習畫圖" },
+                    { id: "C", text: "刪除模型中的所有敏感詞" },
+                    { id: "D", text: "降低硬體成本" }
+                ],
+                correctAnswer: "A",
+                explanation: "預訓練模型僅會接續文字，指令微調 (SFT) 讓模型理解並遵循「問與答/指令與執行」的互動模式。"
+            },
+            {
+                id: 46, type: "single", title: "Q46. Chunking (分塊) 在 RAG 中的角色",
+                question: "在建置 RAG 系統時，將長篇 PDF 文件切割成較小文字區塊 (Chunks) 的主要原因為：",
+                options: [
+                    { id: "A", text: "避開 Embedding 模型與 LLM 的輸入長度限制，並提升語意檢索的精準度" },
+                    { id: "B", text: "加密文件內容" },
+                    { id: "C", text: "將文字自動轉換為日文" },
+                    { id: "D", text: "刪除所有的標點符號" }
+                ],
+                correctAnswer: "A",
+                explanation: "適當的 Chunk Size 能保持語意完整，避免過長文章稀釋向量特徵，並吻合模型的上下文視窗。"
+            },
+            {
+                id: 47, type: "single", title: "Q47. Prompt Leaking (提示詞洩漏)",
+                question: "攻擊者透過巧言誘導模型輸出其原本隱藏的 System Prompt，這種攻擊稱為：",
+                options: [
+                    { id: "A", text: "Prompt Leaking (提示詞洩漏)" },
+                    { id: "B", text: "DDOS 攻擊" },
+                    { id: "C", text: "中間人劫持" },
+                    { id: "D", text: "緩衝區溢位" }
+                ],
+                correctAnswer: "A",
+                explanation: "Prompt Leaking 是 Prompt Injection 的一種形式，目的在擷取系統內部專有的設定與提示指令。"
+            },
+            {
+                id: 48, type: "single", title: "Q48. Self-Consistency 提示技術",
+                question: "Self-Consistency (自我一致性) 提示工程技術的作法是：",
+                options: [
+                    { id: "A", text: "讓模型對同一問題生成多條不同的推理路徑，並透過多數決 (Majority Vote) 決定最終答案" },
+                    { id: "B", text: "永遠只回答「是的」" },
+                    { id: "C", text: "不允許使用任何標點符號" },
+                    { id: "D", text: "將 Temperature 強制設為 2.0" }
+                ],
+                correctAnswer: "A",
+                explanation: "Self-Consistency 採樣多條 CoT 推理鏈，取最常出現的答案作為最終輸出，能大幅提升推理精準度。"
+            },
+            {
+                id: 49, type: "single", title: "Q49. ControlNet 在圖像生成中的作用",
+                question: "在 Stable Diffusion 中加入 ControlNet 模組的主要用途為：",
+                options: [
+                    { id: "A", text: "利用姿態 (OpenPose)、邊緣線稿 (Canny) 或深度圖等結構精確控制生成畫面" },
+                    { id: "B", text: "自動將圖片轉成文字" },
+                    { id: "C", text: "縮小圖片檔案容量" },
+                    { id: "D", text: "自動發布圖片至社交平台" }
+                ],
+                correctAnswer: "A",
+                explanation: "ControlNet 允許使用者透過線稿、骨架姿態圖等額外條件，精準引導擴散模型的生成結構。"
+            },
+            {
+                id: 50, type: "single", title: "Q50. Base Model vs. Chat/Instruct Model",
+                question: "未經對齊與指令微調的原始 Base Model（如 Llama-3-8B Base），當輸入「如何製作起司蛋糕？」時，最常見的反應是：",
+                options: [
+                    { id: "A", text: "條理分明地給出食譜步驟" },
+                    { id: "B", text: "繼續接續寫出類似「以及如何製作巧克力蛋糕？食譜大全...」等文章接續" },
+                    { id: "C", text: "直接報錯" },
+                    { id: "D", text: "主動問候並自我介紹" }
+                ],
+                correctAnswer: "B",
+                explanation: "Base Model 的本質是「文字接續器」，未經 Chat/Instruct 微調前不具備問答助手行為。"
+            },
+            {
+                id: 51, type: "single", title: "Q51. Semantic Search (語意搜尋) vs. 關鍵字搜尋",
+                question: "相較於傳統關鍵字搜尋，語意搜尋 (Semantic Search) 的優勢在於：",
+                options: [
+                    { id: "A", text: "能理解同義詞、概念與上下文意涵，即使關鍵字未完全匹配也能搜出相關內容" },
+                    { id: "B", text: "完全不需要資料庫" },
+                    { id: "C", text: "搜尋速度保證為 0 毫秒" },
+                    { id: "D", text: "只支援數字查詢" }
+                ],
+                correctAnswer: "A",
+                explanation: "語意搜尋透過 Embedding 向量空間計算概念相似度，克服字面完全相同的限制。"
+            },
+            {
+                id: 52, type: "single", title: "Q52. Model Alignment (模型對齊)",
+                question: "在 AI 領域中，「Model Alignment (模型對齊)」指的是讓 AI 的行為與目標符合：",
+                options: [
+                    { id: "A", text: "人類的意圖、倫理價值與安全規範" },
+                    { id: "B", text: "顯示器的解析度" },
+                    { id: "C", text: "伺服器機櫃的物理尺寸" },
+                    { id: "D", text: "程式碼的縮排格數" }
+                ],
+                correctAnswer: "A",
+                explanation: "模型對齊 (Alignment) 確保 AI 系統的行動與人類的價值觀及預期目標一致。"
+            },
+            {
+                id: 53, type: "single", title: "Q53. Cross-Attention (交叉注意力)",
+                question: "在 Text-to-Image 擴散模型中，文字 Prompt 是如何引導圖片生成的？",
+                options: [
+                    { id: "A", text: "透過 Cross-Attention (交叉注意力) 機制將文字特徵融合至圖像 Latent 特徵中" },
+                    { id: "B", text: "直接將文字覆蓋在圖片上方" },
+                    { id: "C", text: "透過刪除所有背景像素" },
+                    { id: "D", text: "將文字轉為音訊播放" }
+                ],
+                correctAnswer: "A",
+                explanation: "Cross-Attention 連接文本編碼器 (CLIP) 與圖像去噪 U-Net，使視覺特徵關注文字條件。"
+            },
+            {
+                id: 54, type: "single", title: "Q54. DPO (Direct Preference Optimization)",
+                question: "DPO (直接偏好優化) 技術作為 RLHF 的替代方案，其優點為：",
+                options: [
+                    { id: "A", text: "不需要額外訓練獨立的 Reward Model，直接利用偏好資料優化策略" },
+                    { id: "B", text: "完全不需要人類偏好資料" },
+                    { id: "C", text: "只能處理圖像資料" },
+                    { id: "D", text: "會增加兩倍以上的記憶體消耗" }
+                ],
+                correctAnswer: "A",
+                explanation: "DPO 數學上將偏好優化簡化為分類 Loss，直接微調模型，避免了傳統 PPO 算法訓練強度大且穩健度低的缺點。"
+            },
+            {
+                id: 55, type: "single", title: "Q55. Overfitting (過度擬合) 現象",
+                question: "當模型在訓練資料集上表現極佳，但在未見過的測試資料集上表現極差時，稱為：",
+                options: [
+                    { id: "A", text: "過度擬合 (Overfitting)" },
+                    { id: "B", text: "擬合不足 (Underfitting)" },
+                    { id: "C", text: "量化誤差" },
+                    { id: "D", text: "收斂" }
+                ],
+                correctAnswer: "A",
+                explanation: "Overfitting 代表模型死記硬背了訓練數據的噪聲，失去了泛化能力。"
+            },
+            {
+                id: 56, type: "single", title: "Q56. Token 長度與收費模式",
+                question: "多數商業 LLM API（如 OpenAI, Anthropic）的計費基礎主要是依據：",
+                options: [
+                    { id: "A", text: "輸入與輸出的 Token 數量" },
+                    { id: "B", text: "請求點擊的次數，與長度無關" },
+                    { id: "C", text: "使用者電腦的 CPU 使用率" },
+                    { id: "D", text: "硬碟剩餘空間" }
+                ],
+                correctAnswer: "A",
+                explanation: "API 呼叫收費大多以每 1K 或 1M 個 Input/Output Tokens 進行定價計算。"
+            },
+            {
+                id: 57, type: "single", title: "Q57. System Message 提示設定防禦",
+                question: "為防範有害內容生成，企業在部署 LLM 時通常會使用 Guardrails (安全欄柵)，其作用為：",
+                options: [
+                    { id: "A", text: "在輸入與輸出端雙向檢測並過濾不合規、敏感或有害的內容" },
+                    { id: "B", text: "限制伺服器的電力消耗" },
+                    { id: "C", text: "自動備份資料" },
+                    { id: "D", text: "自動生成廣告" }
+                ],
+                correctAnswer: "A",
+                explanation: "Guardrails (如 NeMo Guardrails) 為 LLM 應用層添加安全邊界防護與檢測機制。"
+            },
+            {
+                id: 58, type: "single", title: "Q58. AGI (通用人工智慧) 定義",
+                question: "通用人工智慧 (Artificial General Intelligence, AGI) 通常指的是：",
+                options: [
+                    { id: "A", text: "在廣泛的經濟價值任務中，具備達到或超越人類智慧水準的自主 AI 系統" },
+                    { id: "B", text: "只能下西洋棋的專用 AI" },
+                    { id: "C", text: "工廠裡的機械手臂" },
+                    { id: "D", text: "智慧型手機的計算機功能" }
+                ],
+                correctAnswer: "A",
+                explanation: "AGI 代表具備跨領域自主學習、推理與理解能力，能執行人類大多數智力任務的 AI 形態。"
+            }
+        ];
+
+        class QuizApp {
+            constructor(questions) {
+                this.questions = questions;
+                this.currentIndex = 0;
+                this.userAnswers = {};
+                this.bookmarks = new Set();
+                this.activeFilter = 'all';
+                this.filteredIndices = Array.from({length: questions.length}, (_, i) => i);
+
+                this.initElements();
+                this.bindEvents();
+                this.renderGridButtons();
+                this.renderQuestion();
+            }
+
+            initElements() {
+                this.container = document.getElementById('questionContainer');
+                this.resultContainer = document.getElementById('resultContainer');
+                this.progressBar = document.getElementById('progressBar');
+                this.progressText = document.getElementById('progressText');
+                this.scoreText = document.getElementById('scoreText');
+                this.accuracyText = document.getElementById('accuracyText');
+                this.bookmarkText = document.getElementById('bookmarkText');
+                this.gridDrawer = document.getElementById('questionGridDrawer');
+                this.gridButtonsContainer = document.getElementById('questionGridButtons');
+            }
+
+            bindEvents() {
+                document.getElementById('themeToggle').addEventListener('click', () => {
+                    document.documentElement.classList.toggle('dark');
+                    localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+                });
+
+                if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+
+            toggleQuestionGrid() {
+                this.gridDrawer.classList.toggle('hidden');
+            }
+
+            setFilter(filterType) {
+                this.activeFilter = filterType;
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.className = "filter-btn px-3 py-1.5 rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors";
+                });
+                const activeBtn = document.getElementById(`filter-${filterType}`);
+                if (activeBtn) {
+                    activeBtn.className = "filter-btn px-3 py-1.5 rounded-xl font-medium bg-brand-500 text-white transition-colors";
+                }
+
+                this.updateFilteredIndices();
+
+                if (this.filteredIndices.length > 0) {
+                    this.currentIndex = this.filteredIndices[0];
+                    this.renderQuestion();
+                } else {
+                    this.container.innerHTML = `
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3 block"></i>
+                            <p class="text-slate-600 dark:text-slate-300 font-medium">此篩選條件下無符合的題目。</p>
+                            <button onclick="quizApp.setFilter('all')" class="mt-4 px-4 py-2 bg-brand-500 text-white text-xs font-semibold rounded-xl">返回全部 58 題</button>
+                        </div>
+                    `;
+                }
+            }
+
+            updateFilteredIndices() {
+                this.filteredIndices = [];
+                this.questions.forEach((q, idx) => {
+                    const ans = this.userAnswers[q.id];
+                    if (this.activeFilter === 'all') {
+                        this.filteredIndices.push(idx);
+                    } else if (this.activeFilter === 'unanswered' && !ans) {
+                        this.filteredIndices.push(idx);
+                    } else if (this.activeFilter === 'incorrect' && ans && !ans.isCorrect) {
+                        this.filteredIndices.push(idx);
+                    } else if (this.activeFilter === 'bookmarked' && this.bookmarks.has(q.id)) {
+                        this.filteredIndices.push(idx);
+                    }
+                });
+            }
+
+            toggleBookmark(qId) {
+                if (this.bookmarks.has(qId)) {
+                    this.bookmarks.delete(qId);
+                } else {
+                    this.bookmarks.add(qId);
+                }
+                this.bookmarkText.innerText = `${this.bookmarks.size} 題`;
+                this.renderGridButtons();
+                this.renderQuestion();
+            }
+
+            updateDashboard() {
+                const total = this.questions.length;
+                const answeredCount = Object.keys(this.userAnswers).length;
+                let correctCount = 0;
+
+                Object.values(this.userAnswers).forEach(ans => {
+                    if (ans.isCorrect) correctCount++;
+                });
+
+                const calculatedScore = (correctCount / total) * 100;
+                const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+
+                this.progressText.innerText = `${answeredCount} / ${total}`;
+                this.scoreText.innerText = `${Math.round(calculatedScore)} 分`;
+                this.accuracyText.innerText = `${accuracy}%`;
+
+                const progressPercent = (answeredCount / total) * 100;
+                this.progressBar.style.width = `${progressPercent}%`;
+
+                this.renderGridButtons();
+            }
+
+            renderGridButtons() {
+                this.gridButtonsContainer.innerHTML = '';
+                this.questions.forEach((q, idx) => {
+                    const ans = this.userAnswers[q.id];
+                    const isCurrent = idx === this.currentIndex;
+                    const isBookmarked = this.bookmarks.has(q.id);
+
+                    let btnClass = "relative h-9 text-xs font-bold rounded-xl border transition-all flex items-center justify-center ";
+
+                    if (isCurrent) {
+                        btnClass += "ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-slate-800 ";
+                    }
+
+                    if (ans) {
+                        if (ans.isCorrect) {
+                            btnClass += "bg-emerald-500 text-white border-emerald-600";
+                        } else {
+                            btnClass += "bg-rose-500 text-white border-rose-600";
+                        }
+                    } else {
+                        btnClass += "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-200";
+                    }
+
+                    const btn = document.createElement('button');
+                    btn.className = btnClass;
+                    btn.innerHTML = `
+                        Q${idx + 1}
+                        ${isBookmarked ? '<span class="absolute -top-1 -right-1 text-amber-400 text-[10px]"><i class="fa-solid fa-star"></i></span>' : ''}
+                    `;
+                    btn.onclick = () => {
+                        this.currentIndex = idx;
+                        this.renderQuestion();
+                        this.gridDrawer.classList.add('hidden');
+                    };
+
+                    this.gridButtonsContainer.appendChild(btn);
+                });
+            }
+
+            renderQuestion() {
+                this.resultContainer.classList.add('hidden');
+                this.container.classList.remove('hidden');
+
+                const q = this.questions[this.currentIndex];
+                const isAnswered = !!this.userAnswers[q.id];
+                const savedState = this.userAnswers[q.id];
+                const isBookmarked = this.bookmarks.has(q.id);
+
+                let html = `
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-xl transition-all">
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700/60 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold px-3 py-1 rounded-full bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-400">
+                                    單選題
+                                </span>
+                                <span class="text-xs font-semibold text-slate-400">
+                                    ID: #${q.id}
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <button onclick="quizApp.toggleBookmark(${q.id})" class="text-sm font-medium text-slate-400 hover:text-amber-500 flex items-center gap-1 transition-colors">
+                                    <i class="${isBookmarked ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark"></i>
+                                    <span class="text-xs hidden sm:inline">${isBookmarked ? '已標記' : '標記此題'}</span>
+                                </button>
+                                <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                    第 ${this.currentIndex + 1} / 58 題
+                                </span>
+                            </div>
+                        </div>
+
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-3 leading-relaxed">
+                            ${q.title}
+                        </h2>
+                        <div class="text-slate-700 dark:text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
+                            ${q.question}
+                        </div>
+                `;
+
+                html += `<div class="space-y-3 mb-6">`;
+                q.options.forEach(opt => {
+                    let btnClass = "w-full text-left p-4 rounded-2xl border transition-all flex items-start gap-3.5 text-sm sm:text-base ";
+                    let iconHtml = `<span class="w-6 h-6 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center font-semibold text-xs text-slate-500 dark:text-slate-400 shrink-0 mt-0.5">${opt.id}</span>`;
+
+                    if (isAnswered) {
+                        if (opt.id === q.correctAnswer) {
+                            btnClass += "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-medium";
+                            iconHtml = `<span class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs shrink-0 mt-0.5"><i class="fa-solid fa-check"></i></span>`;
+                        } else if (savedState.userSelection === opt.id) {
+                            btnClass += "bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-900 dark:text-rose-200";
+                            iconHtml = `<span class="w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs shrink-0 mt-0.5"><i class="fa-solid fa-xmark"></i></span>`;
+                        } else {
+                            btnClass += "bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 opacity-60";
+                        }
+                    } else {
+                        btnClass += "bg-slate-50 hover:bg-slate-100 dark:bg-slate-700/50 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-brand-300 dark:hover:border-brand-500";
+                    }
+
+                    html += `
+                        <button ${isAnswered ? 'disabled' : ''} onclick="quizApp.selectOption('${opt.id}')" class="${btnClass}">
+                            ${iconHtml}
+                            <span class="flex-1">${opt.text}</span>
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+
+                if (isAnswered) {
+                    const isCorrect = savedState.isCorrect;
+                    html += `
+                        <div class="mt-6 p-5 rounded-2xl border ${isCorrect ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/50' : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/50'} space-y-3">
+                            <div class="flex items-center gap-2">
+                                <span class="px-3 py-1 text-xs font-bold rounded-lg text-white ${isCorrect ? 'bg-emerald-500' : 'bg-rose-500'}">
+                                    ${isCorrect ? '<i class="fa-solid fa-circle-check mr-1"></i>回答正確' : '<i class="fa-solid fa-circle-xmark mr-1"></i>回答錯誤'}
+                                </span>
+                                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                    標準答案：${q.correctAnswer}
+                                </span>
+                            </div>
+                            <div class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed border-t border-slate-200/60 dark:border-slate-700/60 pt-3">
+                                <strong class="text-slate-900 dark:text-white block mb-1"><i class="fa-solid fa-lightbulb text-amber-500 mr-1.5"></i>詳解與觀念說明：</strong>
+                                ${q.explanation}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                    <div class="mt-8 pt-4 border-t border-slate-100 dark:border-slate-700/60 flex justify-between items-center">
+                        <button onclick="quizApp.prevQuestion()" ${this.currentIndex === 0 ? 'disabled' : ''} class="px-4 py-2 text-sm font-medium rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrow-left"></i>上一題
+                        </button>
+
+                        <div class="flex gap-2">
+                            ${this.currentIndex < this.questions.length - 1 ? `
+                                <button onclick="quizApp.nextQuestion()" class="px-5 py-2.5 text-sm font-semibold rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-md transition-all flex items-center gap-1.5">
+                                    下一題<i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            ` : `
+                                <button onclick="quizApp.finishQuiz()" class="px-5 py-2.5 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all flex items-center gap-1.5">
+                                    完成測驗<i class="fa-solid fa-flag-checkered"></i>
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+
+                html += `</div>`;
+                this.container.innerHTML = html;
+                this.updateDashboard();
+            }
+
+            selectOption(optionId) {
+                const q = this.questions[this.currentIndex];
+                const isCorrect = optionId === q.correctAnswer;
+
+                this.userAnswers[q.id] = {
+                    userSelection: optionId,
+                    isCorrect: isCorrect
+                };
+
+                this.renderQuestion();
+            }
+
+            nextQuestion() {
+                if (this.currentIndex < this.questions.length - 1) {
+                    this.currentIndex++;
+                    this.renderQuestion();
+                }
+            }
+
+            prevQuestion() {
+                if (this.currentIndex > 0) {
+                    this.currentIndex--;
+                    this.renderQuestion();
+                }
+            }
+
+            finishQuiz() {
+                this.container.classList.add('hidden');
+                this.resultContainer.classList.remove('hidden');
+
+                let correctCount = 0;
+                Object.values(this.userAnswers).forEach(ans => {
+                    if (ans.isCorrect) correctCount++;
+                });
+
+                const finalScore = Math.round((correctCount / this.questions.length) * 100);
+                const accuracy = Math.round((correctCount / this.questions.length) * 100);
+
+                document.getElementById('finalCorrectCount').innerText = `${correctCount} / ${this.questions.length} 題`;
+                document.getElementById('finalScore').innerText = `${finalScore} 分`;
+                document.getElementById('finalAccuracy').innerText = `${accuracy}%`;
+
+                const feedbackElem = document.getElementById('resultFeedbackText');
+                if (finalScore === 100) {
+                    feedbackElem.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200";
+                    feedbackElem.innerHTML = "<i class='fa-solid fa-star text-amber-500 mr-1.5'></i>太優秀了！獲得滿分！您已完美通關生成式 AI 認證題庫！";
+                } else if (finalScore >= 70) {
+                    feedbackElem.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-brand-100 text-brand-800 dark:bg-brand-900/50 dark:text-brand-200";
+                    feedbackElem.innerHTML = "<i class='fa-solid fa-circle-check text-brand-500 mr-1.5'></i>恭喜通過門檻 (70分)！檢視錯題並加以複習即可穩拿認證標章！";
+                } else {
+                    feedbackElem.className = "text-sm font-medium px-4 py-3 rounded-xl max-w-md mx-auto bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200";
+                    feedbackElem.innerHTML = "<i class='fa-solid fa-triangle-exclamation text-amber-500 mr-1.5'></i>未達 70 分及格標準，建議善用「錯題篩選」進行再強化！";
+                }
+
+                this.progressBar.style.width = '100%';
+            }
+
+            restartQuiz() {
+                this.currentIndex = 0;
+                this.userAnswers = {};
+                this.activeFilter = 'all';
+                this.updateFilteredIndices();
+                this.renderQuestion();
+            }
+
+            reviewAllQuestions() {
+                this.resultContainer.classList.add('hidden');
+                this.container.classList.remove('hidden');
+
+                let reviewHtml = `
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <h2 class="font-bold text-slate-800 dark:text-white text-base sm:text-lg"><i class="fa-solid fa-list-check text-brand-500 mr-2"></i>全 58 題完整題目與詳細解析總覽</h2>
+                            <button onclick="quizApp.restartQuiz()" class="px-4 py-2 text-xs bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700">重頭刷題</button>
+                        </div>
+                `;
+
+                this.questions.forEach((q, idx) => {
+                    const userAns = this.userAnswers[q.id];
+                    const isCorrect = userAns ? userAns.isCorrect : false;
+
+                    reviewHtml += `
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-900 dark:text-white">${q.title}</span>
+                                ${userAns ? (
+                                    isCorrect ? 
+                                    '<span class="text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold px-2.5 py-1 rounded-lg">答對</span>' : 
+                                    '<span class="text-xs bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 font-bold px-2.5 py-1 rounded-lg">答錯</span>'
+                                ) : '<span class="text-xs bg-slate-100 text-slate-500 font-bold px-2.5 py-1 rounded-lg">未作答</span>'}
+                            </div>
+                            <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">${q.question}</p>
+                            <div class="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-xs sm:text-sm space-y-2 border border-slate-100 dark:border-slate-800">
+                                <div class="text-emerald-600 dark:text-emerald-400 font-semibold">標準答案：${q.correctAnswer}</div>
+                                <div class="text-slate-600 dark:text-slate-400 leading-relaxed"><strong class="text-slate-700 dark:text-slate-300">詳解：</strong>${q.explanation}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                reviewHtml += `</div>`;
+                this.container.innerHTML = reviewHtml;
+            }
+        }
+
+        let quizApp;
+        window.onload = function() {
+            quizApp = new QuizApp(quizData);
+        };
+    </script>
+</body>
+</html>
