@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高級資料庫系統 🔥 互動式超級考場 (DB2)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Comic / Pop style font -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        popYellow: '#FFDE59',
+                        popPink: '#FF66C4',
+                        popBlue: '#5CE1E6',
+                        popGreen: '#7ED957',
+                        popRed: '#FF5757',
+                        popOrange: '#FF914D',
+                        popPurple: '#C175FF',
+                        comicDark: '#1E1E24',
+                    },
+                    boxShadow: {
+                        'pop': '4px 4px 0px 0px #1E1E24',
+                        'pop-lg': '7px 7px 0px 0px #1E1E24',
+                        'pop-sm': '2px 2px 0px 0px #1E1E24',
+                    },
+                    fontFamily: {
+                        pop: ['Fredoka', 'Noto Sans TC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
+            background-color: #FFFDF0;
+            background-image: radial-gradient(#C175FF 0.75px, transparent 0.75px), radial-gradient(#C175FF 0.75px, #FFFDF0 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+        }
+
+        .comic-border {
+            border: 3.5px solid #1E1E24;
+        }
+
+        .option-btn {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px 0px #1E1E24;
+        }
+        .option-btn:active:not(:disabled) {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px #1E1E24;
+        }
+
+        @keyframes pop-bounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-6deg) rotate(1.5deg); }
+        }
+        .animate-pop-bounce {
+            animation: pop-bounce 2.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-comicDark flex flex-col justify-between selection:bg-popYellow">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-popPurple comic-border border-t-0 border-x-0 p-4 sticky top-0 z-40 shadow-md">
+        <div class="max-w-5xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <span class="text-3xl bg-popYellow comic-border rounded-xl p-2 shadow-pop animate-pop-bounce">⚡</span>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black tracking-wide text-white drop-shadow">高級資料庫系統 (DB2) 🔥 互動考場</h1>
+                    <p class="text-xs font-bold text-popYellow">Advanced Database Systems (4 Quizzes / 40 Questions Complete)</p>
+                </div>
+            </div>
+
+            <!-- Global Score Counter & Sound Toggle -->
+            <div class="flex items-center gap-3">
+                <div class="bg-white comic-border rounded-xl px-4 py-1.5 shadow-pop flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-popOrange text-lg"></i>
+                    <span class="font-extrabold text-sm md:text-base">總得分: <span id="total-score" class="text-popRed text-lg">0</span> / 400</span>
+                </div>
+                <button id="sound-toggle" onclick="toggleSound()" class="bg-popBlue comic-border rounded-xl px-3 py-1.5 shadow-pop hover:bg-cyan-300 transition-all active:translate-y-0.5" title="音效切換">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-comicDark text-base"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl mx-auto px-4 py-6 w-full flex-grow">
+
+        <!-- Quiz Navigation Tabs (10 Questions Per Quiz) -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-lg font-bold flex items-center gap-2 text-comicDark">
+                    <i class="fa-solid fa-layer-group text-popPink"></i> 選擇測驗關卡 (每組 10 題)：
+                </h2>
+                <span id="level-indicator" class="bg-popPink text-white font-black text-xs px-3 py-1 rounded-full comic-border shadow-pop-sm">
+                    Quiz 1
+                </span>
+            </div>
+            
+            <div id="quiz-selector-tabs" class="flex flex-wrap gap-2.5">
+                <!-- Dynamic Quiz Level Tabs generated by JS -->
+            </div>
+        </div>
+
+        <!-- Progress Bar & Quiz Info Header -->
+        <div class="bg-white comic-border rounded-2xl p-4 mb-6 shadow-pop relative overflow-hidden">
+            <div class="flex flex-wrap justify-between items-center mb-2 font-bold text-sm">
+                <div class="flex items-center gap-2">
+                    <span class="bg-popBlue px-2.5 py-0.5 rounded-lg comic-border text-xs text-comicDark" id="quiz-title-badge">測驗一 (Q1 ~ Q10)</span>
+                    <span id="progress-text" class="text-gray-700">完成度: 0 / 10 題</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-popGreen font-black">正確: <span id="quiz-correct-count">0</span></span>
+                    <span class="text-popRed font-black">錯誤: <span id="quiz-wrong-count">0</span></span>
+                </div>
+            </div>
+
+            <!-- Progress Bar Shell -->
+            <div class="w-full bg-gray-100 comic-border h-4 rounded-full overflow-hidden p-0.5">
+                <div id="progress-bar-fill" class="bg-popGreen h-full rounded-full transition-all duration-300 w-0"></div>
+            </div>
+        </div>
+
+        <!-- Questions Container -->
+        <div id="questions-container" class="space-y-6">
+            <!-- Dynamic Questions injected here -->
+        </div>
+
+        <!-- Quiz Summary / Completion Card -->
+        <div id="quiz-summary-card" class="hidden mt-8 bg-popYellow comic-border rounded-3xl p-6 md:p-8 shadow-pop-lg text-center relative overflow-hidden">
+            <div class="text-5xl mb-3">🏆</div>
+            <h2 id="summary-quiz-name" class="text-2xl md:text-3xl font-black text-comicDark mb-2">測驗完成！</h2>
+            <p id="summary-feedback-msg" class="text-base md:text-lg font-bold text-gray-800 mb-4">太強大了！高級資料庫觀念完全掌握！💥</p>
+            
+            <div class="inline-flex items-center gap-6 bg-white comic-border rounded-2xl px-6 py-4 shadow-pop mb-6">
+                <div>
+                    <div class="text-xs font-extrabold text-gray-500">正確率</div>
+                    <div id="summary-score-percent" class="text-3xl font-black text-popGreen">0%</div>
+                </div>
+                <div class="w-0.5 h-10 bg-comicDark"></div>
+                <div>
+                    <div class="text-xs font-extrabold text-gray-500">答對題數</div>
+                    <div class="text-3xl font-black text-comicDark"><span id="summary-correct">0</span> / 10</div>
+                </div>
+                <div class="w-0.5 h-10 bg-comicDark"></div>
+                <div>
+                    <div class="text-xs font-extrabold text-gray-500">本關得分</div>
+                    <div class="text-3xl font-black text-popRed"><span id="summary-points">0</span> 分</div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-4">
+                <button onclick="retryCurrentQuiz()" class="option-btn bg-white text-comicDark font-black px-6 py-3 rounded-2xl comic-border shadow-pop flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> 重新測驗本關
+                </button>
+                <button id="next-quiz-btn" onclick="goToNextQuiz()" class="option-btn bg-popPink text-white font-black px-6 py-3 rounded-2xl comic-border shadow-pop flex items-center gap-2">
+                    下一關小考 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 bg-white comic-border border-b-0 border-x-0 p-4 text-center font-bold text-sm text-comicDark">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <p>⚡ Advanced Database Systems (DB2) Interactive Quiz • 40 Questions Complete</p>
+            <p class="text-xs text-gray-500">Comic Pop Aesthetic with Web Audio & Confetti</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- WEB AUDIO API SOUND EFFECTS ---
+        let soundEnabled = true;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-comicDark text-base';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-gray-400 text-base';
+            }
+        }
+
+        function playCorrectSound() {
+            if (!soundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } catch(e){}
+        }
+
+        function playIncorrectSound() {
+            if (!soundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(160, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            } catch(e){}
+        }
+
+        function playFanfareSound() {
+            if (!soundEnabled) return;
+            try {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.1);
+                    gain.gain.setValueAtTime(0.25, audioCtx.currentTime + idx * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.1 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime + idx * 0.1);
+                    osc.stop(audioCtx.currentTime + idx * 0.1 + 0.3);
+                });
+            } catch(e){}
+        }
+
+        // --- QUESTION BANK (40 Advanced DB Questions total: 4 Quizzes x 10 Questions) ---
+        const ALL_QUESTIONS = [
+            // ==================== QUIZ 1: Q1 - Q10 (分散式資料庫與兩階段提交) ====================
+            {
+                id: 1,
+                question: "在分散式交易 (Distributed Transactions) 中，兩階段提交協定 (Two-Phase Commit, 2PC) 的主要目的為何？",
+                options: [
+                    "A. 提高資料庫的查詢與併行處理效能",
+                    "B. 確保分散式系統中跨多個節點之交易的原子性 (Atomicity)",
+                    "C. 自動消除分散式節點間的死鎖 (Deadlock)",
+                    "D. 降低廣域網路 (WAN) 的封包傳輸延遲"
+                ],
+                answer: 1,
+                explanation: "【詳解】：2PC (Two-Phase Commit) 分為 Prepare 階段與 Commit 階段，旨在確保分散式環境中所有參與節點要麼全部提交交易，要麼全部 rollback，以維護交易原子性 (Atomicity)。"
+            },
+            {
+                id: 2,
+                question: "在 2PC (Two-Phase Commit) 協定中，如果參與者 (Participant) 回覆 'VOTE_COMMIT' 後，協調者 (Coordinator) 崩潰，該參與者會進入何種狀態？",
+                options: [
+                    "A. 自動放棄交易 (Abort)",
+                    "B. 自動提交交易 (Commit)",
+                    "C. 阻塞/不確定狀態 (In-doubt / Blocked State)",
+                    "D. 重新啟動協調者"
+                ],
+                answer: 2,
+                explanation: "【詳解】：當參與者投下 Commit 贊成票後，在收到 Coordinator 的最終指令前無法自行決定，若 Coordinator 此時 Failure，參與者會被 Blocking 在 In-doubt 狀態，這是 2PC 的主要缺點之一。"
+            },
+            {
+                id: 3,
+                question: "三階段提交協定 (Three-Phase Commit, 3PC) 相比於 2PC，新增了哪一個階段以解決 Blocking 問題？",
+                options: [
+                    "A. Pre-Commit 階段",
+                    "B. Validation 階段",
+                    "C. Lock-Acquire 階段",
+                    "D. Checkpoint 階段"
+                ],
+                answer: 0,
+                explanation: "【詳解】：3PC 引入了 Pre-Commit 階段與超時 (Timeout) 機制，打破了 2PC 的阻塞限制，使得在發生單一節點故障時參與者可以透過狀態判斷進行終止或提交。"
+            },
+            {
+                id: 4,
+                question: "在分散式資料庫的透明性 (Transparency) 層級中，使用者「完全無需知道資料位於哪一個實體節點」稱為？",
+                options: [
+                    "A. 複製透明性 (Replication Transparency)",
+                    "B. 位置透明性 (Location Transparency)",
+                    "C. 分割透明性 (Fragmentation Transparency)",
+                    "D. 併行透明性 (Concurrency Transparency)"
+                ],
+                answer: 1,
+                explanation: "【詳解】：位置透明性 (Location Transparency) 讓使用者提交 SQL 時不必在語法中指定資料儲存的網路節點位址 (如 Node A / Node B)。"
+            },
+            {
+                id: 5,
+                question: "分散式系統的 CAP 定理 (Brewer's CAP Theorem) 證明了在存在網路分區 (Partition Tolerance) 時，系統無法同時完全兼顧哪兩者？",
+                options: [
+                    "A. 一致性 (Consistency) 與 可用性 (Availability)",
+                    "B. 原子性 (Atomicity) 與 持續性 (Durability)",
+                    "C. 隔離性 (Isolation) 與 高效能 (Performance)",
+                    "D. 併行性 (Concurrency) 與 安全性 (Security)"
+                ],
+                answer: 0,
+                explanation: "【詳解】：CAP 定理指出分散式系統在遇到網路分區 (P) 時，必須在強一致性 (C) 與高可用性 (A) 之間進行權衡 (Trade-off)。"
+            },
+            {
+                id: 6,
+                question: "在分散式併行控制中，全域死鎖偵測 (Global Deadlock Detection) 常使用的「等待圖 (Wait-For Graph, WFG)」在多節點間如何匯整？",
+                options: [
+                    "A. 各節點將局部 WFG 傳送至中央死鎖偵測節點或進行分散式邊緣傳播",
+                    "B. 直接將所有交易自動 rollback",
+                    "C. 停用所有共享鎖",
+                    "D. 改用 1PC 協定"
+                ],
+                answer: 0,
+                explanation: "【詳解】：全域死鎖可透過 centralized 方式 (由控制器組合各節點局部 WFG 找出環路 Cyclic) 或 distributed 方式 (如 Path-Pushing 演算法) 進行檢測。"
+            },
+            {
+                id: 7,
+                question: "關於 BASE 原則 (Basically Available, Soft state, Eventual consistency)，下列敘述何者正確？",
+                options: [
+                    "A. BASE 要求嚴格的 ACID 實時強一致性",
+                    "B. BASE 常作為 NoSQL 與分散式系統放鬆一致性以換取高可用性與擴充性的設計理論",
+                    "C. BASE 不允許資料有任何同步延遲",
+                    "D. BASE 是關聯式資料庫 (RDBMS) 的核心標準"
+                ],
+                answer: 1,
+                explanation: "【詳解】：BASE 對應 ACID，放棄了實時強一致性 (Strong Consistency)，改採最終一致性 (Eventual Consistency) 以換取大規模分散式系統的高可用性與可擴展性。"
+            },
+            {
+                id: 8,
+                question: "分散式查詢處理中，Semi-Join (半連接 R ⋉ S) 運算的主要優勢是什麼？",
+                options: [
+                    "A. 減少在網路間傳輸不必要的欄位與資料量 (Data Transfer Overhead)",
+                    "B. 完全不需要消耗 CPU 運算資源",
+                    "C. 可以取代分散式索引",
+                    "D. 自動修正連線中斷問題"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Semi-Join 僅傳送連接欄位 (Join Attributes) 的投影值至另一節點過濾資料，大幅降低在 WAN/LAN 網路上傳輸大量無關資料的通訊開銷。"
+            },
+            {
+                id: 9,
+                question: "在 Paxos 或 Raft 一致性共識演算法 (Consensus Algorithm) 中，多數決 (Quorum) 機制的作用為何？",
+                options: [
+                    "A. 確保只要超過半數 (N/2 + 1) 節點存活並同意，系統即可達成安全一致的決策",
+                    "B. 要求所有 100% 節點必須隨時在線",
+                    "C. 防止資料庫被 SQL Injection 攻擊",
+                    "D. 提升單一節點的寫入吞吐量"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Quorum (過半數) 原則保證任何兩個過半數集合至少有一個交集節點，能防範 Split-brain (腦裂) 並在少數節點故障下仍能達成共識。"
+            },
+            {
+                id: 10,
+                question: "分散式資料庫中的「水平分割 (Horizontal Fragmentation)」指的是？",
+                options: [
+                    "A. 將關聯表的「直行 (Attributes/Columns)」拆分至不同節點",
+                    "B. 將關聯表的「橫列 (Tuples/Rows)」根據條件分組切塊儲存至不同節點",
+                    "C. 將主鍵與外鍵強制分離",
+                    "D. 將日誌檔與資料頁面放置於不同硬碟"
+                ],
+                answer: 1,
+                explanation: "【詳解】：水平分割 (Horizontal Partitioning/Sharding) 是依據條件 (如 Range, Hash) 將資料列 (Rows) 分散到各站台；垂直分割 (Vertical) 則是將欄位 (Columns) 拆開。"
+            },
+
+            // ==================== QUIZ 2: Q11 - Q20 (查詢優化、執行計畫與 B+ Tree/索引) ====================
+            {
+                id: 11,
+                question: "在資料庫查詢優化器 (Query Optimizer) 中，基於成本的優化器 (Cost-Based Optimizer, CBO) 評估成本的主要指標不包括下列何者？",
+                options: [
+                    "A. I/O 存取磁碟頁數 (Disk Pages Read/Written)",
+                    "B. CPU 運算指令與比較次數",
+                    "C. 網路通訊傳輸開銷 (Network Communication Cost)",
+                    "D. 資料庫管理員 (DBA) 的帳號權限等級"
+                ],
+                answer: 3,
+                explanation: "【詳解】：CBO 的 Cost Model 計算包含估算的 I/O cost、CPU cost 及 Network cost；與 DBA 的使用者權限等級無關。"
+            },
+            {
+                id: 12,
+                question: "針對大資料量的兩個無序關聯表進行 Join 操作，當記憶體空間非常有限時，下列哪種算法通常最具擴充性與高效率？",
+                options: [
+                    "A. Nested Loop Join (巢狀迴圈連接)",
+                    "B. Grace Hash Join (哈希連接)",
+                    "C. Simple Cartesian Product",
+                    "D. Bubble Sort Join"
+                ],
+                answer: 1,
+                explanation: "【詳解】：Grace Hash Join 透過 Hash Function 將兩大表劃分成可容納於記憶體的小 Partition 分批進行 Hash Match，極為適合大型無序表之連接。"
+            },
+            {
+                id: 13,
+                question: "在 B+ Tree 索引中，若階數 (Order) 為 m，則非根內部節點 (Internal Node) 最少必須包含多少個子節點 (Children)？",
+                options: [
+                    "A. 1",
+                    "B. ⌈m / 2⌉",
+                    "C. m - 1",
+                    "D. m"
+                ],
+                answer: 1,
+                explanation: "【詳解】：根據 B+ Tree 的結構定義，除根節點 (Root) 外，所有內部節點至少需擁有 ⌈m/2⌉ 個子節點 (Child Pointers)，以確保樹的高度平衡與空間利用率。"
+            },
+            {
+                id: 14,
+                question: "何謂「覆蓋索引 (Covering Index / Index-Only Scan)」？",
+                options: [
+                    "A. 查詢所需的所有欄位均已包含在索引中，無需回表 (Table Access / Lookups) 讀取資料頁",
+                    "B. 將資料庫中所有 Table 都建立索引",
+                    "C. 使用加密技術保護索引檔案",
+                    "D. 自動取代聚簇索引 (Clustered Index)"
+                ],
+                answer: 0,
+                explanation: "【詳解】：當一個 Secondary Index 包含了 SELECT 及 WHERE 中所需的所有 Attribute 時，執行計畫可以直接從索引頁提取資料 (Index-Only Scan)，省去回表 (Bookmark Lookup) 的 I/O。"
+            },
+            {
+                id: 15,
+                question: "在查詢執行中，Histogram (直方圖) 統計資訊主要用來幫助優化器估算什麼？",
+                options: [
+                    "A. 磁碟壞軌數量",
+                    "B. 選擇率 (Selectivity) 與 選擇結果筆數 (Cardinality Estimation)",
+                    "C. 交易 Commit 的延遲時間",
+                    "D. 併行鎖定的競爭機率"
+                ],
+                answer: 1,
+                explanation: "【詳解】：Histogram 記錄了欄位數值的分布狀況 (尤其是資料傾斜 Data Skew 時)，協助 Optimizer 精準估算 Selectivity 與 Cardinality 以挑選最佳 Join 順序與索引。"
+            },
+            {
+                id: 16,
+                question: "Sort-Merge Join 算法在處理 Join 操作時，前提或最佳使用時機為何？",
+                options: [
+                    "A. 輸入的兩個關聯表已經根據 Join 鍵排序 (Sorted) 或有適合的索引",
+                    "B. 其中一張表必須小於 10 筆資料",
+                    "C. 兩張表完全沒有任何主鍵",
+                    "D. 僅適用於非等值連接 (如 WHERE A.id > B.id)"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Sort-Merge Join 分為 Sort 階段與 Merge 階段。若輸入資料早已依 Join Key 排好序 (例如經由 Index Scan)，只需對兩邊進行單次線性掃描 Merge，效率極高。"
+            },
+            {
+                id: 17,
+                question: "在關聯代數轉換中，將條件 `σ_(age > 30 ∧ city='TB')(Person)` 拆分為兩個相鄰的 Selection，此種等價變換屬於？",
+                options: [
+                    "A. 分解選擇運算 (Cascading / Splitting of Selection)",
+                    "B. 投影下推",
+                    "C. 笛卡兒積結合律",
+                    "D. 視圖展開"
+                ],
+                answer: 0,
+                explanation: "【詳解】：選擇運算具有級聯性 (Cascading of σ)，σ_(θ1 ∧ θ2)(R) ≡ σ_θ1(σ_θ2(R))，這允許優化器更彈性地將特定條件下推。"
+            },
+            {
+                id: 18,
+                question: "位圖索引 (Bitmap Index) 最適合應用於下列哪種特性的欄位？",
+                options: [
+                    "A. 高基數 (High Cardinality) 欄位，如 身分證字號或 UUID",
+                    "B. 低基數 (Low Cardinality) 欄位，如 性別、婚姻狀態、血型",
+                    "C. 主鍵 (Primary Key)",
+                    "D. 頻率極高變動更新的動態欄位"
+                ],
+                answer: 1,
+                explanation: "【詳解】：Bitmap Index 利用 Bit Vector 表示數值存在與否，非常適合 Low-Cardinality 欄位 (如 Gender, State)，且能高效進行多條件 AND/OR 位元運算 (常見於 OLAP)。"
+            },
+            {
+                id: 19,
+                question: "LSM-Tree (Log-Structured Merge-tree) 常見於現代 NoSQL (如 RocksDB, Cassandra)，其核心寫入優勢為何？",
+                options: [
+                    "A. 將隨機寫入 (Random Writes) 轉化為順序寫入 (Sequential Writes) 至 MemTable 與 SSTable",
+                    "B. 完全不需要消耗記憶體 Buffer",
+                    "C. 範圍查詢 (Range Scan) 永遠比 B+ Tree 快",
+                    "D. 寫入時會同步執行 5NF 正規化"
+                ],
+                answer: 0,
+                explanation: "【詳解】：LSM-Tree 寫入時先 append 到 WAL 頁面與記憶體 MemTable，再批量 Flush 為 Sequential SSTable，避開傳統 B+ Tree 的磁碟隨機寫入，極大幅提升寫入吞吐量。"
+            },
+            {
+                id: 20,
+                question: "在 SQL 執行計畫中，若出現 'Block Nested Loop Join'，其中的 Join Buffer (連接緩衝區) 作用為何？",
+                options: [
+                    "A. 一次讀入多筆外表 (Outer Table) 列資料儲存於記憶體，減少內表 (Inner Table) 的重複掃描次數",
+                    "B. 用於對內表資料進行加密",
+                    "C. 防止併行寫入衝突",
+                    "D. 儲存查詢結果至前端客戶端"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Block Nested Loop Join 透過 Join Buffer 暫存外表的一個區塊 (Block)，使內表掃描一次就能與 Buffer 內的所有外表 Tuple 進行比對，降低外存 I/O 次數。"
+            },
+
+            // ==================== QUIZ 3: Q21 - Q30 (高階交易處理、多版本併行控制與 Recovery) ====================
+            {
+                id: 21,
+                question: "多版本併行控制 (MVCC, Multi-Version Concurrency Control) 實現 Snapshot Isolation 時，如何判斷交易 T1 是否可以寫入資料列 X？",
+                options: [
+                    "A. 檢查是否有與 T1 時間重疊的平行交易已修改過 X 並提交 (First-Committer-Wins / Write-Write Conflict 檢查)",
+                    "B. 要求 T1 必須取得全域 Exclusive Lock 鎖定整張表",
+                    "C. 隨機允許寫入",
+                    "D. 只檢查 T1 是否為系統管理員"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Snapshot Isolation 採用 'First-Committer-Wins' 規則，若交易 T1 欲更新列 X，但有另一個 concurrent 交易已更新 X 並提交，則 T1 必須 abort 以防寫入衝突 (Write Skew / Lost Update)。"
+            },
+            {
+                id: 22,
+                question: "在快照隔離 (Snapshot Isolation) 層級下，可能發生哪一種 Serializability 所不會發生的異常現象 (Anomaly)？",
+                options: [
+                    "A. Dirty Read (髒讀)",
+                    "B. Write Skew (寫偏斜)",
+                    "C. Dirty Write",
+                    "D. Uncommitted Read"
+                ],
+                answer: 1,
+                explanation: "【詳解】：Snapshot Isolation 可消除 Dirty Read、Non-repeatable Read 與 Phantom Read，但因交易讀取各自快照各自寫入不同變數，可能導致滿足個自約束但違反跨變數不變量 (Invariant) 的 Write Skew (寫偏斜)。"
+            },
+            {
+                id: 23,
+                question: "ARIES 復原演算法中的 'Repeating History during Redo' 原則代表什麼意義？",
+                options: [
+                    "A. 僅重做已 Commit 的交易",
+                    "B. 在 Redo 階段，將資料庫完全重設回到崩潰瞬間的精確狀態 (包含未 committed 交易的修改)",
+                    "C. 忽略所有 Log 直接從備份檔還原",
+                    "D. 不重做任何 Compensation Log Record (CLR)"
+                ],
+                answer: 1,
+                explanation: "【詳解】：ARIES 的 Redo 階段會從 Smallest RecLSN 開始「重現歷史 (Repeating History)」，重做所有變更 (包含 Winner & Loser 交易)，確保資料庫恢復到 Crash 瞬間的完全一致狀態後再執行 Undo。"
+            },
+            {
+                id: 24,
+                question: "在 ARIES 中，當撤銷 (Undo) 一個 Loser 交易的修改時，系統會寫入哪一種特殊的日誌記錄，以防止在復原過程中再次 Crash 造成重複 Undo？",
+                options: [
+                    "A. Checkpoint Log Record",
+                    "B. Compensation Log Record (CLR)",
+                    "C. Savepoint Log Record",
+                    "D. Begin-Transaction Log Record"
+                ],
+                answer: 1,
+                explanation: "【詳解】：CLR (Compensation Log Record) 記錄 Undo 操作的逆過程，並包含 UndonextLSN 指標。即使復原期間再次 Crash，重新執行時讀到 CLR 會直接跳過已 Undo 的部分。"
+            },
+            {
+                id: 25,
+                question: "嚴格兩階段鎖定 (Strict 2PL) 與 基本 2PL (Basic 2PL) 的關鍵區別是什麼？",
+                options: [
+                    "A. Strict 2PL 要求交易持有的所有獨佔鎖 (X-Locks) 必須維持直到交易 Commit 或 Abort 才能一次釋放",
+                    "B. Basic 2PL 不能保證 Serializability",
+                    "C. Strict 2PL 完全不使用 Shared Locks",
+                    "D. Basic 2PL 絕不會發生死鎖"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Strict 2PL 要求 Exclusive Locks (X-locks) 必須持有到交易結束 (Commit/Rollback)，這防止了 Cascading Aborts (串接撤銷)，確保可恢復性。"
+            },
+            {
+                id: 26,
+                question: "意向鎖 (Intent Locks, 如 IS / IX) 在多粒度鎖定 (Multiple Granularity Locking) 中的主要功用為何？",
+                options: [
+                    "A. 允許交易在較高層級 (如 Table) 標記意圖，避免在對 Page/Row 加鎖時需遍歷檢測整張表的衝突",
+                    "B. 強制關閉所有併行交易",
+                    "C. 自動提升寫入效能 10 倍",
+                    "D. 取代交易日誌的寫入"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Intent Locks (意向鎖) 設置於階層結構的高層 (如 Table)，宣告下層 (如 Row) 正在被加鎖，使其他交易欲對 Table 加粗粒度鎖時能立即判定衝突，無需逐行檢查。"
+            },
+            {
+                id: 27,
+                question: "死鎖預防機制中的 'Wait-Die' 方案 (基於時間戳記 Timestamp) 採取什麼樣的規則？",
+                options: [
+                    "A. 較老的交易等待較年輕的交易；較年輕的交易要求鎖時若被較老交易持有則直接 Die (Abort)",
+                    "B. 較年輕的交易強行搶奪較老交易的鎖",
+                    "C. 所有人一律死鎖 Abort",
+                    "D. 隨機挑選交易終止"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Wait-Die 是非搶佔式 (Non-preemptive)：若 Ti (老) 請求 Tj (年輕) 持有的鎖，Ti 等待 (Wait)；若 Tj (年輕) 請求 Ti (老) 持有的鎖，Tj 死亡 (Die/Abort)。"
+            },
+            {
+                id: 28,
+                question: "死鎖預防機制中的 'Wound-Wait' 方案採取什麼樣的規則？",
+                options: [
+                    "A. 較老的交易 Ti 請求較年輕交易 Tj 持有的鎖時，Ti 會傷害 (Wound/Preempt) Tj 使其 Abort；若年輕請求老則等待",
+                    "B. 較年輕的交易一律殺死老交易",
+                    "C. 禁止使用時間戳記",
+                    "D. 僅適用於單一使用者資料庫"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Wound-Wait 是搶佔式 (Preemptive)：若 Ti (老) 請求 Tj (年輕) 的鎖，Ti 立即搶奪並使 Tj 傷亡 (Wound/Abort)；反之若 Tj (年輕) 請求 Ti (老) 的鎖，Tj 選擇等待 (Wait)。"
+            },
+            {
+                id: 29,
+                question: "在交易樂觀併行控制 (Optimistic Concurrency Control, OCC) 中，交易執行包含哪三個階段？",
+                options: [
+                    "A. Read Phase (讀取) -> Validation Phase (驗證) -> Write Phase (寫入)",
+                    "B. Lock Phase -> Execute Phase -> Unlock Phase",
+                    "C. Begin Phase -> Commit Phase -> End Phase",
+                    "D. Parse Phase -> Compile Phase -> Run Phase"
+                ],
+                answer: 0,
+                explanation: "【詳解】：OCC 假定衝突很少发生，交易先在局部 Workspace 進行 Read/Write (Read Phase)，之後進行相容性驗證 (Validation Phase)，若無衝突才正式寫入磁碟 (Write Phase)。"
+            },
+            {
+                id: 30,
+                question: "在 WAL (Write-Ahead Logging) 原則中，Steal / No-Force 策略的意思是？",
+                options: [
+                    "A. Steal: 允許未 Commit 交易的髒頁寫入磁碟；No-Force: 交易 Commit 時不強制立刻將髒頁刷新至磁碟",
+                    "B. Steal: 禁止任何記憶體寫入；No-Force: 強制所有頁面實時寫入",
+                    "C. 兩者均指不允許使用 Buffer Pool",
+                    "D. 專門用於記憶體資料庫的備份策略"
+                ],
+                answer: 0,
+                explanation: "【詳解】：DBMS 多採用 Steal/No-Force。Steal 提升記憶體管理彈性 (但復原需 Undo)；No-Force 避免 Commit 時的隨機 I/O 瓶頸 (但復原需 Redo)。ARIES 即基於此設計。"
+            },
+
+            // ==================== QUIZ 4: Q31 - Q40 (NoSQL、NewSQL、資料倉儲 OLAP 與大數據架構) ====================
+            {
+                id: 31,
+                question: " NewSQL 資料庫 (例如 CockroachDB, Google Spanner) 的核心特色為何？",
+                options: [
+                    "A. 同時具備 NoSQL 的水平擴展 (Horizontal Scalability) 與傳統 RDBMS 的 ACID 交易強一致性",
+                    "B. 完全放棄 SQL 語法，僅支援 Key-Value 查詢",
+                    "C. 只能單機運行，不支援分散式架構",
+                    "D. 不使用任何日誌或索引"
+                ],
+                answer: 0,
+                explanation: "【詳解】：NewSQL 結合了兩者的長處：既能像 NoSQL 一樣跨多節點彈性擴增 (Scale-out)，又保留了完整 ACID 交易特性與 SQL 查詢介面。"
+            },
+            {
+                id: 32,
+                question: " Google Spanner 如何在分散式環境下實現跨球數據中心 (Global) 的外部一致性 (External Consistency / True Serializability)？",
+                options: [
+                    "A. 使用結合原子鐘 (Atomic Clocks) 與 GPS 接收器的 TrueTime API 來提供嚴格時間誤差界限",
+                    "B. 完全不使用任何時間同步機制",
+                    "C. 依賴單一中央伺服器進行全局計時",
+                    "D. 將所有交易排隊單線程執行"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Google Spanner 依靠 TrueTime API (利用硬體原子鐘與 GPS) 縮小跨數據中心的時間不確定區間 [t.earliest, t.latest]，進而達成分散式 Commit 時間戳排序。"
+            },
+            {
+                id: 33,
+                question: "在資料倉儲 (Data Warehouse) 多維度模型設計中，「星型模型 (Star Schema)」與「雪花模型 (Snowflake Schema)」的主要差異為何？",
+                options: [
+                    "A. Snowflake Schema 將維度表 (Dimension Tables) 進一步正規化 (Normalized)，拆解成多個關聯小表",
+                    "B. Star Schema 完全不包含 Fact Table (事實表)",
+                    "C. Snowflake Schema 查詢時不需要使用 JOIN",
+                    "D. 兩者結構完全相同，僅名稱不同"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Star Schema 的維度表未正規化 (非正規化，查詢簡單快)；而 Snowflake Schema 將維度表進行正規化拆分，減少了維度表冗餘，但增加了查詢時 Join 的複雜度。"
+            },
+            {
+                id: 34,
+                question: "在 OLAP (聯機分析處理) 的多維運算中，將維度階層向上聚合 (例如將「每日銷售」匯總為「每月銷售」) 的操作稱為？",
+                options: [
+                    "A. Drill-down (向下鑽取)",
+                    "B. Roll-up (向上捲收/聚合)",
+                    "C. Slice (切片)",
+                    "D. Dice (切塊)"
+                ],
+                answer: 1,
+                explanation: "【詳解】：Roll-up (向上捲收) 是沿著維度階層向上概括聚合數據 (增加抽象度/減少細節)；反之增加細節粒度則稱為 Drill-down (向下鑽取)。"
+            },
+            {
+                id: 35,
+                question: "列式儲存資料庫 (Columnar Databases, 如 ClickHouse, Apache Parquet) 在 OLAP 大數據分析中優於行式儲存 (Row-oriented) 的主因為何？",
+                options: [
+                    "A. 僅需讀取查詢相關的少數欄位頁面，且同型態資料極高壓縮比 (High Compression Efficiency)",
+                    "B. 單筆點查詢 (Point Lookup) 與單列 INSERT 速度顯著超越行式儲存",
+                    "C. 完全不支援多維度統計",
+                    "D. 佔用更多的記憶體空間"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Column-oriented 儲存按欄聚集，OLAP 查詢通常只關注百個欄位中的 3-5 個，能避免無效 I/O；且同欄位資料型態相同，壓縮率極高可顯著降低磁碟頻寬開銷。"
+            },
+            {
+                id: 36,
+                question: "在 Consistent Hashing (一致性哈希) 演算法中，當分散式叢集新增或移除一個節點時，對 Key 的重新分配影響程度為何？",
+                options: [
+                    "A. 僅影響 Hash 環上該節點相鄰的少數 Keys，無需重新映射全域資料",
+                    "B. 導致 100% 的 Keys 都必須重新搬遷與計算",
+                    "C. 所有資料自動丟棄",
+                    "D. 必須停止全域資料庫服務"
+                ],
+                answer: 0,
+                explanation: "【詳解】：傳統 `hash(key) % N` 在 N 改變時會導致幾乎所有 key 重新定位；Consistent Hashing 將節點與 Key 映射至 2^32 圓環，異動時平均僅需移動 K/N 個 Key。"
+            },
+            {
+                id: 37,
+                question: "在 MapReduce 或 Spark 分散式運算架構中，'Shuffle' 階段代表什麼意思？",
+                options: [
+                    "A. 在 Map 節點與 Reduce 節點之間跨網路重新拉取、分組與分發資料 (Data Redistribution)",
+                    "B. 隨機刪除重複的資料列",
+                    "C. 將寫入語法進行混淆加密",
+                    "D. 清除 Cluster 中的暫存記憶體"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Shuffle 是 MapReduce/Spark 中最昂貴的操作，負責將 Map 階段產生的 Intermediate (Key, Value) 依 Key 重新洗牌並透過網路傳輸到對應的 Reducer 節點。"
+            },
+            {
+                id: 38,
+                question: "在 NoSQL 文件型資料庫 (如 MongoDB) 中，選擇「內嵌文件 (Embedded Documents)」與「參照連結 (References / DBRef)」的主要權衡考量為？",
+                options: [
+                    "A. 內嵌提供原子更新與極佳讀取效能，但受限於單一文件大小上限 (如 16MB) 及資料冗餘",
+                    "B. 內嵌完全無法進行任何查詢",
+                    "C. 參照連結不能跨集合使用",
+                    "D. 兩者在硬碟佔用空間上完全相同"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Embedded 設計能將相連資料一併讀出 (無 Join 開銷) 並享有單一 Doc 原子性；而 Reference 適合 1:N 或 N:M 大量關係，防範文件膨脹超過 BSON 限額。"
+            },
+            {
+                id: 39,
+                question: "大數據儲存格式 Apache ORC 與 Parquet 所採用的「字典編碼 (Dictionary Encoding)」技術原理為何？",
+                options: [
+                    "A. 將重複出現的長字串映射為較小的整數 ID 索引標籤以大幅節省儲存空間",
+                    "B. 將所有欄位翻譯為英文字典",
+                    "C. 自動建立外鍵參照表",
+                    "D. 防止非授權使用者存取欄位"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Dictionary Encoding 將基數較低的文字或重複資料列出 Unique 字典清單，資料本文改以簡短整數 (Bit-packed IDs) 儲存，壓縮比極佳。"
+            },
+            {
+                id: 40,
+                question: "在巨量資料分析架構中，Lambda Architecture (Lambda 架構) 的核心組成包含哪三個層級？",
+                options: [
+                    "A. Batch Layer (批次層)、Speed Layer (實時流層)、Serving Layer (服務層)",
+                    "B. Input Layer, Process Layer, Output Layer",
+                    "C. Cache Layer, Disk Layer, Archive Layer",
+                    "D. Master Layer, Worker Layer, Client Layer"
+                ],
+                answer: 0,
+                explanation: "【詳解】：Nathan Marz 提出的 Lambda 架構結合 Batch Layer (全量準確但不即時)、Speed Layer (低延遲即時流處理但可能不精確) 與 Serving Layer (整合查詢結果)，平衡延遲與精確度。"
+            }
+        ];
+
+        // --- APP STATE ---
+        const QUESTIONS_PER_QUIZ = 10;
+        let currentQuizIndex = 0;
+        let userAnswers = {}; // key: global Question ID, value: selected option index
+        let totalScore = 0;
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            renderQuizSelectorTabs();
+            loadQuiz(0);
+        };
+
+        // Render Tabs for selecting Quiz Level
+        function renderQuizSelectorTabs() {
+            const totalQuizzes = Math.ceil(ALL_QUESTIONS.length / QUESTIONS_PER_QUIZ);
+            const container = document.getElementById('quiz-selector-tabs');
+            container.innerHTML = '';
+
+            for (let i = 0; i < totalQuizzes; i++) {
+                const startQ = i * QUESTIONS_PER_QUIZ + 1;
+                const endQ = Math.min((i + 1) * QUESTIONS_PER_QUIZ, ALL_QUESTIONS.length);
+                
+                const btn = document.createElement('button');
+                btn.id = `tab-btn-${i}`;
+                btn.onclick = () => switchQuiz(i);
+                btn.className = `option-btn comic-border rounded-xl px-4 py-2 text-sm font-extrabold flex items-center gap-2 ${
+                    i === currentQuizIndex 
+                    ? 'bg-popPink text-white shadow-pop' 
+                    : 'bg-white text-comicDark shadow-pop-sm hover:bg-gray-50'
+                }`;
+                btn.innerHTML = `<i class="fa-solid fa-bolt"></i> 小考 ${i + 1} (Q${startQ}-Q${endQ})`;
+                container.appendChild(btn);
+            }
+        }
+
+        // Switch Active Quiz
+        function switchQuiz(quizIdx) {
+            currentQuizIndex = quizIdx;
+            
+            const totalQuizzes = Math.ceil(ALL_QUESTIONS.length / QUESTIONS_PER_QUIZ);
+            for (let i = 0; i < totalQuizzes; i++) {
+                const tab = document.getElementById(`tab-btn-${i}`);
+                if (tab) {
+                    if (i === currentQuizIndex) {
+                        tab.className = 'option-btn comic-border rounded-xl px-4 py-2 text-sm font-extrabold flex items-center gap-2 bg-popPink text-white shadow-pop';
+                    } else {
+                        tab.className = 'option-btn comic-border rounded-xl px-4 py-2 text-sm font-extrabold flex items-center gap-2 bg-white text-comicDark shadow-pop-sm hover:bg-gray-50';
+                    }
+                }
+            }
+
+            loadQuiz(quizIdx);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Load Questions for Selected Quiz Index
+        function loadQuiz(quizIdx) {
+            document.getElementById('quiz-summary-card').classList.add('hidden');
+
+            const startIdx = quizIdx * QUESTIONS_PER_QUIZ;
+            const currentQuestions = ALL_QUESTIONS.slice(startIdx, startIdx + QUESTIONS_PER_QUIZ);
+            
+            const startQNum = startIdx + 1;
+            const endQNum = startIdx + currentQuestions.length;
+            document.getElementById('level-indicator').innerText = `Quiz ${quizIdx + 1}`;
+            document.getElementById('quiz-title-badge').innerText = `小考 ${quizIdx + 1} (Q${startQNum} ~ Q${endQNum})`;
+
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            currentQuestions.forEach((q, idx) => {
+                const qCard = createQuestionCard(q, startIdx + idx + 1);
+                container.appendChild(qCard);
+            });
+
+            updateProgress();
+        }
+
+        // Build HTML Card for Single Question
+        function createQuestionCard(q, displayIndex) {
+            const card = document.createElement('div');
+            card.id = `q-card-${q.id}`;
+            card.className = 'bg-white comic-border rounded-3xl p-5 md:p-7 shadow-pop transition-all relative';
+
+            const isAnswered = userAnswers.hasOwnProperty(q.id);
+            const selectedOpt = userAnswers[q.id];
+
+            let optionsHTML = '';
+            q.options.forEach((opt, optIdx) => {
+                let btnStyle = 'bg-white text-comicDark hover:bg-yellow-50 border-comicDark';
+                let iconHTML = `<span class="w-7 h-7 rounded-lg border-2 border-comicDark flex items-center justify-center font-bold text-xs bg-gray-100 me-3">${String.fromCharCode(65 + optIdx)}</span>`;
+                
+                if (isAnswered) {
+                    if (optIdx === q.answer) {
+                        btnStyle = 'bg-popGreen text-comicDark font-black border-comicDark ring-4 ring-green-300';
+                        iconHTML = `<span class="w-7 h-7 rounded-lg border-2 border-comicDark flex items-center justify-center font-bold text-xs bg-white text-popGreen me-3"><i class="fa-solid fa-check"></i></span>`;
+                    } else if (optIdx === selectedOpt) {
+                        btnStyle = 'bg-popRed text-white font-black border-comicDark';
+                        iconHTML = `<span class="w-7 h-7 rounded-lg border-2 border-comicDark flex items-center justify-center font-bold text-xs bg-white text-popRed me-3"><i class="fa-solid fa-xmark"></i></span>`;
+                    } else {
+                        btnStyle = 'bg-gray-100 text-gray-400 opacity-60 border-gray-300';
+                    }
+                }
+
+                optionsHTML += `
+                    <button 
+                        onclick="handleAnswer(${q.id}, ${optIdx})" 
+                        ${isAnswered ? 'disabled' : ''}
+                        class="option-btn w-full text-left p-3.5 md:p-4 rounded-2xl comic-border font-bold text-base md:text-lg flex items-center transition-all ${btnStyle}"
+                    >
+                        ${iconHTML}
+                        <span class="flex-grow">${opt.substring(3)}</span>
+                    </button>
+                `;
+            });
+
+            // Explanation Section
+            const expStyle = isAnswered ? 'block' : 'hidden';
+            const isCorrect = isAnswered && selectedOpt === q.answer;
+            const expBadgeColor = isCorrect ? 'bg-popGreen text-comicDark' : 'bg-popRed text-white';
+            const expBadgeText = isCorrect ? '🎉 答對了！ Correct!' : '❌ 答錯了！ Keep Studying!';
+
+            card.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <span class="bg-popYellow text-comicDark font-black text-sm px-3.5 py-1 rounded-xl comic-border shadow-pop-sm">
+                        第 ${displayIndex} 題 / Question ${displayIndex}
+                    </span>
+                    <span class="text-xs font-extrabold text-gray-400">DB2-ID: #${q.id}</span>
+                </div>
+
+                <h3 class="text-lg md:text-xl font-black text-comicDark mb-5 leading-relaxed">
+                    ${q.question}
+                </h3>
+
+                <div class="space-y-3 mb-4">
+                    ${optionsHTML}
+                </div>
+
+                <div id="explanation-${q.id}" class="${expStyle} mt-5 bg-purple-50 comic-border rounded-2xl p-4 md:p-5 shadow-pop-sm">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="${expBadgeColor} font-black text-xs px-3 py-1 rounded-lg comic-border shadow-pop-sm">
+                            ${expBadgeText}
+                        </span>
+                    </div>
+                    <div class="text-sm md:text-base font-bold text-comicDark leading-relaxed pt-1">
+                        ${q.explanation}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Handle Option Click
+        function handleAnswer(questionId, selectedOptionIdx) {
+            if (userAnswers.hasOwnProperty(questionId)) return;
+
+            const question = ALL_QUESTIONS.find(q => q.id === questionId);
+            userAnswers[questionId] = selectedOptionIdx;
+
+            const isCorrect = selectedOptionIdx === question.answer;
+
+            if (isCorrect) {
+                playCorrectSound();
+                totalScore += 10;
+            } else {
+                playIncorrectSound();
+            }
+
+            document.getElementById('total-score').innerText = totalScore;
+
+            const currentQuestions = ALL_QUESTIONS.slice(currentQuizIndex * QUESTIONS_PER_QUIZ, (currentQuizIndex + 1) * QUESTIONS_PER_QUIZ);
+            const questionIndex = currentQuestions.findIndex(q => q.id === questionId);
+            const displayNum = currentQuizIndex * QUESTIONS_PER_QUIZ + questionIndex + 1;
+
+            const oldCard = document.getElementById(`q-card-${questionId}`);
+            const newCard = createQuestionCard(question, displayNum);
+            oldCard.replaceWith(newCard);
+
+            updateProgress();
+        }
+
+        // Update Progress Bar & Stats
+        function updateProgress() {
+            const startIdx = currentQuizIndex * QUESTIONS_PER_QUIZ;
+            const currentQuestions = ALL_QUESTIONS.slice(startIdx, startIdx + QUESTIONS_PER_QUIZ);
+            
+            let answeredCount = 0;
+            let correctCount = 0;
+            let wrongCount = 0;
+
+            currentQuestions.forEach(q => {
+                if (userAnswers.hasOwnProperty(q.id)) {
+                    answeredCount++;
+                    if (userAnswers[q.id] === q.answer) {
+                        correctCount++;
+                    } else {
+                        wrongCount++;
+                    }
+                }
+            });
+
+            const total = currentQuestions.length;
+            const percent = (answeredCount / total) * 100;
+
+            document.getElementById('progress-text').innerText = `完成度: ${answeredCount} / ${total} 題`;
+            document.getElementById('quiz-correct-count').innerText = correctCount;
+            document.getElementById('quiz-wrong-count').innerText = wrongCount;
+            document.getElementById('progress-bar-fill').style.width = `${percent}%`;
+
+            if (answeredCount === total && total > 0) {
+                showQuizSummary(correctCount, total);
+            }
+        }
+
+        // Show Summary Results Card & Confetti
+        function showQuizSummary(correct, total) {
+            const percent = Math.round((correct / total) * 100);
+            const summaryCard = document.getElementById('quiz-summary-card');
+            
+            document.getElementById('summary-quiz-name').innerText = `小考 ${currentQuizIndex + 1} (Q${currentQuizIndex * QUESTIONS_PER_QUIZ + 1} - Q${Math.min((currentQuizIndex + 1) * QUESTIONS_PER_QUIZ, ALL_QUESTIONS.length)}) 完成！`;
+            document.getElementById('summary-score-percent').innerText = `${percent}%`;
+            document.getElementById('summary-correct').innerText = correct;
+            document.getElementById('summary-points').innerText = correct * 10;
+
+            let feedbackMsg = "太強大了！高級資料庫觀念完全掌握！💥";
+            if (percent < 60) {
+                feedbackMsg = "要多注意分散式與高階資料庫觀念喔，再接再厲！💪";
+            } else if (percent < 90) {
+                feedbackMsg = "表現非常優秀！詳讀解析觀念會更透徹！✨";
+            }
+            document.getElementById('summary-feedback-msg').innerText = feedbackMsg;
+
+            const totalQuizzes = Math.ceil(ALL_QUESTIONS.length / QUESTIONS_PER_QUIZ);
+            const nextBtn = document.getElementById('next-quiz-btn');
+            if (currentQuizIndex >= totalQuizzes - 1) {
+                nextBtn.classList.add('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+            }
+
+            summaryCard.classList.remove('hidden');
+
+            if (percent >= 60) {
+                playFanfareSound();
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            setTimeout(() => {
+                summaryCard.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+        }
+
+        // Retry current 10 questions
+        function retryCurrentQuiz() {
+            const startIdx = currentQuizIndex * QUESTIONS_PER_QUIZ;
+            const currentQuestions = ALL_QUESTIONS.slice(startIdx, startIdx + QUESTIONS_PER_QUIZ);
+
+            currentQuestions.forEach(q => {
+                if (userAnswers.hasOwnProperty(q.id)) {
+                    if (userAnswers[q.id] === q.answer) {
+                        totalScore -= 10;
+                    }
+                    delete userAnswers[q.id];
+                }
+            });
+
+            document.getElementById('total-score').innerText = totalScore;
+            loadQuiz(currentQuizIndex);
+        }
+
+        // Go to next quiz
+        function goToNextQuiz() {
+            const totalQuizzes = Math.ceil(ALL_QUESTIONS.length / QUESTIONS_PER_QUIZ);
+            if (currentQuizIndex < totalQuizzes - 1) {
+                switchQuiz(currentQuizIndex + 1);
+            }
+        }
+    </script>
+</body>
+</html>
