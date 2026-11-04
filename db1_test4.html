@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資料庫系統 互動式超級考場 🚀 Database Systems Comic Quiz</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Comic / Pop style font -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        popYellow: '#FFDE59',
+                        popPink: '#FF66C4',
+                        popBlue: '#5CE1E6',
+                        popGreen: '#7ED957',
+                        popRed: '#FF5757',
+                        popOrange: '#FF914D',
+                        popPurple: '#C175FF',
+                        comicDark: '#1E1E24',
+                    },
+                    boxShadow: {
+                        'pop': '4px 4px 0px 0px #1E1E24',
+                        'pop-lg': '7px 7px 0px 0px #1E1E24',
+                        'pop-sm': '2px 2px 0px 0px #1E1E24',
+                        'pop-active': '1px 1px 0px 0px #1E1E24',
+                    },
+                    fontFamily: {
+                        pop: ['Fredoka', 'Noto Sans TC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
+            background-color: #FFFDF0;
+            background-image: radial-gradient(#FF914D 0.75px, transparent 0.75px), radial-gradient(#FF914D 0.75px, #FFFDF0 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+        }
+
+        .comic-border {
+            border: 3.5px solid #1E1E24;
+        }
+
+        .option-btn {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px 0px #1E1E24;
+        }
+        .option-btn:active:not(:disabled) {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px #1E1E24;
+        }
+
+        @keyframes pop-bounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-6deg) rotate(1.5deg); }
+        }
+        .animate-pop-bounce {
+            animation: pop-bounce 2.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-comicDark flex flex-col justify-between selection:bg-popYellow">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-popYellow comic-border border-t-0 border-x-0 p-4 sticky top-0 z-40 shadow-md">
+        <div class="max-w-5xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <span class="text-3xl bg-popPink comic-border rounded-xl p-2 shadow-pop animate-pop-bounce">💾</span>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black tracking-wide text-comicDark drop-shadow">資料庫系統 🔥 超級考場</h1>
+                    <p class="text-xs font-bold text-gray-800">Database Systems Interactive Quiz (4 Quizzes / 40 Questions)</p>
+                </div>
+            </div>
+
+            <!-- Global Score Counter & Sound Toggle -->
+            <div class="flex items-center gap-3">
+                <div class="bg-white comic-border rounded-xl px-4 py-1.5 shadow-pop flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-popOrange text-lg"></i>
+                    <span class="font-extrabold text-sm md:text-base">總得分: <span id="total-score" class="text-popRed text-lg">0</span> / 400</span>
+                </div>
+                <button id="sound-toggle" onclick="toggleSound()" class="bg-popBlue comic-border rounded-xl px-3 py-1.5 shadow-pop hover:bg-cyan-300 transition-all active:translate-y-0.5" title="音效切換">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-comicDark text-base"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl mx-auto px-4 py-6 w-full flex-grow">
+
+        <!-- Quiz Navigation Tabs (10 Questions Per Quiz) -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-popPurple"></i> 選擇測驗關卡 (每組 10 題)：
+                </h2>
+                <span id="level-indicator" class="bg-popPink text-white font-black text-xs px-3 py-1 rounded-full comic-border shadow-pop-sm">
+                    Quiz 1
+                </span>
+            </div>
+            
+            <div id="quiz-selector-tabs" class="flex flex-wrap gap-2.5">
+                <!-- Dynamic Quiz Level Tabs generated by JS -->
+            </div>
+        </div>
+
+        <!-- Progress Bar & Quiz Info Header -->
+        <div class="bg-white comic-border rounded-2xl p-4 mb-6 shadow-pop relative overflow-hidden">
+            <div class="flex flex-wrap justify-between items-center mb-2 font-bold text-sm">
+                <div class="flex items-center gap-2">
+                    <span class="bg-popBlue px-2.5 py-0.5 rounded-lg comic-border text-xs text-comicDark" id="quiz-title-badge">測驗一 (Q1 ~ Q10)</span>
+                    <span id="progress-text" class="text-gray-700">完成度: 0 / 10 題</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-popGreen font-black">正確: <span id="quiz-correct-count">0</span></span>
+                    <span class="text-popRed font-black">錯誤: <span id="quiz-wrong-count">0</span></span>
+                </div>
+            </div>
+
+            <!-- Progress Bar Shell -->
+            <div class="w-full bg-gray-100 comic-border h-4 rounded-full overflow-hidden p-0.5">
+                <div id="progress-bar-fill" class="bg-popGreen h-full rounded-full transition-all duration-300 w-0"></div>
+            </div>
+        </div>
+
+        <!-- Questions Container -->
+        <div id="questions-container" class="space-y-6">
+            <!-- Dynamic Questions injected here -->
+        </div>
+
+        <!-- Quiz Summary / Completion Card -->
+        <div id="quiz-summary-card" class="hidden mt-8 bg-popYellow comic-border rounded-3xl p-6 md:p-8 shadow-pop-lg text-center relative overflow-hidden">
+            <div class="text-5xl mb-3">🎉</div>
+            <h2 id="summary-quiz-name" class="text-2xl md:text-3xl font-black text-comicDark mb-2">測驗完成！</h2>
+            <p id="summary-feedback-msg" class="text-base md:text-lg font-bold text-gray-800 mb-4">太優秀了！你簡直是資料庫大師！💥</p>
+            
+            <div class="inline-flex items-center gap-6 bg-white comic-border rounded-2xl px-6 py-4 shadow-pop mb-6">
+                <div>
+                    <div class="text-xs font-extrabold text-gray-500">正確率</div>
+                    <div id="summary-score-percent" class="text-3xl font-black text-popGreen">0%</div>
+                </div>
+                <div class="w-0.5 h-10 bg-comicDark"></div>
+                <div>
+                    <div class="text-xs font-extrabold text-gray-500">答對題數</div>
+                    <div class="text-3xl font-black text-comicDark"><span id="summary-correct">0</span> / 10</div>
+                </div>
+                <div class="w-0.5 h-10 bg-comicDark"></div>
+                <div>
+                    <div class="text-xs font-extrabold text-gray-500">本關得分</div>
+                    <div class="text-3xl font-black text-popRed"><span id="summary-points">0</span> 分</div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-4">
+                <button onclick="retryCurrentQuiz()" class="option-btn bg-white text-comicDark font-black px-6 py-3 rounded-2xl comic-border shadow-pop flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> 重新測驗本關
+                </button>
+                <button id="next-quiz-btn" onclick="goToNextQuiz()" class="option-btn bg-popPink text-white font-black px-6 py-3 rounded-2xl comic-border shadow-pop flex items-center gap-2">
+                    下一關小考 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 bg-white comic-border border-b-0 border-x-0 p-4 text-center font-bold text-sm text-comicDark">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <p>💾 Database Systems Course Quiz App • 40 Questions Complete Set</p>
+            <p class="text-xs text-gray-500">Designed with Comic Pop Theme & Web Audio API</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- WEB AUDIO API SOUND EFFECTS ---
+        let soundEnabled = true;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-comicDark text-base';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-gray-400 text-base';
+            }
+        }
+
+        function playCorrectSound() {
+            if (!soundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } catch(e){}
+        }
+
+        function playIncorrectSound() {
+            if (!soundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            } catch(e){}
+        }
+
+        function playFanfareSound() {
+            if (!soundEnabled) return;
+            try {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.1);
+                    gain.gain.setValueAtTime(0.25, audioCtx.currentTime + idx * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.1 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime + idx * 0.1);
+                    osc.stop(audioCtx.currentTime + idx * 0.1 + 0.3);
+                });
+            } catch(e){}
+        }
+
+        // --- QUESTION BANK (40 Questions total: 4 Quizzes x 10 Questions) ---
+        const ALL_QUESTIONS = [
+            // ==================== QUIZ 1: Q1 - Q10 (基礎與關聯式模型 / 關聯代數) ====================
+            {
+                id: 1,
+                question: "在關聯式資料庫 (Relational Database) 中，用來唯一識別資料表中每一筆記錄的屬性組合稱為？",
+                options: ["A. 外鍵 (Foreign Key)", "B. 主鍵 (Primary Key)", "C. 候選鍵 (Candidate Key)", "D. 複合鍵 (Composite Key)"],
+                answer: 1,
+                explanation: "【詳解】：主鍵 (Primary Key) 是從候選鍵中選出的唯一標示符，能唯一指定資料表中的每一列 (Tuple)，且不允許 NULL 值。"
+            },
+            {
+                id: 2,
+                question: "下列哪一個 SQL 指令屬於資料定義語言 (DDL, Data Definition Language)？",
+                options: ["A. SELECT", "B. UPDATE", "C. CREATE", "D. INSERT"],
+                answer: 2,
+                explanation: "【詳解】：DDL 包含 CREATE、ALTER、DROP 等，用來定義或改變資料庫結構。SELECT、INSERT、UPDATE、DELETE 屬 DML (Data Manipulation Language)。"
+            },
+            {
+                id: 3,
+                question: "交易 (Transaction) 必須滿足 ACID 特性，其中 'A' 代表什麼意義？",
+                options: ["A. Atomicity (單一性/原子性)", "B. Accuracy (精確性)", "C. Availability (可用性)", "D. Consistency (一致性)"],
+                answer: 0,
+                explanation: "【詳解】：ACID 分別為：Atomicity (原子性)、Consistency (一致性)、Isolation (隔離性)、Durability (持續性/永久性)。原子性確保交易要麼全部執行，要麼完全不執行 (All or Nothing)。"
+            },
+            {
+                id: 4,
+                question: "第一正規化 (1NF, First Normal Form) 的主要要求為何？",
+                options: ["A. 消除部分函數相依 (Partial Dependency)", "B. 消除遞移函數相依 (Transitive Dependency)", "C. 每個欄位的值都必須是單一原子值 (Atomic Value)", "D. 移除多值相依 (Multivalued Dependency)"],
+                answer: 2,
+                explanation: "【詳解】：1NF 要求資料表中的每一個欄位都必須是不可再分的原子值 (Atomic Values)，不可有重複群或陣列結構。"
+            },
+            {
+                id: 5,
+                question: "在關聯代數 (Relational Algebra) 中，π (Pi) 運算子代表什麼功能？",
+                options: ["A. 選擇 (Selection)", "B. 投影 (Projection)", "C. 連接 (Join)", "D. 聯集 (Union)"],
+                answer: 1,
+                explanation: "【詳解】：π (Pi) 代表投影 (Projection)，用於篩選出關聯表中的特定「直行 (Columns/Attributes)」；σ (Sigma) 代表選擇 (Selection)，用於篩選「橫列 (Rows)」。"
+            },
+            {
+                id: 6,
+                question: "在資料庫正規化中，如果消除了對主鍵的「部分函數相依 (Partial Functional Dependency)」，該資料表達到第幾正規化？",
+                options: ["A. 1NF", "B. 2NF", "C. 3NF", "D. BCNF"],
+                answer: 1,
+                explanation: "【詳解】：2NF 的定義是：符合 1NF，且所有非主鍵屬性必須完全函數相依 (Fully Functionally Dependent) 於主鍵，亦即消除部分相依。"
+            },
+            {
+                id: 7,
+                question: "SQL 中，若要對分組後的資料進行條件篩選 (例如過濾 COUNT(*) > 5)，應該使用哪個關鍵字？",
+                options: ["A. WHERE", "B. GROUP BY", "C. HAVING", "D. ORDER BY"],
+                answer: 2,
+                explanation: "【詳解】：WHERE 用於群組前的個別紀錄篩選，HAVING 專門用於 GROUP BY 分組聚合函數後的條件過濾。"
+            },
+            {
+                id: 8,
+                question: "在 ER 模型 (Entity-Relationship Model) 中，菱形符號 (Diamond) 通常代表什麼？",
+                options: ["A. 實體 (Entity)", "B. 屬性 (Attribute)", "C. 關聯 (Relationship)", "D. 弱實體 (Weak Entity)"],
+                answer: 2,
+                explanation: "【詳解】：ER 圖標準記號：矩形代表實體 (Entity)，橢圓代表屬性 (Attribute)，菱形代表關聯 (Relationship)。"
+            },
+            {
+                id: 9,
+                question: "在 B+ Tree 索引結構中，實際的資料記錄 (Data Pointers/Records) 儲存在哪裡？",
+                options: ["A. 僅在根節點 (Root Node)", "B. 僅在內部節點 (Internal Nodes)", "C. 僅在葉子節點 (Leaf Nodes)", "D. 均勻分散在所有節點"],
+                answer: 2,
+                explanation: "【詳解】：B+ Tree 的特點是所有索引資料與指標均存在於葉子節點 (Leaf Nodes)，且葉子節點間以雙向鏈結串接，非常適合範圍查詢。"
+            },
+            {
+                id: 10,
+                question: "下列哪一種 Lock (鎖定) 模式允許其他交易同時讀取該資料，但不允許修改？",
+                options: ["A. 獨佔鎖 (Exclusive Lock / X-Lock)", "B. 共享鎖 (Shared Lock / S-Lock)", "C. 意向鎖 (Intent Lock)", "D. 死鎖 (Deadlock)"],
+                answer: 1,
+                explanation: "【詳解】：共享鎖 (S-Lock) 用於讀取作業，多個交易可同時持有共享鎖；獨佔鎖 (X-Lock) 用於寫入，同一時間只允許一個交易持有。"
+            },
+
+            // ==================== QUIZ 2: Q11 - Q20 (進階 SQL 與資料庫設計) ====================
+            {
+                id: 11,
+                question: "消除遞移函數相依 (Transitive Dependency) 可以使關聯表符合第幾正規化？",
+                options: ["A. 2NF", "B. 3NF", "C. BCNF", "D. 4NF"],
+                answer: 1,
+                explanation: "【詳解】：3NF 的要求是符合 2NF，且非主鍵屬性之間不可存在遞移函數相依 (即 X → Y 且 Y → Z)。"
+            },
+            {
+                id: 12,
+                question: "SQL 指令中，LEFT JOIN 代表什麼含意？",
+                options: ["A. 僅回傳兩表完全匹配的資料", "B. 回傳左表所有資料及右表匹配的資料，未匹配填 NULL", "C. 回傳右表所有資料及左表匹配的資料", "D. 回傳兩表所有的笛卡兒積 (Cartesian Product)"],
+                answer: 1,
+                explanation: "【詳解】：LEFT JOIN (左外連接) 會保留左表的所有 Tuple，若右表沒有對應的資料，則相關欄位補 NULL。"
+            },
+            {
+                id: 13,
+                question: "當兩個交易互相等待對方釋放鎖定的資源，導致程式永遠停滯的情況稱為？",
+                options: ["A. 臟讀 (Dirty Read)", "B. 幻讀 (Phantom Read)", "C. 死鎖 (Deadlock)", "D. 餓死 (Starvation)"],
+                answer: 2,
+                explanation: "【詳解】：死鎖 (Deadlock) 是指兩個或多個交易相互持有對方所需的鎖資源，形成循環等待 (Cyclic Wait)。"
+            },
+            {
+                id: 14,
+                question: "在資料庫系統中，WAL (Write-Ahead Logging) 技術的主要目的是什麼？",
+                options: ["A. 加快 SELECT 查詢速度", "B. 確保 Crash Recovery 時的 Durability 與 Atomicity", "C. 自動進行 3NF 正規化", "D. 防止 SQL Injection 攻擊"],
+                answer: 1,
+                explanation: "【詳解】：WAL 原則規定任何資料頁改動寫入磁碟前，相關日誌紀錄必須先寫入非揮發性儲存媒體，以保證崩潰後可進行 Undo/Redo。"
+            },
+            {
+                id: 15,
+                question: "Boyce-Codd Normal Form (BCNF) 比 3NF 更嚴格，其主要限制條件為何？",
+                options: ["A. 對於每一個非平庸函數相依 X → Y，X 必須是 Super Key (超鍵)", "B. 必須消除多值相依", "C. 不能使用複合主鍵", "D. 必須沒有外鍵存在"],
+                answer: 0,
+                explanation: "【詳解】：BCNF 要求關聯表中所有的函數相依 X → Y (其中 Y 不屬於 X)，決定因素 (Determinant) X 必須是一個 Super Key。"
+            },
+            {
+                id: 16,
+                question: "下列何者為兩階段鎖定協定 (Two-Phase Locking, 2PL) 的主要作用？",
+                options: ["A. 確保交易永遠不會發生死鎖 (Deadlock-free)", "B. 保證可序列化 (Serializability) 的執行結果", "C. 自動建立最佳索引", "D. 降低磁碟 I/O 次數"],
+                answer: 1,
+                explanation: "【詳解】：2PL (分為 Growing Phase 與 Shrinking Phase) 可以保證併行控制的「可序列化 (Serializability)」，但仍可能發生死鎖。"
+            },
+            {
+                id: 17,
+                question: "在關係代數中，R ⋈ S (自然連接 Natural Join) 是基於什麼進行相連？",
+                options: ["A. 兩表的所有主鍵", "B. 兩表具有相同名稱與型態的同名屬性 (Common Attributes)", "C. 兩表的第一個欄位", "D. 隨機匹配"],
+                answer: 1,
+                explanation: "【詳解】：Natural Join (⋈) 會自動尋找兩關聯表中相同名稱的欄位進行值相等的條件連接，並自動消除重複的同名欄位。"
+            },
+            {
+                id: 18,
+                question: "在隔離層級 (Isolation Levels) 中，最低且可能發生 'Dirty Read' (髒讀) 的層級是？",
+                options: ["A. Read Uncommitted", "B. Read Committed", "C. Repeatable Read", "D. Serializable"],
+                answer: 0,
+                explanation: "【詳解】：Read Uncommitted (未提交讀) 允許交易讀取其他未 Commit 的交易修改過的資料，因此會產生 Dirty Read。"
+            },
+            {
+                id: 19,
+                question: "SQL 中語句 `DELETE FROM Employees` 與 `TRUNCATE TABLE Employees` 的主要差別為何？",
+                options: ["A. TRUNCATE 可以加 WHERE 條件，DELETE 不行", "B. DELETE 是 DML 且會逐行紀錄 Log；TRUNCATE 是 DDL，速度較快且釋放空間", "C. 兩者完全相同無差別", "D. TRUNCATE 無法清空整張表"],
+                answer: 1,
+                explanation: "【詳解】：DELETE 是 DML 操作，可觸發 Trigger 且逐筆記錄 Undo log；TRUNCATE 是 DDL，直接重新置位 Table 頁面，執行速度極快。"
+            },
+            {
+                id: 20,
+                question: "聚集索引 (Clustered Index) 與非聚集索引 (Non-Clustered Index) 的核心差異是什麼？",
+                options: ["A. 一張表可以有多個 Clustered Index", "B. Clustered Index 的物理儲存順序與索引順序一致，每張表只能有一個", "C. Non-Clustered Index 查詢速度必定比 Clustered Index 快", "D. Clustered Index 不佔用磁碟空間"],
+                answer: 1,
+                explanation: "【詳解】：Clustered Index 決定了資料在磁碟上的實際物理排列順序，因此一張表只能有一個 Clustered Index (通常為主鍵)。"
+            },
+
+            // ==================== QUIZ 3: Q21 - Q30 (併行控制、修復系統與關聯運算) ====================
+            {
+                id: 21,
+                question: "在交易隔離層級中，能夠完全防止髒讀 (Dirty Read)、不可重複讀 (Non-repeatable Read) 及幻讀 (Phantom Read) 的最高層級是？",
+                options: ["A. Read Committed", "B. Repeatable Read", "C. Serializable", "D. Snapshot Isolation"],
+                answer: 2,
+                explanation: "【詳解】：Serializable (可序列化) 是最高的交易隔離層級，強制交易循序執行，可防範所有的讀取異象 (Read Anomalies)。"
+            },
+            {
+                id: 22,
+                question: "關聯式代數中，差集運算 (Difference R - S) 必須滿足什麼前提條件？",
+                options: ["A. 兩者必須擁有相同數量的 Tuple", "B. 兩者必須滿足聯集相容 (Union Compatibility)", "C. 兩者必須有相同的 Primary Key", "D. 兩者欄位名稱必須完全相異"],
+                answer: 1,
+                explanation: "【詳解】：集合運算 (Union ∪, Intersection ∩, Difference -) 均要求兩關聯表必須「聯集相容 (Union Compatible)」，即屬性數量與對應域 (Domain) 型別必須相同。"
+            },
+            {
+                id: 23,
+                question: "在 ER 模型轉關聯表 (Relational Schema) 時，1:N (一對多) 的關聯通常如何處理？",
+                options: ["A. 將 '1' 方的主鍵放入 'N' 方作為外鍵 (Foreign Key)", "B. 將 'N' 方的主鍵放入 '1' 方作為外鍵", "C. 必須獨立建立一張全新的關聯表", "D. 將兩方合併成一張表"],
+                answer: 0,
+                explanation: "【詳解】：在 1:N 關係中，最有效率且正規的方式是將 1 端的 Primary Key 放入 N 端資料表中擔任 Foreign Key。"
+            },
+            {
+                id: 24,
+                question: "下列關於 SQL 視圖 (View) 的敘述，何者正確？",
+                options: ["A. View 必定會實際佔用額外的磁碟資料儲存空間", "B. View 是基於 SQL 查詢的虛擬表 (Virtual Table)", "C. View 建立後就絕對無法執行 DROP 操作", "D. View 不能簡化複雜的 SQL 查詢"],
+                answer: 1,
+                explanation: "【詳解】：View 是根據 SELECT 查詢定義出的虛擬表，不佔用實際資料儲存空間 (除非是 Materialized View)，用於提升安全性與簡化查詢。"
+            },
+            {
+                id: 25,
+                question: "在崩潰復原機制 (Crash Recovery) 的 ARIES 演算法中，第一個階段是什麼？",
+                options: ["A. Redo Phase (重做階段)", "B. Undo Phase (撤銷階段)", "C. Analysis Phase (分析階段)", "D. Checkpoint Phase (檢查點階段)"],
+                answer: 2,
+                explanation: "【詳解】：ARIES 演算法的三大階段順序為：1. Analysis Phase (分析日誌確定髒頁與活躍交易) -> 2. Redo Phase (重做) -> 3. Undo Phase (撤銷未完成交易)。"
+            },
+            {
+                id: 26,
+                question: "第四正規化 (4NF, Fourth Normal Form) 主要用於消除下列何種相依性？",
+                options: ["A. 部分函數相依", "B. 遞移函數相依", "C. 多值相依 (Multivalued Dependency, MVD)", "D. 連接相依 (Join Dependency)"],
+                answer: 2,
+                explanation: "【詳解】：4NF 的定義是必須符合 BCNF，且不存在非平庸的多值相依 (Multivalued Dependency, A ↠ B)。"
+            },
+            {
+                id: 27,
+                question: "若要刪除資料庫中已存在的資料表結構及其內容，應使用下列哪個 SQL 語句？",
+                options: ["A. DELETE TABLE Students;", "B. DROP TABLE Students;", "C. REMOVE TABLE Students;", "D. ALTER TABLE Students DROP;"],
+                answer: 1,
+                explanation: "【詳解】：DROP TABLE 用來刪除整張資料表的定義結構與所有資料；DELETE 僅刪除資料列保留表結構。"
+            },
+            {
+                id: 28,
+                question: "在多版本併行控制 (MVCC, Multi-Version Concurrency Control) 中，寫入操作通常不會阻塞讀取操作，其原因為何？",
+                options: ["A. 寫入時會自動關閉所有索引", "B. 讀取操作只會讀取該時間點的歷史快照版本 (Snapshot)", "C. MVCC 不允許任何寫入鎖定", "D. MVCC 將所有資料存在記憶體"],
+                answer: 1,
+                explanation: "【詳解】：MVCC 透過維護資料的多個版本 (Undo Log 鏈)，讀取者讀取歷史快照版本 (Snapshot)，因此實現了「讀不阻塞寫，寫不阻塞讀」。"
+            },
+            {
+                id: 29,
+                question: "SQL 中的 UNIQUE 約束 (Constraint) 與 PRIMARY KEY 約束的主要差別為何？",
+                options: ["A. UNIQUE 欄位允許包含 NULL 值，而 PRIMARY KEY 絕不允許 NULL", "B. UNIQUE 不能加在多個欄位上", "C. PRIMARY KEY 自動包含 FOREIGN KEY 功能", "D. 兩者完全無異"],
+                answer: 0,
+                explanation: "【詳解】：PRIMARY KEY 隱含 NOT NULL 與 UNIQUE 特性；而 UNIQUE 允許欄位中有 NULL 值 (標明唯一但未指定)。"
+            },
+            {
+                id: 30,
+                question: "在查詢優化 (Query Optimization) 中，將選擇運算子 (Selection σ) 儘可能下推 (Push-down) 的主要好處是什麼？",
+                options: ["A. 減少後續運算 (如 Join) 處理的中間資料量", "B. 增加硬碟寫入次數", "C. 防止資料庫產生死鎖", "D. 自動修正非正規化的表"],
+                answer: 0,
+                explanation: "【詳解】：Selection Push-down 可以在連接 (Join) 或笛卡兒積前過濾無效列，顯著減少中間運算的資料數量與記憶體消耗。"
+            },
+
+            // ==================== QUIZ 4: Q31 - Q40 (進階資料庫技術與 NoSQL) ====================
+            {
+                id: 31,
+                question: "在散列索引 (Hash Index) 結構中，最擅長處理哪種類型的 SQL 查詢？",
+                options: ["A. 範圍查詢 (Range Query, 例如 WHERE age > 20)", "B. 精確值等值查詢 (Equality Query, 例如 WHERE id = 100)", "C. 模糊查詢 (LIKE '%ABC%')", "D. 排序查詢 (ORDER BY)"],
+                answer: 1,
+                explanation: "【詳解】：Hash Index 透過 Hash Function 計算桶位，等值對應 (O(1)) 速度極快；但無序性使其無法支援範圍查詢 (Range Query) 與排序。"
+            },
+            {
+                id: 32,
+                question: "第五正規化 (5NF, Project-Join Normal Form) 主要旨在消除下列何者？",
+                options: ["A. 多值相依", "B. 遞移函數相依", "C. 冗餘的連接相依 (Join Dependency)", "D. 部分函數相依"],
+                answer: 2,
+                explanation: "【詳解】：5NF 處理將資料表拆分為多個小表後，再經由 Join 無損還原的限制，主要消除不適當的連接相依 (Join Dependency)。"
+            },
+            {
+                id: 33,
+                question: "CAP 定理指出分散式系統無法同時完全滿足三個特性，下列何者不屬於 CAP 定理的三要素？",
+                options: ["A. Consistency (一致性)", "B. Availability (可用性)", "C. Partition Tolerance (分區耐受性)", "D. Performance (高效能性)"],
+                answer: 3,
+                explanation: "【詳解】：CAP 定理三要素為 C (Consistency), A (Availability), P (Partition Tolerance)，分散式系統最多僅能同時滿足其中兩項。"
+            },
+            {
+                id: 34,
+                question: "SQL 的外鍵約束 (FOREIGN KEY) 加上 `ON DELETE CASCADE` 動作代表什麼意思？",
+                options: ["A. 當父表的主鍵記錄被刪除時，子表中相對應外鍵的記錄也會自動被一併刪除", "B. 禁止刪除父表資料", "C. 將子表外鍵設為 NULL", "D. 將父表記錄備份到垃圾桶"],
+                answer: 0,
+                explanation: "【詳解】：CASCADE (級聯) 代表連動操作。`ON DELETE CASCADE` 會在刪除父表主鍵資料時，自動刪除所有參照該主鍵的子表關聯資料。"
+            },
+            {
+                id: 35,
+                question: "下列哪一種 NoSQL 資料庫類型最適合用於圖形結構分析 (如社交網路好友關係、推薦系統)？",
+                options: ["A. Document Store (文件型，如 MongoDB)", "B. Key-Value Store (鍵值型，如 Redis)", "C. Graph Database (圖形資料庫，如 Neo4j)", "D. Column-Family Store (列族型，如 Cassandra)"],
+                answer: 2,
+                explanation: "【詳解】：Graph Database (如 Neo4j) 使用 Node (節點)、Edge (邊)、Property (屬性) 儲存資料，專為複雜關係網路與路徑查詢設計。"
+            },
+            {
+                id: 36,
+                question: "在交易日誌 (Transaction Log) 中，當執行 Checkpoint (檢查點) 操作時，系統主要的動作是什麼？",
+                options: ["A. 清空資料庫內所有的資料表", "B. 將記憶體 Buffer Pool 中所有修改過的 Dirty Pages 刷入實體磁碟", "C. 關閉所有資料庫連線", "D. 自動將表結構升級至 3NF"],
+                answer: 1,
+                explanation: "【詳解】：Checkpoint 會將記憶體中的髒頁 (Dirty Pages) 寫入磁碟，並記錄日誌，從而縮短系統崩潰復原時需要掃描與 Redo 的日誌量。"
+            },
+            {
+                id: 37,
+                question: "在 SQL 中，COUNT(*) 與 COUNT(column_name) 的主要運算差異是什麼？",
+                options: ["A. COUNT(*) 會包含 NULL 值的列數；COUNT(column_name) 會自動忽略 NULL 值", "B. COUNT(*) 不會計算任何 NULL 列", "C. COUNT(column_name) 執行速度永遠比 COUNT(*) 快", "D. 兩者完全等價無差異"],
+                answer: 0,
+                explanation: "【詳解】：COUNT(*) 計算資料表總列數 (包含全 NULL 或部分 NULL)；COUNT(欄位) 僅計算該指定欄位中「非 NULL」的筆數。"
+            },
+            {
+                id: 38,
+                question: "關聯代數中的自然連接 (Natural Join) 可以由哪些基本關聯運算子組合而成？",
+                options: ["A. 笛卡兒積 (Cartesian Product)、選擇 (Selection) 與 投影 (Projection)", "B. 聯集 (Union) 與 差集 (Difference)", "C. 交集 (Intersection) 與 選擇 (Selection)", "D. 除法 (Division) 與 投影 (Projection)"],
+                answer: 0,
+                explanation: "【詳解】：R ⋈ S 可以表示為：對 R × S (笛卡兒積) 執行同名欄位相等的 Selection (σ)，最後透過 Projection (π) 去除重複欄位。"
+            },
+            {
+                id: 39,
+                question: "在 SQL 交易處理中，`ROLLBACK` 指令的功能是什麼？",
+                options: ["A. 永久儲存目前交易的所有變更", "B. 復原 (撤銷) 目前交易中自上次 COMMIT 以來的所有變更", "C. 將資料庫備份到外部雲端", "D. 刪除資料庫的主鍵索引"],
+                answer: 1,
+                explanation: "【詳解】：ROLLBACK 用於交易發生錯誤或由使用者發出時，撤銷 (Undo) 當前交易的所有未提交修改，還原至交易開始狀態。"
+            },
+            {
+                id: 40,
+                question: "為了防止 SQL 注入攻擊 (SQL Injection)，最佳且最標準的程式寫作防禦方式為何？",
+                options: ["A. 使用 Prepared Statements (預編譯語句 / 參數化查詢)", "B. 將所有資料庫欄位改成加密字串", "C. 停用所有 SELECT 指令", "D. 定期重啟資料庫伺服器"],
+                answer: 0,
+                explanation: "【詳解】：Prepared Statements 能將 SQL 程式碼邏輯與使用者傳入的資料完全分離，從根本上防範 SQL Injection。"
+            }
+        ];
+
+        // --- APP STATE ---
+        const QUESTIONS_PER_QUIZ = 10;
+        let currentQuizIndex = 0;
+        let userAnswers = {}; // key: global Question ID, value: selected option index
+        let totalScore = 0;
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            renderQuizSelectorTabs();
+            loadQuiz(0);
+        };
+
+        // Render Tabs for selecting Quiz Level
+        function renderQuizSelectorTabs() {
+            const totalQuizzes = Math.ceil(ALL_QUESTIONS.length / QUESTIONS_PER_QUIZ);
+            const container = document.getElementById('quiz-selector-tabs');
+            container.innerHTML = '';
+
+            for (let i = 0; i < totalQuizzes; i++) {
+                const startQ = i * QUESTIONS_PER_QUIZ + 1;
+                const endQ = Math.min((i + 1) * QUESTIONS_PER_QUIZ, ALL_QUESTIONS.length);
+                
+                const btn = document.createElement('button');
+                btn.id = `tab-btn-${i}`;
+                btn.onclick = () => switchQuiz(i);
+                btn.className = `option-btn comic-border rounded-xl px-4 py-2 text-sm font-extrabold flex items-center gap-2 ${
+                    i === currentQuizIndex 
+                    ? 'bg-popPink text-white shadow-pop' 
+                    : 'bg-white text-comicDark shadow-pop-sm hover:bg-gray-50'
+                }`;
+                btn.innerHTML = `<i class="fa-solid fa-gamepad"></i> 小考 ${i + 1} (Q${startQ}-Q${endQ})`;
+                container.appendChild(btn);
+            }
+        }
+
+        // Switch Active Quiz
+        function switchQuiz(quizIdx) {
+            currentQuizIndex = quizIdx;
+            
+            const totalQuizzes = Math.ceil(ALL_QUESTIONS.length / QUESTIONS_PER_QUIZ);
+            for (let i = 0; i < totalQuizzes; i++) {
+                const tab = document.getElementById(`tab-btn-${i}`);
+                if (tab) {
+                    if (i === currentQuizIndex) {
+                        tab.className = 'option-btn comic-border rounded-xl px-4 py-2 text-sm font-extrabold flex items-center gap-2 bg-popPink text-white shadow-pop';
+                    } else {
+                        tab.className = 'option-btn comic-border rounded-xl px-4 py-2 text-sm font-extrabold flex items-center gap-2 bg-white text-comicDark shadow-pop-sm hover:bg-gray-50';
+                    }
+                }
+            }
+
+            loadQuiz(quizIdx);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Load Questions for Selected Quiz Index
+        function loadQuiz(quizIdx) {
+            document.getElementById('quiz-summary-card').classList.add('hidden');
+
+            const startIdx = quizIdx * QUESTIONS_PER_QUIZ;
+            const currentQuestions = ALL_QUESTIONS.slice(startIdx, startIdx + QUESTIONS_PER_QUIZ);
+            
+            const startQNum = startIdx + 1;
+            const endQNum = startIdx + currentQuestions.length;
+            document.getElementById('level-indicator').innerText = `Quiz ${quizIdx + 1}`;
+            document.getElementById('quiz-title-badge').innerText = `測驗 ${quizIdx + 1} (Q${startQNum} ~ Q${endQNum})`;
+
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            currentQuestions.forEach((q, idx) => {
+                const qCard = createQuestionCard(q, startIdx + idx + 1);
+                container.appendChild(qCard);
+            });
+
+            updateProgress();
+        }
+
+        // Build HTML Card for Single Question
+        function createQuestionCard(q, displayIndex) {
+            const card = document.createElement('div');
+            card.id = `q-card-${q.id}`;
+            card.className = 'bg-white comic-border rounded-3xl p-5 md:p-7 shadow-pop transition-all relative';
+
+            const isAnswered = userAnswers.hasOwnProperty(q.id);
+            const selectedOpt = userAnswers[q.id];
+
+            let optionsHTML = '';
+            q.options.forEach((opt, optIdx) => {
+                let btnStyle = 'bg-white text-comicDark hover:bg-yellow-50 border-comicDark';
+                let iconHTML = `<span class="w-7 h-7 rounded-lg border-2 border-comicDark flex items-center justify-center font-bold text-xs bg-gray-100 me-3">${String.fromCharCode(65 + optIdx)}</span>`;
+                
+                if (isAnswered) {
+                    if (optIdx === q.answer) {
+                        btnStyle = 'bg-popGreen text-comicDark font-black border-comicDark ring-4 ring-green-300';
+                        iconHTML = `<span class="w-7 h-7 rounded-lg border-2 border-comicDark flex items-center justify-center font-bold text-xs bg-white text-popGreen me-3"><i class="fa-solid fa-check"></i></span>`;
+                    } else if (optIdx === selectedOpt) {
+                        btnStyle = 'bg-popRed text-white font-black border-comicDark';
+                        iconHTML = `<span class="w-7 h-7 rounded-lg border-2 border-comicDark flex items-center justify-center font-bold text-xs bg-white text-popRed me-3"><i class="fa-solid fa-xmark"></i></span>`;
+                    } else {
+                        btnStyle = 'bg-gray-100 text-gray-400 opacity-60 border-gray-300';
+                    }
+                }
+
+                optionsHTML += `
+                    <button 
+                        onclick="handleAnswer(${q.id}, ${optIdx})" 
+                        ${isAnswered ? 'disabled' : ''}
+                        class="option-btn w-full text-left p-3.5 md:p-4 rounded-2xl comic-border font-bold text-base md:text-lg flex items-center transition-all ${btnStyle}"
+                    >
+                        ${iconHTML}
+                        <span class="flex-grow">${opt.substring(3)}</span>
+                    </button>
+                `;
+            });
+
+            // Explanation Section
+            const expStyle = isAnswered ? 'block' : 'hidden';
+            const isCorrect = isAnswered && selectedOpt === q.answer;
+            const expBadgeColor = isCorrect ? 'bg-popGreen text-comicDark' : 'bg-popRed text-white';
+            const expBadgeText = isCorrect ? '🎉 答對了！ Great Job!' : '❌ 答錯了！ Keep Fighting!';
+
+            card.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <span class="bg-popYellow text-comicDark font-black text-sm px-3.5 py-1 rounded-xl comic-border shadow-pop-sm">
+                        第 ${displayIndex} 題 / Question ${displayIndex}
+                    </span>
+                    <span class="text-xs font-extrabold text-gray-400">ID: #${q.id}</span>
+                </div>
+
+                <h3 class="text-lg md:text-xl font-black text-comicDark mb-5 leading-relaxed">
+                    ${q.question}
+                </h3>
+
+                <div class="space-y-3 mb-4">
+                    ${optionsHTML}
+                </div>
+
+                <div id="explanation-${q.id}" class="${expStyle} mt-5 bg-yellow-50 comic-border rounded-2xl p-4 md:p-5 shadow-pop-sm">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="${expBadgeColor} font-black text-xs px-3 py-1 rounded-lg comic-border shadow-pop-sm">
+                            ${expBadgeText}
+                        </span>
+                    </div>
+                    <div class="text-sm md:text-base font-bold text-comicDark leading-relaxed pt-1">
+                        ${q.explanation}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Handle Option Click
+        function handleAnswer(questionId, selectedOptionIdx) {
+            if (userAnswers.hasOwnProperty(questionId)) return;
+
+            const question = ALL_QUESTIONS.find(q => q.id === questionId);
+            userAnswers[questionId] = selectedOptionIdx;
+
+            const isCorrect = selectedOptionIdx === question.answer;
+
+            if (isCorrect) {
+                playCorrectSound();
+                totalScore += 10;
+            } else {
+                playIncorrectSound();
+            }
+
+            document.getElementById('total-score').innerText = totalScore;
+
+            const currentQuestions = ALL_QUESTIONS.slice(currentQuizIndex * QUESTIONS_PER_QUIZ, (currentQuizIndex + 1) * QUESTIONS_PER_QUIZ);
+            const questionIndex = currentQuestions.findIndex(q => q.id === questionId);
+            const displayNum = currentQuizIndex * QUESTIONS_PER_QUIZ + questionIndex + 1;
+
+            const oldCard = document.getElementById(`q-card-${questionId}`);
+            const newCard = createQuestionCard(question, displayNum);
+            oldCard.replaceWith(newCard);
+
+            updateProgress();
+        }
+
+        // Update Progress Bar & Stats
+        function updateProgress() {
+            const startIdx = currentQuizIndex * QUESTIONS_PER_QUIZ;
+            const currentQuestions = ALL_QUESTIONS.slice(startIdx, startIdx + QUESTIONS_PER_QUIZ);
+            
+            let answeredCount = 0;
+            let correctCount = 0;
+            let wrongCount = 0;
+
+            currentQuestions.forEach(q => {
+                if (userAnswers.hasOwnProperty(q.id)) {
+                    answeredCount++;
+                    if (userAnswers[q.id] === q.answer) {
+                        correctCount++;
+                    } else {
+                        wrongCount++;
+                    }
+                }
+            });
+
+            const total = currentQuestions.length;
+            const percent = (answeredCount / total) * 100;
+
+            document.getElementById('progress-text').innerText = `完成度: ${answeredCount} / ${total} 題`;
+            document.getElementById('quiz-correct-count').innerText = correctCount;
+            document.getElementById('quiz-wrong-count').innerText = wrongCount;
+            document.getElementById('progress-bar-fill').style.width = `${percent}%`;
+
+            if (answeredCount === total && total > 0) {
+                showQuizSummary(correctCount, total);
+            }
+        }
+
+        // Show Summary Results Card & Confetti
+        function showQuizSummary(correct, total) {
+            const percent = Math.round((correct / total) * 100);
+            const summaryCard = document.getElementById('quiz-summary-card');
+            
+            document.getElementById('summary-quiz-name').innerText = `測驗 ${currentQuizIndex + 1} (Q${currentQuizIndex * QUESTIONS_PER_QUIZ + 1} - Q${Math.min((currentQuizIndex + 1) * QUESTIONS_PER_QUIZ, ALL_QUESTIONS.length)}) 完成！`;
+            document.getElementById('summary-score-percent').innerText = `${percent}%`;
+            document.getElementById('summary-correct').innerText = correct;
+            document.getElementById('summary-points').innerText = correct * 10;
+
+            let feedbackMsg = "太優秀了！你簡直是資料庫大師！💥";
+            if (percent < 60) {
+                feedbackMsg = "加油！再讀一下觀念，重新挑戰一次吧！💪";
+            } else if (percent < 90) {
+                feedbackMsg = "表現很棒喔！細心複習一下觀念會更好！✨";
+            }
+            document.getElementById('summary-feedback-msg').innerText = feedbackMsg;
+
+            const totalQuizzes = Math.ceil(ALL_QUESTIONS.length / QUESTIONS_PER_QUIZ);
+            const nextBtn = document.getElementById('next-quiz-btn');
+            if (currentQuizIndex >= totalQuizzes - 1) {
+                nextBtn.classList.add('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+            }
+
+            summaryCard.classList.remove('hidden');
+
+            if (percent >= 60) {
+                playFanfareSound();
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            setTimeout(() => {
+                summaryCard.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+        }
+
+        // Retry current 10 questions
+        function retryCurrentQuiz() {
+            const startIdx = currentQuizIndex * QUESTIONS_PER_QUIZ;
+            const currentQuestions = ALL_QUESTIONS.slice(startIdx, startIdx + QUESTIONS_PER_QUIZ);
+
+            currentQuestions.forEach(q => {
+                if (userAnswers.hasOwnProperty(q.id)) {
+                    if (userAnswers[q.id] === q.answer) {
+                        totalScore -= 10;
+                    }
+                    delete userAnswers[q.id];
+                }
+            });
+
+            document.getElementById('total-score').innerText = totalScore;
+            loadQuiz(currentQuizIndex);
+        }
+
+        // Go to next quiz
+        function goToNextQuiz() {
+            const totalQuizzes = Math.ceil(ALL_QUESTIONS.length / QUESTIONS_PER_QUIZ);
+            if (currentQuizIndex < totalQuizzes - 1) {
+                switchQuiz(currentQuizIndex + 1);
+            }
+        }
+    </script>
+</body>
+</html>
